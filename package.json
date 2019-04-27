@@ -1,0 +1,22 @@
+{
+	"name": "empty-frontend-typescript-webpack",
+	"version": "1.0.0",
+	"description": "",
+	"sideEffects": false,
+	"private": true,
+	"author": "",
+	"license": "ISC",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "webpack --config webpack.prod.js",
+		"start": "webpack-dev-server --open --config webpack.dev.js"
+	},
+	"devDependencies": {
+		"ts-loader": "^5.3.3",
+		"typescript": "^3.3.3333",
+		"webpack": "^4.29.6",
+		"webpack-cli": "^3.2.3",
+		"webpack-dev-server": "^3.2.1",
+		"webpack-merge": "^4.2.1"
+	}
+}
