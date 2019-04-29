@@ -13,14 +13,22 @@ export default class Player {
 	private ctx: CanvasRenderingContext2D;
 
 	constructor(map: Map) {
-		this.x = 200;
-		this.y = 200;
-		this.canvas = document.getElementsByTagName('canvas')[0];
+		this.x = 600;
+		this.y = 600;
+		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
 		this.ctx = this.canvas.getContext('2d');
 		this.hands = [];
 		this.hands.push(new Hand(this.size));
 		this.hands.push(new Hand(this.size));
 		this.map = map;
+	}
+
+	private getCenterX(): number {
+		return Math.round(this.x + this.size / 2);
+	}
+
+	private getCenterY(): number {
+		return Math.round(this.y + this.size / 2);
 	}
 
 	getX(): number {
@@ -44,31 +52,42 @@ export default class Player {
 	}
 
 	playerMove(up: boolean, left: boolean, down: boolean, right: boolean, mouseX: number, mouseY: number): void {
-		//change player position
+		//standart speed on grass
 		let speed = this.speed;
 
-		const centerX = this.canvas.width / 2;
-		const centerY = this.canvas.height / 2;
-
 		//speed in water
-		const playerCorners = [
-			{ x: centerX - this.size / 2, y: centerY - this.size / 2 },
-			{ x: centerX + this.size / 2, y: centerY - this.size / 2 },
-			{ x: centerX - this.size / 2, y: centerY + this.size / 2 },
-			{ x: centerX + this.size / 2, y: centerY + this.size / 2 }
-		];
+		for (let i = 0; i < this.map.terrain.length; i++) {
+			//terrain block is under me
+			//my center
+			if (
+				this.getCenterX() < this.map.terrain[i].x + this.map.terrain[i].width &&
+				this.getCenterX() >= this.map.terrain[i].x &&
+				this.getCenterY() < this.map.terrain[i].y + this.map.terrain[i].height &&
+				this.getCenterY() >= this.map.terrain[i].y
+			) {
+				if (this.map.terrain[i].type === 'water') {
+					speed = this.speed / 2;
+				}
+				if (
+					this.map.terrain[i].type === 'waterTriangle1' ||
+					this.map.terrain[i].type === 'waterTriangle2' ||
+					this.map.terrain[i].type === 'waterTriangle3' ||
+					this.map.terrain[i].type === 'waterTriangle4'
+				) {
+					const myXPositionOnTerrain = this.getCenterX() - this.map.terrain[i].x;
+					const myYPositionOnTerrain = this.getCenterY() - this.map.terrain[i].y;
 
-		let inWater = 0;
-		for (const corner of playerCorners) {
-			const px = this.ctx.getImageData(corner.x, corner.y, 1, 1).data;
-			console.log(px);
-			if (px[0] === 105 && px[1] === 162 && px[2] === 224) {
-				inWater++;
+					if (
+						this.map.waterTerrainData.includeWater(
+							this.map.terrain[i].type,
+							myXPositionOnTerrain,
+							myYPositionOnTerrain
+						)
+					) {
+						speed = this.speed / 2;
+					}
+				}
 			}
-		}
-
-		if (inWater === 4) {
-			speed /= 2;
 		}
 
 		//diagonal speed
@@ -88,6 +107,8 @@ export default class Player {
 
 		//rotate player
 		//triangular sides
+		const centerX = this.canvas.width / 2;
+		const centerY = this.canvas.height / 2;
 		const x = centerX - mouseX;
 		const y = centerY - mouseY;
 		//atangens

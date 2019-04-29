@@ -2,25 +2,24 @@ import { Keys, Mouse } from './controller';
 import View from './view';
 import Player from './player';
 import Map from './map';
+import WaterTerrainData from './waterTerrainData';
+
 
 export class Model {
 	private view: View;
 	private player: Player;
+	private waterTerrainData: WaterTerrainData
 	private keys: Keys;
 	private mouse: Mouse;
 	private map: Map;
 	constructor(keys: Keys, mouse: Mouse) {
-		this.view = new View();
-		this.createMap();
+		this.waterTerrainData = new WaterTerrainData();
+		this.view = new View(this.waterTerrainData);
+		this.map = new Map(this.waterTerrainData);
 		this.player = new Player(this.map);
 		this.keys = keys;
 		this.mouse = mouse;
 		this.gameLoop();
-	}
-
-	private createMap(): void {
-		this.map = new Map();
-
 	}
 
 	private gameLoop(): void {

@@ -10,10 +10,17 @@
 			box-sizing: border-box;
 			overflow: hidden;
 		}
+		canvas#helper{
+			display: none;
+			position: absolute;
+			top:0;
+			left:0;
+		}
 	</style>
 </head>
 <body>
-	<canvas width="800" height="600"></canvas>
+	<canvas id="gameScreen" width="800" height="600"></canvas>
+	<canvas id="helper"></canvas>
 	<script src="app.js"></script>
 </body>
 </html>

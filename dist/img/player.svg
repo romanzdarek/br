@@ -3,6 +3,6 @@
  <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
  <g class="layer">
   <title>Layer 1</title>
-  <circle cx="50" cy="50" fill="#ffaa56" id="svg_2" r="50" stroke="#000000" stroke-width="0"/>
+  <circle cx="50" cy="50" fill="#ffaa56" id="svg_2" r="48" stroke="gray" stroke-width="3"/>
  </g>
 </svg>
