@@ -6,7 +6,6 @@ import { triangel4 } from './triangel4Data';
 */
 
 export default class WaterTerrainData {
-
 	private waterTriangle1: boolean[][] = [];
 	private waterTriangle2: boolean[][] = [];
 	private waterTriangle3: boolean[][] = [];
@@ -65,7 +64,14 @@ export default class WaterTerrainData {
 			if (waterData[x][y]) state = true;
 		}
 		else {
-			throw new Error('Out of range on water type');
+			//no water data yet
+			//no water data == we are in water
+			if (waterData.length === 0) {
+				state = true;
+			}
+			else {
+				throw new Error('Out of range on water type');
+			}
 		}
 		return state;
 	}

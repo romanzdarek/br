@@ -13,8 +13,8 @@ export default class Player {
 	private ctx: CanvasRenderingContext2D;
 
 	constructor(map: Map) {
-		this.x = 600;
-		this.y = 600;
+		this.x = 300;
+		this.y = 300;
 		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
 		this.ctx = this.canvas.getContext('2d');
 		this.hands = [];
