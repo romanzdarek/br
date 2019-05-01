@@ -4,11 +4,10 @@ import Player from './player';
 import Map from './map';
 import WaterTerrainData from './waterTerrainData';
 
-
 export class Model {
 	private view: View;
 	private player: Player;
-	private waterTerrainData: WaterTerrainData
+	private waterTerrainData: WaterTerrainData;
 	private keys: Keys;
 	private mouse: Mouse;
 	private map: Map;
@@ -30,11 +29,15 @@ export class Model {
 
 		this.player.playerMove(this.keys.w, this.keys.a, this.keys.s, this.keys.d, this.mouse.x, this.mouse.y);
 		//hit
-		if(this.mouse.left){
+		if (this.mouse.left) {
 			this.player.hit();
 			this.mouse.left = false;
 		}
 
 		this.view.draw(this.map, this.player);
+	}
+
+	screenResize(): void {
+		this.view.screenResize();
 	}
 }

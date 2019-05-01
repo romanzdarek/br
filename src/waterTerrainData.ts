@@ -1,8 +1,23 @@
+/*
+import { triangel1 } from './triangel1Data';
+import { triangel2 } from './triangel2Data';
+import { triangel3 } from './triangel3Data';
+import { triangel4 } from './triangel4Data';
+*/
+
 export default class WaterTerrainData {
+
 	private waterTriangle1: boolean[][] = [];
 	private waterTriangle2: boolean[][] = [];
 	private waterTriangle3: boolean[][] = [];
 	private waterTriangle4: boolean[][] = [];
+
+	/*
+	private waterTriangle1: number[][] = triangel1;
+	private waterTriangle2: number[][] = triangel2;
+	private waterTriangle3: number[][] = triangel3;
+	private waterTriangle4: number[][] = triangel4;
+	*/
 
 	constructor() {}
 
@@ -54,4 +69,16 @@ export default class WaterTerrainData {
 		}
 		return state;
 	}
+
+	/*
+	write(): void {
+		const el = document.createElement('p');
+		el.style.position = 'absolute';
+		el.style.top = '0';
+		el.style.left = '0';
+
+		el.textContent = JSON.stringify(this.waterTriangle4);
+		document.body.appendChild(el);
+	}
+	*/
 }

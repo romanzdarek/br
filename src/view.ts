@@ -10,6 +10,7 @@ export default class View {
 	private playerHandSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
 	private waterTerrainData: WaterTerrainData;
+	private resolutionAdjustment: number = 1;
 
 	constructor(waterTerrainData: WaterTerrainData) {
 		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
@@ -27,7 +28,25 @@ export default class View {
 			this.saveWaterPixels('waterTriangle2');
 			this.saveWaterPixels('waterTriangle3');
 			this.saveWaterPixels('waterTriangle4');
+			//this.waterTerrainData.write();
 		};
+	}
+
+	screenResize(): void {
+		this.canvas.width = window.innerWidth;
+		this.canvas.height = window.innerHeight;
+		console.log('Resize: x: width ' + this.canvas.width + ' height: ' + this.canvas.height);
+		this.changeResolutionAdjustment();
+	}
+
+	private changeResolutionAdjustment(): void {
+		const defaultWidth = 1920;
+		const defaultHeight = 1050;
+		const width = this.canvas.width / defaultWidth;
+		const height = this.canvas.height / defaultHeight;
+		const finalAdjustment = (width + height) / 2;
+		this.resolutionAdjustment = finalAdjustment;
+		console.log('finalAdjustment:', finalAdjustment);
 	}
 
 	private saveWaterPixels(waterType: string): void {
@@ -58,6 +77,27 @@ export default class View {
 		ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage);
 		ctx.restore();
 
+		//worker
+		if (typeof Worker !== 'undefined') {
+			const worker = new Worker('workerFindWater.js');
+			worker.onmessage = (e) => {
+				//console.log(new Date().getTime() - e.data.time, e.data);
+				this.waterTerrainData.setData(e.data.type, e.data.data);
+			};
+			const data = ctx.getImageData(0, 0, this.waterTrianglePNG.width, this.waterTrianglePNG.height).data;
+			worker.postMessage({
+				data,
+				size: this.waterTrianglePNG.width,
+				type: waterType,
+				time: new Date().getTime()
+			});
+		}
+		else {
+			console.log("Your browser doesn't support web workers.");
+		}
+
+		/*
+		console.time('a');
 		for (let x = 0; x < this.waterTrianglePNG.width; x++) {
 			waterData[x] = [];
 			for (let y = 0; y < this.waterTrianglePNG.height; y++) {
@@ -72,7 +112,9 @@ export default class View {
 				}
 			}
 		}
+		console.timeEnd('a');
 		this.waterTerrainData.setData(waterType, waterData);
+		*/
 	}
 
 	draw(map: Map, player: Player): void {
@@ -92,13 +134,12 @@ export default class View {
 		ctx.fillStyle = '#69A2E0';
 		ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-		const gridSize = map.blocks[1].x;
+		const gridSize = map.blocks[1].x * this.resolutionAdjustment;
 		//grass
 		for (const block of map.blocks) {
 			ctx.fillStyle = '#A2CB69';
-			const x = screenCenterX + (block.x - playerCenterX);
-			const y = screenCenterY + (block.y - playerCenterY);
-			//top
+			const x = screenCenterX + (block.x - playerCenterX) * this.resolutionAdjustment;
+			const y = screenCenterY + (block.y - playerCenterY) * this.resolutionAdjustment;
 			ctx.fillRect(x, y, gridSize, gridSize);
 		}
 
@@ -106,24 +147,41 @@ export default class View {
 		for (const terrain of map.terrain) {
 			ctx.fillStyle = '#69A2E0';
 			//position on screen from center
-			const x = screenCenterX + (terrain.x - playerCenterX);
-			const y = screenCenterY + (terrain.y - playerCenterY);
+			const x = screenCenterX + (terrain.x - playerCenterX) * this.resolutionAdjustment;
+			const y = screenCenterY + (terrain.y - playerCenterY) * this.resolutionAdjustment;
 			if (terrain.type === 'water') {
-				ctx.fillRect(x, y, terrain.width, terrain.height);
+				ctx.fillRect(
+					x,
+					y,
+					terrain.width * this.resolutionAdjustment,
+					terrain.height * this.resolutionAdjustment
+				);
 			}
 			if (terrain.type === 'waterTriangle1') {
-				ctx.drawImage(this.waterTrianglePNG, x, y);
+				ctx.drawImage(
+					this.waterTrianglePNG,
+					x,
+					y,
+					this.waterTrianglePNG.width * this.resolutionAdjustment,
+					this.waterTrianglePNG.height * this.resolutionAdjustment
+				);
 			}
 			if (
 				terrain.type === 'waterTriangle2' ||
 				terrain.type === 'waterTriangle3' ||
 				terrain.type === 'waterTriangle4'
 			) {
-				let middleImage = terrain.width / 2;
+				let middleImage = terrain.width / 2 * this.resolutionAdjustment;
 				this.ctx.save();
 				this.ctx.translate(x + middleImage, y + middleImage);
 				this.ctx.rotate(terrain.angle * Math.PI / 180);
-				this.ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage);
+				this.ctx.drawImage(
+					this.waterTrianglePNG,
+					-middleImage,
+					-middleImage,
+					this.waterTrianglePNG.width * this.resolutionAdjustment,
+					this.waterTrianglePNG.height * this.resolutionAdjustment
+				);
 				this.ctx.restore();
 			}
 		}
@@ -131,8 +189,8 @@ export default class View {
 		//mapGrid
 		for (const block of map.blocks) {
 			ctx.fillStyle = 'gray';
-			const x = screenCenterX + (block.x - playerCenterX);
-			const y = screenCenterY + (block.y - playerCenterY);
+			const x = screenCenterX + (block.x - playerCenterX) * this.resolutionAdjustment;
+			const y = screenCenterY + (block.y - playerCenterY) * this.resolutionAdjustment;
 			//top
 			if (block.y === 0) ctx.fillRect(x, y, gridSize, 1);
 			//bottom
@@ -144,18 +202,23 @@ export default class View {
 		}
 
 		//player
-		ctx.drawImage(this.playerSVG, screenCenterX - player.size / 2, screenCenterY - player.size / 2);
+		ctx.drawImage(
+			this.playerSVG,
+			screenCenterX - player.size * this.resolutionAdjustment / 2,
+			screenCenterY - player.size * this.resolutionAdjustment / 2,
+			this.playerSVG.width * this.resolutionAdjustment,
+			this.playerSVG.height * this.resolutionAdjustment
+		);
 
 		//player hands
-		ctx.drawImage(
-			this.playerHandSVG,
-			screenCenterX + (player.hands[0].getX() - playerCenterX),
-			screenCenterY + (player.hands[0].getY() - playerCenterY)
-		);
-		ctx.drawImage(
-			this.playerHandSVG,
-			screenCenterX + (player.hands[1].getX() - playerCenterX),
-			screenCenterY + (player.hands[1].getY() - playerCenterY)
-		);
+		for (let i = 0; i < player.hands.length; i++) {
+			ctx.drawImage(
+				this.playerHandSVG,
+				screenCenterX + (player.hands[i].getX() - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (player.hands[i].getY() - playerCenterY) * this.resolutionAdjustment,
+				this.playerHandSVG.width * this.resolutionAdjustment,
+				this.playerHandSVG.height * this.resolutionAdjustment
+			);
+		}
 	}
 }

@@ -34,9 +34,9 @@ export class Controller {
 
 	private constructor() {
 		this.model = new Model(this.keys, this.mouse);
-		this.resize();
+		this.model.screenResize();
 		window.addEventListener('resize', () => {
-			this.resize();
+			this.model.screenResize();
 		});
 		this.keysController();
 		this.mouseController();
@@ -49,13 +49,6 @@ export class Controller {
 		else {
 			throw new Error('Only one controller!');
 		}
-	}
-
-	private resize(): void {
-		const canvas: HTMLCanvasElement = document.getElementsByTagName('canvas')[0];
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
-		console.log('resize');
 	}
 
 	private mouseController(): void {
