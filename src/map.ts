@@ -1,5 +1,10 @@
 import Terrain from './terrain';
+import Bush from './bush';
+import Tree from './tree';
+import Rock from './rock';
+import Point from './point';
 import WaterTerrainData from './waterTerrainData';
+import RoundObstacle from './roundObstacle';
 
 export type Block = {
 	x: number;
@@ -11,6 +16,10 @@ export default class Map {
 	readonly height: number;
 	readonly blocks: Block[] = [];
 	readonly terrain: Terrain[] = [];
+	readonly impassableRoundObstacles: RoundObstacle[] = [];
+	readonly bushes: Bush[] = [];
+	readonly trees: Tree[] = [];
+	readonly rocks: Rock[] = [];
 	readonly waterTerrainData: WaterTerrainData;
 
 	constructor(waterTerrainData: WaterTerrainData) {
@@ -38,5 +47,29 @@ export default class Map {
 		this.terrain.push(new Terrain('waterTriangle2', 3 * blockSize, blockSize, blockSize, blockSize));
 		this.terrain.push(new Terrain('waterTriangle3', 3 * blockSize, 3 * blockSize, blockSize, blockSize));
 		this.terrain.push(new Terrain('waterTriangle4', blockSize, 3 * blockSize, blockSize, blockSize));
+
+		//bushes
+		this.bushes.push(new Bush(600, 600));
+		this.bushes.push(new Bush(300, 400));
+
+		//rocks
+		const rock = new Rock(100, 100);
+		this.rocks.push(rock);
+		this.impassableRoundObstacles.push(rock);
+
+		const rock2 = new Rock(550, 550);
+		this.rocks.push(rock2);
+		this.impassableRoundObstacles.push(rock2);
+
+		const rock3 = new Rock(700, 550);
+		this.rocks.push(rock3);
+		this.impassableRoundObstacles.push(rock3);
+
+		//this.rocks[0].isPointIn(new Point(120, 120));
+
+		//trees
+		const tree = new Tree(800, 800);
+		this.trees.push(tree);
+		this.impassableRoundObstacles.push(tree);
 	}
 }

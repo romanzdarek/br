@@ -1,4 +1,4 @@
-import { Model } from './model';
+import Model from './model';
 
 export type Keys = {
 	w: boolean;

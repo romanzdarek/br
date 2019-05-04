@@ -1,6 +1,7 @@
 import Player from './player';
 import Map from './map';
 import WaterTerrainData from './waterTerrainData';
+import Point from './point';
 
 export default class View {
 	private canvas: HTMLCanvasElement;
@@ -8,6 +9,9 @@ export default class View {
 	private ctx: CanvasRenderingContext2D;
 	private playerSVG: HTMLImageElement;
 	private playerHandSVG: HTMLImageElement;
+	private bushSVG: HTMLImageElement;
+	private rockSVG: HTMLImageElement;
+	private treeSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
@@ -16,12 +20,25 @@ export default class View {
 		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
 		this.helperCanvas = <HTMLCanvasElement>document.getElementById('helper');
 		this.ctx = this.canvas.getContext('2d');
+
 		this.playerSVG = new Image();
 		this.playerSVG.src = 'img/player.svg';
+
 		this.playerHandSVG = new Image();
 		this.playerHandSVG.src = 'img/hand.svg';
+
+		this.bushSVG = new Image();
+		this.bushSVG.src = 'img/bush.svg';
+
+		this.rockSVG = new Image();
+		this.rockSVG.src = 'img/rock.svg';
+
+		this.treeSVG = new Image();
+		this.treeSVG.src = 'img/tree.svg';
+
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
+
 		this.waterTerrainData = waterTerrainData;
 		this.waterTrianglePNG.onload = () => {
 			this.saveWaterPixels('waterTriangle1');
@@ -51,7 +68,6 @@ export default class View {
 
 	private saveWaterPixels(waterType: string): void {
 		const ctx = this.helperCanvas.getContext('2d');
-		let waterData: boolean[][] = [];
 		this.helperCanvas.width = this.waterTrianglePNG.width;
 		this.helperCanvas.height = this.waterTrianglePNG.height;
 		//white background
@@ -97,6 +113,7 @@ export default class View {
 		}
 
 		/*
+		let waterData: boolean[][] = [];
 		console.time('a');
 		for (let x = 0; x < this.waterTrianglePNG.width; x++) {
 			waterData[x] = [];
@@ -206,9 +223,18 @@ export default class View {
 			this.playerSVG,
 			screenCenterX - player.size * this.resolutionAdjustment / 2,
 			screenCenterY - player.size * this.resolutionAdjustment / 2,
-			this.playerSVG.width * this.resolutionAdjustment,
-			this.playerSVG.height * this.resolutionAdjustment
+			player.size * this.resolutionAdjustment,
+			player.size * this.resolutionAdjustment
 		);
+
+		//collision points
+		for (let i = 0; i < player.collisionPoints.length; i++) {
+			const point = player.collisionPoints[i];
+			const x = screenCenterX + point.getX() * this.resolutionAdjustment;
+			const y = screenCenterY + point.getY() * this.resolutionAdjustment;
+			ctx.fillStyle = 'red';
+			ctx.fillRect(x, y, 1, 1);
+		}
 
 		//player hands
 		for (let i = 0; i < player.hands.length; i++) {
@@ -216,9 +242,54 @@ export default class View {
 				this.playerHandSVG,
 				screenCenterX + (player.hands[i].getX() - playerCenterX) * this.resolutionAdjustment,
 				screenCenterY + (player.hands[i].getY() - playerCenterY) * this.resolutionAdjustment,
-				this.playerHandSVG.width * this.resolutionAdjustment,
-				this.playerHandSVG.height * this.resolutionAdjustment
+				player.hands[i].size * this.resolutionAdjustment,
+				player.hands[i].size * this.resolutionAdjustment
 			);
+		}
+
+		//rocks
+		for (let i = 0; i < map.rocks.length; i++) {
+			const rock = map.rocks[i];
+			ctx.save();
+			ctx.globalAlpha = rock.getOpacity();
+			ctx.drawImage(
+				this.rockSVG,
+				screenCenterX + (rock.getX() - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (rock.getY() - playerCenterY) * this.resolutionAdjustment,
+				rock.size * this.resolutionAdjustment,
+				rock.size * this.resolutionAdjustment
+			);
+			ctx.restore();
+		}
+
+		//bushes
+		for (let i = 0; i < map.bushes.length; i++) {
+			const bush = map.bushes[i];
+			ctx.save();
+			ctx.globalAlpha = bush.getOpacity();
+			ctx.drawImage(
+				this.bushSVG,
+				screenCenterX + (bush.getX() - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (bush.getY() - playerCenterY) * this.resolutionAdjustment,
+				bush.size * this.resolutionAdjustment,
+				bush.size * this.resolutionAdjustment
+			);
+			ctx.restore();
+		}
+
+		//trees
+		for (let i = 0; i < map.trees.length; i++) {
+			const tree = map.trees[i];
+			ctx.save();
+			ctx.globalAlpha = tree.getOpacity();
+			ctx.drawImage(
+				this.treeSVG,
+				screenCenterX + (tree.getX() - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (tree.getY() - playerCenterY) * this.resolutionAdjustment,
+				tree.size * this.resolutionAdjustment,
+				tree.size * this.resolutionAdjustment
+			);
+			ctx.restore();
 		}
 	}
 }

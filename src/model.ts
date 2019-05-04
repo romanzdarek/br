@@ -4,7 +4,7 @@ import Player from './player';
 import Map from './map';
 import WaterTerrainData from './waterTerrainData';
 
-export class Model {
+export default class Model {
 	private view: View;
 	private player: Player;
 	private waterTerrainData: WaterTerrainData;
