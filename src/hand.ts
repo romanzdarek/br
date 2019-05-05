@@ -1,17 +1,30 @@
+import Map from './map';
+
 export default class Hand {
 	readonly size: number = 26;
 	private x: number = 0;
 	private y: number = 0;
+	private radius: number;
 	private playerRadius: number;
 	private shiftAngle: number = 40;
 	private hitTimer: number = 0;
+	private inAction: boolean = false;
 
 	constructor(playerSize: number) {
 		this.playerRadius = playerSize / 2;
+		this.radius = this.size / 2;
 	}
 
-	ready(): boolean{
+	ready(): boolean {
 		return this.hitTimer === 0;
+	}
+
+	private getCenterX(): number {
+		return this.x + this.radius;
+	}
+
+	private getCenterY(): number {
+		return this.y + this.radius;
 	}
 
 	getX(): number {
@@ -22,7 +35,14 @@ export default class Hand {
 		return this.y;
 	}
 
-	moveHand(playerAngle: number, direction: number, playerSize: number, playerX: number, playerY: number): void {
+	moveHand(
+		playerAngle: number,
+		direction: number,
+		playerSize: number,
+		playerX: number,
+		playerY: number,
+		map: Map
+	): void {
 		let shiftAngle = this.shiftAngle;
 		let playerRadius = this.playerRadius;
 		//hit move
@@ -109,6 +129,56 @@ export default class Hand {
 					playerRadius += 0;
 					break;
 			}
+
+			//hit?
+			if (this.inAction) {
+				for (let i = 0; i < map.bushes.length; i++) {
+					const obstacle = map.bushes[i];
+					if (obstacle.getActive()) {
+						const obstacleAndHandRadius = obstacle.radius + this.radius;
+						const x = this.getCenterX() - obstacle.getCenterX();
+						const y = this.getCenterY() - obstacle.getCenterY();
+						const distance = Math.sqrt(x * x + y * y);
+						if (distance < obstacleAndHandRadius) {
+							obstacle.acceptHit();
+							this.inAction = false;
+							break;
+						}
+					}
+				}
+			}
+			if (this.inAction) {
+				for (let i = 0; i < map.rocks.length; i++) {
+					const obstacle = map.rocks[i];
+					if (obstacle.getActive()) {
+						const obstacleAndHandRadius = obstacle.radius + this.radius;
+						const x = this.getCenterX() - obstacle.getCenterX();
+						const y = this.getCenterY() - obstacle.getCenterY();
+						const distance = Math.sqrt(x * x + y * y);
+						if (distance < obstacleAndHandRadius) {
+							obstacle.acceptHit();
+							this.inAction = false;
+							break;
+						}
+					}
+				}
+			}
+			if (this.inAction) {
+				for (let i = 0; i < map.trees.length; i++) {
+					const obstacle = map.trees[i];
+					if (obstacle.getActive()) {
+						const obstacleAndHandRadius = obstacle.radius + this.radius;
+						const x = this.getCenterX() - obstacle.getCenterX();
+						const y = this.getCenterY() - obstacle.getCenterY();
+						const distance = Math.sqrt(x * x + y * y);
+						if (distance < obstacleAndHandRadius) {
+							obstacle.acceptHit();
+							this.inAction = false;
+							break;
+						}
+					}
+				}
+			}
 			this.hitTimer--;
 		}
 
@@ -126,5 +196,6 @@ export default class Hand {
 
 	hit(): void {
 		this.hitTimer = 20;
+		this.inAction = true;
 	}
 }

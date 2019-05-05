@@ -1,11 +1,12 @@
 import Point from './point';
 
 export default abstract class RoundObstacle {
-	protected x: number;
-	protected y: number;
+	readonly x: number;
+	readonly y: number;
 	protected opacity: number = 1;
 	readonly size: number;
 	readonly radius: number;
+	private active: boolean = true;
 
 	constructor(x: number, y: number, size: number) {
 		this.x = x;
@@ -31,15 +32,18 @@ export default abstract class RoundObstacle {
 		return this.y + this.size / 2;
 	}
 
-	getX(): number {
-		return this.x;
-	}
-
-	getY(): number {
-		return this.y;
-	}
-
 	getOpacity(): number {
 		return this.opacity;
+	}
+
+	getActive(): boolean {
+		return this.active;
+	}
+
+	acceptHit(): void {
+		if (this.opacity > 0.1) this.opacity -= 0.1;
+		if (this.opacity < 0.1) {
+			this.active = false;
+		}
 	}
 }

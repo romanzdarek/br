@@ -153,16 +153,16 @@ export default class View {
 
 		const gridSize = map.blocks[1].x * this.resolutionAdjustment;
 		//grass
+		ctx.fillStyle = '#A2CB69';
 		for (const block of map.blocks) {
-			ctx.fillStyle = '#A2CB69';
 			const x = screenCenterX + (block.x - playerCenterX) * this.resolutionAdjustment;
 			const y = screenCenterY + (block.y - playerCenterY) * this.resolutionAdjustment;
 			ctx.fillRect(x, y, gridSize, gridSize);
 		}
 
 		//terrain
+		ctx.fillStyle = '#69A2E0';
 		for (const terrain of map.terrain) {
-			ctx.fillStyle = '#69A2E0';
 			//position on screen from center
 			const x = screenCenterX + (terrain.x - playerCenterX) * this.resolutionAdjustment;
 			const y = screenCenterY + (terrain.y - playerCenterY) * this.resolutionAdjustment;
@@ -204,8 +204,8 @@ export default class View {
 		}
 
 		//mapGrid
+		ctx.fillStyle = 'gray';
 		for (const block of map.blocks) {
-			ctx.fillStyle = 'gray';
 			const x = screenCenterX + (block.x - playerCenterX) * this.resolutionAdjustment;
 			const y = screenCenterY + (block.y - playerCenterY) * this.resolutionAdjustment;
 			//top
@@ -218,6 +218,33 @@ export default class View {
 			ctx.fillRect(x + gridSize, y, 1, gridSize);
 		}
 
+		//rocks
+		for (let i = 0; i < map.rocks.length; i++) {
+			const rock = map.rocks[i];
+			ctx.save();
+			ctx.globalAlpha = rock.getOpacity();
+			ctx.drawImage(
+				this.rockSVG,
+				screenCenterX + (rock.x - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (rock.y - playerCenterY) * this.resolutionAdjustment,
+				rock.size * this.resolutionAdjustment,
+				rock.size * this.resolutionAdjustment
+			);
+			ctx.restore();
+		}
+
+		//walls
+		ctx.fillStyle = 'black';
+		for (let i = 0; i < map.rectangleObstacles.length; i++) {
+			const rectangleObstacle = map.rectangleObstacles[i];
+			ctx.fillRect(
+				screenCenterX + (rectangleObstacle.x - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (rectangleObstacle.y - playerCenterY) * this.resolutionAdjustment,
+				rectangleObstacle.width * this.resolutionAdjustment,
+				rectangleObstacle.height * this.resolutionAdjustment
+			);
+		}
+
 		//player
 		ctx.drawImage(
 			this.playerSVG,
@@ -228,11 +255,11 @@ export default class View {
 		);
 
 		//collision points
+		ctx.fillStyle = 'red';
 		for (let i = 0; i < player.collisionPoints.length; i++) {
 			const point = player.collisionPoints[i];
 			const x = screenCenterX + point.getX() * this.resolutionAdjustment;
 			const y = screenCenterY + point.getY() * this.resolutionAdjustment;
-			ctx.fillStyle = 'red';
 			ctx.fillRect(x, y, 1, 1);
 		}
 
@@ -247,21 +274,6 @@ export default class View {
 			);
 		}
 
-		//rocks
-		for (let i = 0; i < map.rocks.length; i++) {
-			const rock = map.rocks[i];
-			ctx.save();
-			ctx.globalAlpha = rock.getOpacity();
-			ctx.drawImage(
-				this.rockSVG,
-				screenCenterX + (rock.getX() - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (rock.getY() - playerCenterY) * this.resolutionAdjustment,
-				rock.size * this.resolutionAdjustment,
-				rock.size * this.resolutionAdjustment
-			);
-			ctx.restore();
-		}
-
 		//bushes
 		for (let i = 0; i < map.bushes.length; i++) {
 			const bush = map.bushes[i];
@@ -269,8 +281,8 @@ export default class View {
 			ctx.globalAlpha = bush.getOpacity();
 			ctx.drawImage(
 				this.bushSVG,
-				screenCenterX + (bush.getX() - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (bush.getY() - playerCenterY) * this.resolutionAdjustment,
+				screenCenterX + (bush.x - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (bush.y - playerCenterY) * this.resolutionAdjustment,
 				bush.size * this.resolutionAdjustment,
 				bush.size * this.resolutionAdjustment
 			);
@@ -284,12 +296,13 @@ export default class View {
 			ctx.globalAlpha = tree.getOpacity();
 			ctx.drawImage(
 				this.treeSVG,
-				screenCenterX + (tree.getX() - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (tree.getY() - playerCenterY) * this.resolutionAdjustment,
+				screenCenterX + (tree.x - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (tree.y - playerCenterY) * this.resolutionAdjustment,
 				tree.size * this.resolutionAdjustment,
 				tree.size * this.resolutionAdjustment
 			);
 			ctx.restore();
 		}
+
 	}
 }

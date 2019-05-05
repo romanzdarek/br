@@ -2,11 +2,13 @@ import Terrain from './terrain';
 import Bush from './bush';
 import Tree from './tree';
 import Rock from './rock';
+import Wall from './wall';
 import Point from './point';
 import WaterTerrainData from './waterTerrainData';
 import RoundObstacle from './roundObstacle';
+import RectangleObstacle from './rectangleObstacle';
 
-export type Block = {
+type Block = {
 	x: number;
 	y: number;
 };
@@ -20,6 +22,7 @@ export default class Map {
 	readonly bushes: Bush[] = [];
 	readonly trees: Tree[] = [];
 	readonly rocks: Rock[] = [];
+	readonly rectangleObstacles: RectangleObstacle[] = [];
 	readonly waterTerrainData: WaterTerrainData;
 
 	constructor(waterTerrainData: WaterTerrainData) {
@@ -71,5 +74,10 @@ export default class Map {
 		const tree = new Tree(800, 800);
 		this.trees.push(tree);
 		this.impassableRoundObstacles.push(tree);
+
+		//walls
+		this.rectangleObstacles.push(new Wall(600, 800, 20, 200));
+		this.rectangleObstacles.push(new Wall(500, 900, 200, 20));
+		this.rectangleObstacles.push(new Wall(500, 350, 300, 100));
 	}
 }

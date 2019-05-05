@@ -4,26 +4,26 @@ import Point from './point';
 import Rock from './rock';
 import Tree from './tree';
 import RoundObstacle from './roundObstacle';
+import RectangleObstacle from './rectangleObstacle';
 
 export default class Player {
 	readonly size: number = 60;
 	readonly radius: number = this.size / 2;
-	readonly speed: number = 7;
+	readonly speed: number = 6;
 	private x: number;
 	private y: number;
 	private angle: number = 0;
 	private map: Map;
 	hands: Hand[] = [];
 	private canvas: HTMLCanvasElement;
-	private ctx: CanvasRenderingContext2D;
 	readonly collisionPoints: Point[] = [];
 	private slowAroundObstacle: boolean = false;
+	private denySlowAroundObstacle: boolean = false;
 
 	constructor(map: Map) {
 		this.x = 550;
 		this.y = 700;
 		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
-		this.ctx = this.canvas.getContext('2d');
 		this.hands.push(new Hand(this.size));
 		this.hands.push(new Hand(this.size));
 		this.map = map;
@@ -127,6 +127,12 @@ export default class Player {
 			this.shiftOnPosition(shiftX, shiftY);
 		}
 		this.rotatePlayer(mouseX, mouseY);
+		this.changeHandsPosition();
+	}
+
+	private changeHandsPosition(): void {
+		this.hands[0].moveHand(this.angle, -1, this.size, this.x, this.y, this.map);
+		this.hands[1].moveHand(this.angle, 1, this.size, this.x, this.y, this.map);
 	}
 
 	private shiftOnPosition(shiftX: number, shiftY: number): void {
@@ -135,22 +141,22 @@ export default class Player {
 		if (shiftX !== 0) countShifts++;
 		if (shiftY !== 0) countShifts++;
 
-		//x shift
-		let shiftDirection = 1;
-		if (shiftX < 0) shiftDirection = -1;
-		for (let i = 0; i < Math.abs(shiftX); i++) {
-			if (this.canIshift(shiftX - i * shiftDirection, 0, countShifts)) {
-				this.x += shiftX - i * shiftDirection;
-				break;
-			}
-		}
-
 		//y shift
-		shiftDirection = 1;
+		let shiftDirection = 1;
 		if (shiftY < 0) shiftDirection = -1;
 		for (let i = 0; i < Math.abs(shiftY); i++) {
 			if (this.canIshift(0, shiftY - i * shiftDirection, countShifts)) {
 				this.y += shiftY - i * shiftDirection;
+				break;
+			}
+		}
+
+		//x shift
+		shiftDirection = 1;
+		if (shiftX < 0) shiftDirection = -1;
+		for (let i = 0; i < Math.abs(shiftX); i++) {
+			if (this.canIshift(shiftX - i * shiftDirection, 0, countShifts)) {
+				this.x += shiftX - i * shiftDirection;
 				break;
 			}
 		}
@@ -163,25 +169,174 @@ export default class Player {
 	}
 
 	private canIshift(shiftX: number, shiftY: number, countShifts: number): boolean {
-		let isShiftPossilbe = true;
-		for (let i = 0; i < this.map.impassableRoundObstacles.length; i++) {
-			const roundObstacle = this.map.impassableRoundObstacles[i];
-			let obstacleRadius = roundObstacle.radius;
-			if (roundObstacle instanceof Tree) obstacleRadius = roundObstacle.treeTrankRadius;
-			const obstacleAndPlayerRadius = obstacleRadius + this.radius;
-			const x = this.getCenterX() + shiftX - roundObstacle.getCenterX();
-			const y = this.getCenterY() + shiftY - roundObstacle.getCenterY();
-			const distance = Math.sqrt(x * x + y * y);
-			if (distance < obstacleAndPlayerRadius) {
-				isShiftPossilbe = false;
-				this.goAroundObstacle(shiftX, shiftY, countShifts, roundObstacle);
-				break;
+		//rectangles
+		for (let i = 0; i < this.map.rectangleObstacles.length; i++) {
+			const rectangleObstacle = this.map.rectangleObstacles[i];
+			//collision rectangle - rectangle
+			if (
+				this.x + shiftX + this.size >= rectangleObstacle.x &&
+				this.x + shiftX <= rectangleObstacle.x + rectangleObstacle.width &&
+				this.y + shiftY <= rectangleObstacle.y + rectangleObstacle.height &&
+				this.y + shiftY + this.size >= rectangleObstacle.y
+			) {
+				for (let j = 0; j < this.collisionPoints.length; j++) {
+					const point = this.collisionPoints[j];
+					const pointOnMyPosition = new Point(
+						this.getCenterX() + shiftX + point.getX(),
+						this.getCenterY() + shiftY + point.getY()
+					);
+					//point collisions
+					if (rectangleObstacle.isPointIn(pointOnMyPosition)) {
+						this.goAroundRectangleObstacle(shiftX, shiftY, countShifts, rectangleObstacle);
+						return false;
+					}
+				}
 			}
 		}
-		return isShiftPossilbe;
+
+		//rounds
+		for (let i = 0; i < this.map.impassableRoundObstacles.length; i++) {
+			const roundObstacle = this.map.impassableRoundObstacles[i];
+			if (roundObstacle.getActive()) {
+				let obstacleRadius = roundObstacle.radius;
+				if (roundObstacle instanceof Tree) obstacleRadius = roundObstacle.treeTrankRadius;
+				const obstacleAndPlayerRadius = obstacleRadius + this.radius;
+				const x = this.getCenterX() + shiftX - roundObstacle.getCenterX();
+				const y = this.getCenterY() + shiftY - roundObstacle.getCenterY();
+				const distance = Math.sqrt(x * x + y * y);
+				if (distance < obstacleAndPlayerRadius) {
+					this.goAroundRoundObstacle(shiftX, shiftY, countShifts, roundObstacle);
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
-	private goAroundObstacle(shiftX: number, shiftY: number, countShifts: number, roundObstacle: RoundObstacle): void {
+	private goAroundRectangleObstacle(
+		shiftX: number,
+		shiftY: number,
+		countShifts: number,
+		rectangleObstacle: RectangleObstacle
+	): void {
+		this.slowAroundObstacle = true;
+		const maxObstacleOverlap = this.size * 0.75;
+		if (countShifts === 1) {
+			if (shiftX !== 0) {
+				//up or down?
+				//go up
+				if (this.getCenterY() <= rectangleObstacle.y + rectangleObstacle.height / 2) {
+					if (this.y + this.size - rectangleObstacle.y < maxObstacleOverlap) this.shiftOnPosition(0, -1);
+				}
+				else {
+					//go down
+					if (rectangleObstacle.y + rectangleObstacle.height - this.y < maxObstacleOverlap)
+						this.shiftOnPosition(0, 1);
+				}
+			}
+			if (shiftY !== 0) {
+				//left or right?
+				//go left
+				if (this.getCenterX() <= rectangleObstacle.x + rectangleObstacle.width / 2) {
+					if (this.x + this.size - rectangleObstacle.x < maxObstacleOverlap) this.shiftOnPosition(-1, 0);
+				}
+				else {
+					//go right
+					if (rectangleObstacle.x + rectangleObstacle.width - this.x < maxObstacleOverlap)
+						this.shiftOnPosition(1, 0);
+				}
+			}
+		}
+		if (countShifts === 2) {
+			this.slowAroundObstacle = false;
+			//chose way
+			//obstacle is up and right
+			if (
+				this.getCenterX() < rectangleObstacle.x + rectangleObstacle.width / 2 &&
+				this.getCenterY() > rectangleObstacle.y + rectangleObstacle.height / 2
+			) {
+				const xDistanceFromCorner = Math.abs(this.getCenterX() - rectangleObstacle.x);
+				const yDistanceFromCorner = Math.abs(
+					this.getCenterY() - (rectangleObstacle.y + rectangleObstacle.height)
+				);
+				//x shift right
+				if (xDistanceFromCorner <= yDistanceFromCorner) {
+					this.shiftOnPosition(0.1, 0);
+				}
+				else {
+					//y shift up
+					this.shiftOnPosition(0, -0.1);
+				}
+			}
+			else if (
+				this.getCenterX() > rectangleObstacle.x + rectangleObstacle.width / 2 &&
+				this.getCenterY() > rectangleObstacle.y + rectangleObstacle.height / 2
+			) {
+				//obstacle is up and left
+				const xDistanceFromCorner = Math.abs(
+					this.getCenterX() - (rectangleObstacle.x + rectangleObstacle.width)
+				);
+				const yDistanceFromCorner = Math.abs(
+					this.getCenterY() - (rectangleObstacle.y + rectangleObstacle.height)
+				);
+				//x shift left
+				if (xDistanceFromCorner <= yDistanceFromCorner) {
+					this.shiftOnPosition(-0.1, 0);
+					console.log('right');
+				}
+				else {
+					//y shift up
+					this.shiftOnPosition(0, -0.1);
+					console.log('up');
+				}
+			}
+			else if (
+				this.getCenterX() > rectangleObstacle.x + rectangleObstacle.width / 2 &&
+				this.getCenterY() < rectangleObstacle.y + rectangleObstacle.height / 2
+			) {
+				//obstacle is down and left
+				const xDistanceFromCorner = Math.abs(
+					this.getCenterX() - (rectangleObstacle.x + rectangleObstacle.width)
+				);
+				const yDistanceFromCorner = Math.abs(this.getCenterY() - rectangleObstacle.y);
+				//x shift left
+				if (xDistanceFromCorner <= yDistanceFromCorner) {
+					this.shiftOnPosition(-0.1, 0);
+					console.log('right');
+				}
+				else {
+					//y shift down
+					this.shiftOnPosition(0, 0.1);
+					console.log('up');
+				}
+			}
+			else if (
+				this.getCenterX() < rectangleObstacle.x + rectangleObstacle.width / 2 &&
+				this.getCenterY() < rectangleObstacle.y + rectangleObstacle.height / 2
+			) {
+				//obstacle is down and right
+				const xDistanceFromCorner = Math.abs(this.getCenterX() - rectangleObstacle.x);
+				const yDistanceFromCorner = Math.abs(this.getCenterY() - rectangleObstacle.y);
+				//x shift right
+				if (xDistanceFromCorner <= yDistanceFromCorner) {
+					this.shiftOnPosition(0.1, 0);
+					console.log('right');
+				}
+				else {
+					//y shift down
+					this.shiftOnPosition(0, 0.1);
+					console.log('up');
+				}
+			}
+		}
+	}
+
+	private goAroundRoundObstacle(
+		shiftX: number,
+		shiftY: number,
+		countShifts: number,
+		roundObstacle: RoundObstacle
+	): void {
 		this.slowAroundObstacle = true;
 		if (countShifts === 1) {
 			if (shiftX !== 0) {
@@ -270,9 +425,5 @@ export default class Player {
 		}
 		this.angle = Math.round(this.angle);
 		if (this.angle === 360) this.angle = 0;
-
-		//change hands positions
-		this.hands[0].moveHand(this.angle, -1, this.size, this.x, this.y);
-		this.hands[1].moveHand(this.angle, 1, this.size, this.x, this.y);
 	}
 }
