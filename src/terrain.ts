@@ -1,12 +1,20 @@
-export default class Terrain {
-	readonly type: string;
+export enum TerrainType {
+	Water,
+	WaterTriangle1,
+	WaterTriangle2,
+	WaterTriangle3,
+	WaterTriangle4
+}
+
+export class Terrain {
+	readonly type: TerrainType;
 	readonly x: number;
 	readonly y: number;
 	readonly width: number;
 	readonly height: number;
 	readonly angle: number = 0;
 
-	constructor(type: string, x: number, y: number, width: number, height: number) {
+	constructor(type: TerrainType, x: number, y: number, width: number, height: number) {
 		this.type = type;
 		this.x = x;
 		this.y = y;
@@ -14,13 +22,13 @@ export default class Terrain {
 		this.height = height;
 
 		switch (type) {
-			case 'waterTriangle2':
+			case TerrainType.WaterTriangle2:
 				this.angle = 90;
 				break;
-			case 'waterTriangle3':
+			case TerrainType.WaterTriangle3:
 				this.angle = 180;
 				break;
-			case 'waterTriangle4':
+			case TerrainType.WaterTriangle4:
 				this.angle = 270;
 				break;
 		}

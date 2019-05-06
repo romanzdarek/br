@@ -1,4 +1,4 @@
-import RoundObstacle from './roundObstacle';
+import RoundObstacle from './RoundObstacle';
 
 export default class Tree extends RoundObstacle {
 	readonly treeTrankRadius: number;

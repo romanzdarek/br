@@ -1,4 +1,4 @@
-import RoundObstacle from './roundObstacle';
+import RoundObstacle from './RoundObstacle';
 
 export default class Bush extends RoundObstacle {
 	constructor(x: number, y: number) {

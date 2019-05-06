@@ -1,7 +1,8 @@
-import Player from './player';
-import Map from './map';
-import WaterTerrainData from './waterTerrainData';
-import Point from './point';
+import Player from './Player';
+import Map from './Map';
+import { Mouse } from './Controller';
+import WaterTerrainData from './WaterTerrainData';
+import { TerrainType } from './Terrain';
 
 export default class View {
 	private canvas: HTMLCanvasElement;
@@ -12,6 +13,7 @@ export default class View {
 	private bushSVG: HTMLImageElement;
 	private rockSVG: HTMLImageElement;
 	private treeSVG: HTMLImageElement;
+	private cursorSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
@@ -36,6 +38,9 @@ export default class View {
 		this.treeSVG = new Image();
 		this.treeSVG.src = 'img/tree.svg';
 
+		this.cursorSVG = new Image();
+		this.cursorSVG.src = 'img/cursor.svg';
+
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
 
@@ -52,7 +57,8 @@ export default class View {
 	screenResize(): void {
 		this.canvas.width = window.innerWidth;
 		this.canvas.height = window.innerHeight;
-		console.log('Resize: x: width ' + this.canvas.width + ' height: ' + this.canvas.height);
+		//console.log('Resize');
+		//console.log('width: width ' + this.canvas.width + ' height: ' + this.canvas.height);
 		this.changeResolutionAdjustment();
 	}
 
@@ -63,7 +69,7 @@ export default class View {
 		const height = this.canvas.height / defaultHeight;
 		const finalAdjustment = (width + height) / 2;
 		this.resolutionAdjustment = finalAdjustment;
-		console.log('finalAdjustment:', finalAdjustment);
+		//console.log('finalAdjustment:', finalAdjustment);
 	}
 
 	private saveWaterPixels(waterType: string): void {
@@ -134,7 +140,7 @@ export default class View {
 		*/
 	}
 
-	draw(map: Map, player: Player): void {
+	draw(map: Map, player: Player, mouse: Mouse): void {
 		const ctx = this.ctx;
 		//clear canvas
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -166,7 +172,7 @@ export default class View {
 			//position on screen from center
 			const x = screenCenterX + (terrain.x - playerCenterX) * this.resolutionAdjustment;
 			const y = screenCenterY + (terrain.y - playerCenterY) * this.resolutionAdjustment;
-			if (terrain.type === 'water') {
+			if (terrain.type === TerrainType.Water) {
 				ctx.fillRect(
 					x,
 					y,
@@ -174,7 +180,7 @@ export default class View {
 					terrain.height * this.resolutionAdjustment
 				);
 			}
-			if (terrain.type === 'waterTriangle1') {
+			if (terrain.type === TerrainType.WaterTriangle1) {
 				ctx.drawImage(
 					this.waterTrianglePNG,
 					x,
@@ -184,9 +190,9 @@ export default class View {
 				);
 			}
 			if (
-				terrain.type === 'waterTriangle2' ||
-				terrain.type === 'waterTriangle3' ||
-				terrain.type === 'waterTriangle4'
+				terrain.type === TerrainType.WaterTriangle2 ||
+				terrain.type === TerrainType.WaterTriangle3 ||
+				terrain.type === TerrainType.WaterTriangle4
 			) {
 				let middleImage = terrain.width / 2 * this.resolutionAdjustment;
 				this.ctx.save();
@@ -258,8 +264,8 @@ export default class View {
 		ctx.fillStyle = 'red';
 		for (let i = 0; i < player.collisionPoints.length; i++) {
 			const point = player.collisionPoints[i];
-			const x = screenCenterX + point.getX() * this.resolutionAdjustment;
-			const y = screenCenterY + point.getY() * this.resolutionAdjustment;
+			const x = screenCenterX + point.x * this.resolutionAdjustment;
+			const y = screenCenterY + point.y * this.resolutionAdjustment;
 			ctx.fillRect(x, y, 1, 1);
 		}
 
@@ -304,5 +310,14 @@ export default class View {
 			ctx.restore();
 		}
 
+		//cursor
+		const mouseSize = 25;
+		ctx.drawImage(
+			this.cursorSVG,
+			mouse.x - mouseSize * this.resolutionAdjustment / 2,
+			mouse.y - mouseSize * this.resolutionAdjustment / 2,
+			mouseSize * this.resolutionAdjustment,
+			mouseSize * this.resolutionAdjustment
+		);
 	}
 }

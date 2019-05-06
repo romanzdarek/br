@@ -15,8 +15,8 @@ onmessage = function(e) {
 		twoDimensionallyArr.push(oneColorFromImage.slice(i * size, i * size + size));
 	}
 	//transform row to column
-	//save if color === water
-	//where is water? 255 == white (transparent color = green terrain)
+	//save if color == water
+	//where is water? 255 == white (transparent color == green terrain)
 	const finalArr: boolean[][] = [];
 	for (let x = 0; x < size; x++) {
 		finalArr[x] = [];

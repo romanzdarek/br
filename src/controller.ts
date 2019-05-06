@@ -1,4 +1,4 @@
-import Model from './model';
+import Model from './Model';
 
 export type Keys = {
 	w: boolean;
@@ -18,6 +18,7 @@ export type Mouse = {
 export class Controller {
 	private static instance: Controller;
 	private model: Model;
+	private canvas: HTMLCanvasElement;
 	private keys: Keys = {
 		w: false,
 		a: false,
@@ -33,10 +34,13 @@ export class Controller {
 	};
 
 	private constructor() {
+		this.canvas = document.getElementsByTagName('canvas')[0];
 		this.model = new Model(this.keys, this.mouse);
 		this.model.screenResize();
 		window.addEventListener('resize', () => {
 			this.model.screenResize();
+			const event = new Event('mousemove');
+			this.canvas.dispatchEvent(event);
 		});
 		this.keysController();
 		this.mouseController();
@@ -52,12 +56,17 @@ export class Controller {
 	}
 
 	private mouseController(): void {
-		const canvas: HTMLCanvasElement = document.getElementsByTagName('canvas')[0];
-		canvas.addEventListener('mousemove', (e: MouseEvent) => {
-			this.mouse.x = e.x;
-			this.mouse.y = e.y;
+		this.canvas.addEventListener('mousemove', (e: MouseEvent) => {
+			if (e.x == undefined) {
+				this.mouse.x = this.canvas.width / 2;
+				this.mouse.y = this.canvas.height / 2;
+			}
+			else {
+				this.mouse.x = e.x;
+				this.mouse.y = e.y;
+			}
 		});
-		canvas.addEventListener('click', (e: MouseEvent) => {
+		this.canvas.addEventListener('click', (e: MouseEvent) => {
 			this.mouse.left = true;
 		});
 	}

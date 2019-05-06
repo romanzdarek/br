@@ -1,3 +1,5 @@
+import { TerrainType } from './Terrain';
+
 /*
 import { triangel1 } from './triangel1Data';
 import { triangel2 } from './triangel2Data';
@@ -40,20 +42,20 @@ export default class WaterTerrainData {
 		}
 	}
 
-	includeWater(type: string, x: number, y: number): boolean {
+	includeWater(type: TerrainType, x: number, y: number): boolean {
 		let state = false;
 		let waterData;
 		switch (type) {
-			case 'waterTriangle1':
+			case TerrainType.WaterTriangle1:
 				waterData = this.waterTriangle1;
 				break;
-			case 'waterTriangle2':
+			case TerrainType.WaterTriangle2:
 				waterData = this.waterTriangle2;
 				break;
-			case 'waterTriangle3':
+			case TerrainType.WaterTriangle3:
 				waterData = this.waterTriangle3;
 				break;
-			case 'waterTriangle4':
+			case TerrainType.WaterTriangle4:
 				waterData = this.waterTriangle4;
 				break;
 			default:

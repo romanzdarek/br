@@ -1,10 +1,10 @@
-import Hand from './hand';
-import Map from './map';
-import Point from './point';
-import Rock from './rock';
-import Tree from './tree';
-import RoundObstacle from './roundObstacle';
-import RectangleObstacle from './rectangleObstacle';
+import Hand from './Hand';
+import Map from './Map';
+import Point from './Point';
+import Tree from './Tree';
+import RoundObstacle from './RoundObstacle';
+import RectangleObstacle from './RectangleObstacle';
+import { TerrainType } from './Terrain';
 
 export default class Player {
 	readonly size: number = 60;
@@ -91,14 +91,14 @@ export default class Player {
 					this.getCenterY() < this.map.terrain[i].y + this.map.terrain[i].height &&
 					this.getCenterY() >= this.map.terrain[i].y
 				) {
-					if (this.map.terrain[i].type === 'water') {
+					if (this.map.terrain[i].type === TerrainType.Water) {
 						shift = shift / 2;
 					}
 					if (
-						this.map.terrain[i].type === 'waterTriangle1' ||
-						this.map.terrain[i].type === 'waterTriangle2' ||
-						this.map.terrain[i].type === 'waterTriangle3' ||
-						this.map.terrain[i].type === 'waterTriangle4'
+						this.map.terrain[i].type === TerrainType.WaterTriangle1 ||
+						this.map.terrain[i].type === TerrainType.WaterTriangle2 ||
+						this.map.terrain[i].type === TerrainType.WaterTriangle3 ||
+						this.map.terrain[i].type === TerrainType.WaterTriangle4
 					) {
 						//Math.floor!!!
 						const myXPositionOnTerrain = Math.floor(this.getCenterX() - this.map.terrain[i].x);
@@ -182,8 +182,8 @@ export default class Player {
 				for (let j = 0; j < this.collisionPoints.length; j++) {
 					const point = this.collisionPoints[j];
 					const pointOnMyPosition = new Point(
-						this.getCenterX() + shiftX + point.getX(),
-						this.getCenterY() + shiftY + point.getY()
+						this.getCenterX() + shiftX + point.x,
+						this.getCenterY() + shiftY + point.y
 					);
 					//point collisions
 					if (rectangleObstacle.isPointIn(pointOnMyPosition)) {
@@ -282,12 +282,10 @@ export default class Player {
 				//x shift left
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
 					this.shiftOnPosition(-0.1, 0);
-					console.log('right');
 				}
 				else {
 					//y shift up
 					this.shiftOnPosition(0, -0.1);
-					console.log('up');
 				}
 			}
 			else if (
@@ -302,12 +300,10 @@ export default class Player {
 				//x shift left
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
 					this.shiftOnPosition(-0.1, 0);
-					console.log('right');
 				}
 				else {
 					//y shift down
 					this.shiftOnPosition(0, 0.1);
-					console.log('up');
 				}
 			}
 			else if (
@@ -320,12 +316,10 @@ export default class Player {
 				//x shift right
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
 					this.shiftOnPosition(0.1, 0);
-					console.log('right');
 				}
 				else {
 					//y shift down
 					this.shiftOnPosition(0, 0.1);
-					console.log('up');
 				}
 			}
 		}
@@ -402,8 +396,10 @@ export default class Player {
 		//triangular sides
 		const centerX = this.canvas.width / 2;
 		const centerY = this.canvas.height / 2;
-		const x = centerX - mouseX;
-		const y = centerY - mouseY;
+		let x = centerX - mouseX;
+		let y = centerY - mouseY;
+		//can not set x and y to 0 because angle
+		if (x === 0) x = 0.1;
 		//atangens
 		let angle = Math.abs(Math.atan(x / y) * 180 / Math.PI);
 		//1..2..3..4.. Q; 0 - 90, 90 - 180...

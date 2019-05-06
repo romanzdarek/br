@@ -1,4 +1,4 @@
-import Map from './map';
+import Map from './Map';
 
 export default class Hand {
 	readonly size: number = 26;

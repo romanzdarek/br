@@ -1,4 +1,4 @@
-import Point from './point';
+import Point from './Point';
 
 export default abstract class RectangleObstacle {
 	readonly x: number;
@@ -15,8 +15,8 @@ export default abstract class RectangleObstacle {
 	}
 
 	isPointIn(point: Point): boolean {
-		const x = point.getX();
-		const y = point.getY();
+		const x = point.x;
+		const y = point.y;
 		if (x <= this.x + this.width && x >= this.x && y >= this.y && y <= this.y + this.height) {
 			return true;
 		}

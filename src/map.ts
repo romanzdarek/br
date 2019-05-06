@@ -1,12 +1,11 @@
-import Terrain from './terrain';
-import Bush from './bush';
-import Tree from './tree';
-import Rock from './rock';
-import Wall from './wall';
-import Point from './point';
-import WaterTerrainData from './waterTerrainData';
-import RoundObstacle from './roundObstacle';
-import RectangleObstacle from './rectangleObstacle';
+import { Terrain, TerrainType } from './Terrain';
+import Bush from './Bush';
+import Tree from './Tree';
+import Rock from './Rock';
+import Wall from './Wall';
+import WaterTerrainData from './WaterTerrainData';
+import RoundObstacle from './RoundObstacle';
+import RectangleObstacle from './RectangleObstacle';
 
 type Block = {
 	x: number;
@@ -38,18 +37,18 @@ export default class Map {
 		}
 
 		//terrain
-		this.terrain.push(new Terrain('water', 0, 0, this.width, blockSize));
-		this.terrain.push(new Terrain('water', 0, this.height - blockSize, this.width, blockSize));
-		this.terrain.push(new Terrain('water', 0, blockSize, blockSize, this.height - 2 * blockSize));
+		this.terrain.push(new Terrain(TerrainType.Water, 0, 0, this.width, blockSize));
+		this.terrain.push(new Terrain(TerrainType.Water, 0, this.height - blockSize, this.width, blockSize));
+		this.terrain.push(new Terrain(TerrainType.Water, 0, blockSize, blockSize, this.height - 2 * blockSize));
 		this.terrain.push(
-			new Terrain('water', this.width - blockSize, blockSize, blockSize, this.height - 2 * blockSize)
+			new Terrain(TerrainType.Water, this.width - blockSize, blockSize, blockSize, this.height - 2 * blockSize)
 		);
 
 		//water trangle
-		this.terrain.push(new Terrain('waterTriangle1', blockSize, blockSize, blockSize, blockSize));
-		this.terrain.push(new Terrain('waterTriangle2', 3 * blockSize, blockSize, blockSize, blockSize));
-		this.terrain.push(new Terrain('waterTriangle3', 3 * blockSize, 3 * blockSize, blockSize, blockSize));
-		this.terrain.push(new Terrain('waterTriangle4', blockSize, 3 * blockSize, blockSize, blockSize));
+		this.terrain.push(new Terrain(TerrainType.WaterTriangle1, blockSize, blockSize, blockSize, blockSize));
+		this.terrain.push(new Terrain(TerrainType.WaterTriangle2, 3 * blockSize, blockSize, blockSize, blockSize));
+		this.terrain.push(new Terrain(TerrainType.WaterTriangle3, 3 * blockSize, 3 * blockSize, blockSize, blockSize));
+		this.terrain.push(new Terrain(TerrainType.WaterTriangle4, blockSize, 3 * blockSize, blockSize, blockSize));
 
 		//bushes
 		this.bushes.push(new Bush(600, 600));

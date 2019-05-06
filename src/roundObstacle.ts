@@ -1,4 +1,4 @@
-import Point from './point';
+import Point from './Point';
 
 export default abstract class RoundObstacle {
 	readonly x: number;
@@ -17,8 +17,8 @@ export default abstract class RoundObstacle {
 
 	isPointIn(point: Point): boolean {
 		//triangle
-		const x = this.x + this.radius - point.getX();
-		const y = this.y + this.radius - point.getY();
+		const x = this.x + this.radius - point.x;
+		const y = this.y + this.radius - point.y;
 		const radius = Math.sqrt(x * x + y * y);
 		if (radius <= this.radius) return true;
 		return false;

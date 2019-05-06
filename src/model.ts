@@ -1,8 +1,8 @@
-import { Keys, Mouse } from './controller';
-import View from './view';
-import Player from './player';
-import Map from './map';
-import WaterTerrainData from './waterTerrainData';
+import { Keys, Mouse } from './Controller';
+import View from './View';
+import Player from './Player';
+import Map from './Map';
+import WaterTerrainData from './WaterTerrainData';
 
 export default class Model {
 	private view: View;
@@ -34,7 +34,7 @@ export default class Model {
 			this.mouse.left = false;
 		}
 
-		this.view.draw(this.map, this.player);
+		this.view.draw(this.map, this.player, this.mouse);
 	}
 
 	screenResize(): void {
