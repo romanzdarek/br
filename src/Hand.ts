@@ -1,29 +1,40 @@
 import Map from './Map';
+import Point from './Point';
 
 export default class Hand {
-	readonly size: number = 26;
+	readonly size: number = 40;
 	private x: number = 0;
 	private y: number = 0;
-	private radius: number;
+	private radius: number = this.size / 2;
 	private playerRadius: number;
 	private shiftAngle: number = 40;
 	private hitTimer: number = 0;
 	private inAction: boolean = false;
+	readonly collisionPoints: Point[] = [];
 
 	constructor(playerSize: number) {
 		this.playerRadius = playerSize / 2;
-		this.radius = this.size / 2;
+		this.calculateCollisionsPoints();
+	}
+
+	private calculateCollisionsPoints(): void {
+		for (let i = 0; i < 360; i += 20) {
+			//triangle
+			const x = Math.sin(i * Math.PI / 180) * this.radius;
+			const y = Math.cos(i * Math.PI / 180) * this.radius;
+			this.collisionPoints.push(new Point(x, y));
+		}
 	}
 
 	ready(): boolean {
 		return this.hitTimer === 0;
 	}
 
-	private getCenterX(): number {
+	getCenterX(): number {
 		return this.x + this.radius;
 	}
 
-	private getCenterY(): number {
+	getCenterY(): number {
 		return this.y + this.radius;
 	}
 
@@ -134,13 +145,13 @@ export default class Hand {
 			if (this.inAction) {
 				for (let i = 0; i < map.bushes.length; i++) {
 					const obstacle = map.bushes[i];
-					if (obstacle.getActive()) {
+					if (obstacle.isActive()) {
 						const obstacleAndHandRadius = obstacle.radius + this.radius;
 						const x = this.getCenterX() - obstacle.getCenterX();
 						const y = this.getCenterY() - obstacle.getCenterY();
 						const distance = Math.sqrt(x * x + y * y);
 						if (distance < obstacleAndHandRadius) {
-							obstacle.acceptHit();
+							obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
 							this.inAction = false;
 							break;
 						}
@@ -150,13 +161,13 @@ export default class Hand {
 			if (this.inAction) {
 				for (let i = 0; i < map.rocks.length; i++) {
 					const obstacle = map.rocks[i];
-					if (obstacle.getActive()) {
+					if (obstacle.isActive()) {
 						const obstacleAndHandRadius = obstacle.radius + this.radius;
 						const x = this.getCenterX() - obstacle.getCenterX();
 						const y = this.getCenterY() - obstacle.getCenterY();
 						const distance = Math.sqrt(x * x + y * y);
 						if (distance < obstacleAndHandRadius) {
-							obstacle.acceptHit();
+							obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
 							this.inAction = false;
 							break;
 						}
@@ -166,19 +177,48 @@ export default class Hand {
 			if (this.inAction) {
 				for (let i = 0; i < map.trees.length; i++) {
 					const obstacle = map.trees[i];
-					if (obstacle.getActive()) {
+					if (obstacle.isActive()) {
 						const obstacleAndHandRadius = obstacle.radius + this.radius;
 						const x = this.getCenterX() - obstacle.getCenterX();
 						const y = this.getCenterY() - obstacle.getCenterY();
 						const distance = Math.sqrt(x * x + y * y);
 						if (distance < obstacleAndHandRadius) {
-							obstacle.acceptHit();
+							obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
 							this.inAction = false;
 							break;
 						}
 					}
 				}
 			}
+			//walls
+			if (this.inAction) {
+				for (let i = 0; i < map.rectangleObstacles.length; i++) {
+					const obstacle = map.rectangleObstacles[i];
+					if (obstacle.isActive()) {
+						if (
+							this.x <= obstacle.x + obstacle.width &&
+							this.x + this.size >= obstacle.x &&
+							this.y <= obstacle.y + obstacle.height &&
+							this.y + this.size >= obstacle.y
+						) {
+							for (let j = 0; j < this.collisionPoints.length; j++) {
+								const point = this.collisionPoints[j];
+								if (
+									obstacle.isPointIn(
+										new Point(this.getCenterX() + point.x, this.getCenterY() + point.y)
+									)
+								) {
+									obstacle.acceptHit();
+									this.inAction = false;
+									console.log('hit');
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+
 			this.hitTimer--;
 		}
 
@@ -187,8 +227,8 @@ export default class Hand {
 		if (playerAngleForHand < 0) playerAngleForHand = 359 + playerAngleForHand;
 		if (playerAngleForHand > 359) playerAngleForHand = playerAngleForHand - 359;
 		//triangle
-		let x = Math.round(Math.sin(playerAngleForHand * Math.PI / 180) * playerRadius);
-		let y = Math.round(Math.cos(playerAngleForHand * Math.PI / 180) * playerRadius);
+		const x = Math.sin(playerAngleForHand * Math.PI / 180) * playerRadius;
+		const y = Math.cos(playerAngleForHand * Math.PI / 180) * playerRadius;
 		//set final position from center
 		this.x = playerX + playerSize / 2 + x - this.size / 2;
 		this.y = playerY + playerSize / 2 - y - this.size / 2;

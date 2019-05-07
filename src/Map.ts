@@ -1,5 +1,5 @@
 import { Terrain, TerrainType } from './Terrain';
-import Bush from './1Bush';
+import Bush from './Bush';
 import Tree from './Tree';
 import Rock from './Rock';
 import Wall from './Wall';

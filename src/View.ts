@@ -229,10 +229,53 @@ export default class View {
 			const rock = map.rocks[i];
 			ctx.save();
 			ctx.globalAlpha = rock.getOpacity();
+			let rockAnimateX = 0;
+			let rockAnimateY = 0;
+			const animateTimer = rock.getAnimateTimer();
+			switch (animateTimer) {
+				case 1:
+					rockAnimateX = rock.getHitAnimateShiftX();
+					rockAnimateY = rock.getHitAnimateShiftY();
+					break;
+				case 2:
+					rockAnimateX = 2 * rock.getHitAnimateShiftX();
+					rockAnimateY = 2 * rock.getHitAnimateShiftY();
+					break;
+				case 3:
+					rockAnimateX = 3 * rock.getHitAnimateShiftX();
+					rockAnimateY = 3 * rock.getHitAnimateShiftY();
+					break;
+				case 4:
+					rockAnimateX = 4 * rock.getHitAnimateShiftX();
+					rockAnimateY = 4 * rock.getHitAnimateShiftY();
+					break;
+				case 5:
+					rockAnimateX = 5 * rock.getHitAnimateShiftX();
+					rockAnimateY = 5 * rock.getHitAnimateShiftY();
+					break;
+				case 6:
+					rockAnimateX = 4 * rock.getHitAnimateShiftX();
+					rockAnimateY = 4 * rock.getHitAnimateShiftY();
+					break;
+				case 7:
+					rockAnimateX = 3 * rock.getHitAnimateShiftX();
+					rockAnimateY = 3 * rock.getHitAnimateShiftY();
+					break;
+				case 8:
+					rockAnimateX = 2 * rock.getHitAnimateShiftX();
+					rockAnimateY = 2 * rock.getHitAnimateShiftY();
+					break;
+				case 9:
+					rockAnimateX = 1 * rock.getHitAnimateShiftX();
+					rockAnimateY = 1 * rock.getHitAnimateShiftY();
+					break;
+				case 10:
+					break;
+			}
 			ctx.drawImage(
 				this.rockSVG,
-				screenCenterX + (rock.x - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (rock.y - playerCenterY) * this.resolutionAdjustment,
+				screenCenterX + (rock.x + rockAnimateX - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (rock.y + rockAnimateY - playerCenterY) * this.resolutionAdjustment,
 				rock.size * this.resolutionAdjustment,
 				rock.size * this.resolutionAdjustment
 			);
@@ -243,12 +286,16 @@ export default class View {
 		ctx.fillStyle = 'black';
 		for (let i = 0; i < map.rectangleObstacles.length; i++) {
 			const rectangleObstacle = map.rectangleObstacles[i];
+
+			ctx.save();
+			ctx.globalAlpha = rectangleObstacle.getOpacity();
 			ctx.fillRect(
 				screenCenterX + (rectangleObstacle.x - playerCenterX) * this.resolutionAdjustment,
 				screenCenterY + (rectangleObstacle.y - playerCenterY) * this.resolutionAdjustment,
 				rectangleObstacle.width * this.resolutionAdjustment,
 				rectangleObstacle.height * this.resolutionAdjustment
 			);
+			ctx.restore();
 		}
 
 		//player
@@ -261,7 +308,7 @@ export default class View {
 		);
 
 		//collision points
-		ctx.fillStyle = 'red';
+		ctx.fillStyle = 'blue';
 		for (let i = 0; i < player.collisionPoints.length; i++) {
 			const point = player.collisionPoints[i];
 			const x = screenCenterX + point.x * this.resolutionAdjustment;
@@ -271,13 +318,21 @@ export default class View {
 
 		//player hands
 		for (let i = 0; i < player.hands.length; i++) {
+			const hand = player.hands[i];
 			ctx.drawImage(
 				this.playerHandSVG,
-				screenCenterX + (player.hands[i].getX() - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (player.hands[i].getY() - playerCenterY) * this.resolutionAdjustment,
-				player.hands[i].size * this.resolutionAdjustment,
-				player.hands[i].size * this.resolutionAdjustment
+				screenCenterX + (hand.getX() - playerCenterX) * this.resolutionAdjustment,
+				screenCenterY + (hand.getY() - playerCenterY) * this.resolutionAdjustment,
+				hand.size * this.resolutionAdjustment,
+				hand.size * this.resolutionAdjustment
 			);
+			//hands collisionPoints
+			for (let j = 0; j < player.hands[i].collisionPoints.length; j++) {
+				const point = player.hands[i].collisionPoints[j];
+				const x = screenCenterX + (hand.getCenterX() + point.x - playerCenterX) * this.resolutionAdjustment;
+				const y = screenCenterY + (hand.getCenterY() + point.y - playerCenterY) * this.resolutionAdjustment;
+				ctx.fillRect(x, y, 1, 1);
+			}
 		}
 
 		//bushes

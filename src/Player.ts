@@ -7,7 +7,7 @@ import RectangleObstacle from './RectangleObstacle';
 import { TerrainType } from './Terrain';
 
 export default class Player {
-	readonly size: number = 60;
+	readonly size: number = 80;
 	readonly radius: number = this.size / 2;
 	readonly speed: number = 6;
 	private x: number;
@@ -31,11 +31,10 @@ export default class Player {
 	}
 
 	private calculateCollisionsPoints(): void {
-		for (let i = 0; i < 360; i++) {
+		for (let i = 0; i < 360; i += 10) {
 			//triangle
-			const playerRadius = this.size / 2;
-			let x = Math.sin(i * Math.PI / 180) * playerRadius;
-			let y = Math.cos(i * Math.PI / 180) * playerRadius;
+			const x = Math.sin(i * Math.PI / 180) * this.radius;
+			const y = Math.cos(i * Math.PI / 180) * this.radius;
 			this.collisionPoints.push(new Point(x, y));
 		}
 	}
@@ -172,23 +171,25 @@ export default class Player {
 		//rectangles
 		for (let i = 0; i < this.map.rectangleObstacles.length; i++) {
 			const rectangleObstacle = this.map.rectangleObstacles[i];
-			//collision rectangle - rectangle
-			if (
-				this.x + shiftX + this.size >= rectangleObstacle.x &&
-				this.x + shiftX <= rectangleObstacle.x + rectangleObstacle.width &&
-				this.y + shiftY <= rectangleObstacle.y + rectangleObstacle.height &&
-				this.y + shiftY + this.size >= rectangleObstacle.y
-			) {
-				for (let j = 0; j < this.collisionPoints.length; j++) {
-					const point = this.collisionPoints[j];
-					const pointOnMyPosition = new Point(
-						this.getCenterX() + shiftX + point.x,
-						this.getCenterY() + shiftY + point.y
-					);
-					//point collisions
-					if (rectangleObstacle.isPointIn(pointOnMyPosition)) {
-						this.goAroundRectangleObstacle(shiftX, shiftY, countShifts, rectangleObstacle);
-						return false;
+			if (rectangleObstacle.isActive()) {
+				//collision rectangle - rectangle
+				if (
+					this.x + shiftX + this.size >= rectangleObstacle.x &&
+					this.x + shiftX <= rectangleObstacle.x + rectangleObstacle.width &&
+					this.y + shiftY <= rectangleObstacle.y + rectangleObstacle.height &&
+					this.y + shiftY + this.size >= rectangleObstacle.y
+				) {
+					for (let j = 0; j < this.collisionPoints.length; j++) {
+						const point = this.collisionPoints[j];
+						const pointOnMyPosition = new Point(
+							this.getCenterX() + shiftX + point.x,
+							this.getCenterY() + shiftY + point.y
+						);
+						//point collisions
+						if (rectangleObstacle.isPointIn(pointOnMyPosition)) {
+							this.goAroundRectangleObstacle(shiftX, shiftY, countShifts, rectangleObstacle);
+							return false;
+						}
 					}
 				}
 			}
@@ -197,7 +198,7 @@ export default class Player {
 		//rounds
 		for (let i = 0; i < this.map.impassableRoundObstacles.length; i++) {
 			const roundObstacle = this.map.impassableRoundObstacles[i];
-			if (roundObstacle.getActive()) {
+			if (roundObstacle.isActive()) {
 				let obstacleRadius = roundObstacle.radius;
 				if (roundObstacle instanceof Tree) obstacleRadius = roundObstacle.treeTrankRadius;
 				const obstacleAndPlayerRadius = obstacleRadius + this.radius;
