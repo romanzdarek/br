@@ -74,6 +74,10 @@ export default class Map {
 		this.trees.push(tree);
 		this.impassableRoundObstacles.push(tree);
 
+		const tree2 = new Tree(0, 0);
+		this.trees.push(tree2);
+		this.impassableRoundObstacles.push(tree2);
+
 		//walls
 		this.rectangleObstacles.push(new Wall(600, 800, 20, 200));
 		this.rectangleObstacles.push(new Wall(500, 900, 200, 20));

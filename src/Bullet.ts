@@ -1,0 +1,81 @@
+import Map from './Map';
+import Point from './Point';
+
+export default class Bullet {
+	readonly size: number = 5;
+	readonly range: number;
+	private x: number = 0;
+	private y: number = 0;
+	private angle: number = 0;
+	private shiftX: number = 0;
+	private shiftY: number = 0;
+	private distance: number = 0;
+	private active: boolean = true;
+
+	constructor(x: number, y: number, angle: number, range: number) {
+		this.x = x - this.size / 2;
+		this.y = y - this.size / 2;
+		this.angle = angle;
+		this.range = range;
+		//triangle
+		const bulletSpeed = 20;
+		this.shiftX = Math.sin(angle * Math.PI / 180) * bulletSpeed;
+		this.shiftY = Math.cos(angle * Math.PI / 180) * bulletSpeed;
+	}
+
+	move(map: Map): void {
+		this.x += this.shiftX;
+		this.y -= this.shiftY;
+		this.collisions(map);
+	}
+
+	private collisions(map: Map): void {
+		const bulletPoint = new Point(this.getCenterX(), this.getCenterY());
+		//rounds
+		for (const obstacle of map.impassableRoundObstacles) {
+			if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
+				obstacle.acceptHit(bulletPoint);
+				this.active = false;
+				break;
+			}
+		}
+		//rects
+		if (this.active) {
+			for (const obstacle of map.rectangleObstacles) {
+				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
+					obstacle.acceptHit();
+					this.active = false;
+					break;
+				}
+			}
+		}
+	}
+
+	getX(): number {
+		return this.x;
+	}
+
+	getY(): number {
+		return this.y;
+	}
+
+	getCenterX(): number {
+		return this.x + this.size / 2;
+	}
+
+	getCenterY(): number {
+		return this.y + this.size / 2;
+	}
+
+	getAngle(): number {
+		return this.angle;
+	}
+
+	flying(): boolean {
+		let state = true;
+		this.distance++;
+		if (this.distance > this.range) state = false;
+		if (!this.active) state = false;
+		return state;
+	}
+}

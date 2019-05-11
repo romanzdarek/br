@@ -36,7 +36,6 @@ export class Controller {
 	private constructor() {
 		this.canvas = document.getElementsByTagName('canvas')[0];
 		this.model = new Model(this.keys, this.mouse);
-		this.model.screenResize();
 		window.addEventListener('resize', () => {
 			this.model.screenResize();
 			const event = new Event('mousemove');

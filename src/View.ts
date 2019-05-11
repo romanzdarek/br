@@ -3,6 +3,32 @@ import Map from './Map';
 import { Mouse } from './Controller';
 import WaterTerrainData from './WaterTerrainData';
 import { TerrainType } from './Terrain';
+import Bullet from './Bullet';
+import RoundObstacle from './RoundObstacle';
+import RectangleObstacle from './RectangleObstacle';
+import Tree from './Tree';
+
+type DrawData = {
+	x: number;
+	y: number;
+	size: number;
+	width: number;
+	height: number;
+	isOnScreen: boolean;
+};
+
+interface RoundObject {
+	x: number;
+	y: number;
+	size: number;
+}
+
+interface RectObject {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
 
 export default class View {
 	private canvas: HTMLCanvasElement;
@@ -13,12 +39,23 @@ export default class View {
 	private bushSVG: HTMLImageElement;
 	private rockSVG: HTMLImageElement;
 	private treeSVG: HTMLImageElement;
+	private pistolSVG: HTMLImageElement;
 	private cursorSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
+	private screenCenterX: number;
+	private screenCenterY: number;
+	private map: Map;
+	private player: Player;
+	private bullets: Bullet[];
+	private mouse: Mouse;
 
-	constructor(waterTerrainData: WaterTerrainData) {
+	constructor(map: Map, player: Player, bullets: Bullet[], mouse: Mouse, waterTerrainData: WaterTerrainData) {
+		this.map = map;
+		this.player = player;
+		this.bullets = bullets;
+		this.mouse = mouse;
 		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
 		this.helperCanvas = <HTMLCanvasElement>document.getElementById('helper');
 		this.ctx = this.canvas.getContext('2d');
@@ -41,24 +78,28 @@ export default class View {
 		this.cursorSVG = new Image();
 		this.cursorSVG.src = 'img/cursor.svg';
 
+		this.pistolSVG = new Image();
+		this.pistolSVG.src = 'img/pistol.svg';
+
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
 
 		this.waterTerrainData = waterTerrainData;
 		this.waterTrianglePNG.onload = () => {
-			this.saveWaterPixels('waterTriangle1');
-			this.saveWaterPixels('waterTriangle2');
-			this.saveWaterPixels('waterTriangle3');
-			this.saveWaterPixels('waterTriangle4');
+			this.saveWaterPixels(TerrainType.WaterTriangle1);
+			this.saveWaterPixels(TerrainType.WaterTriangle2);
+			this.saveWaterPixels(TerrainType.WaterTriangle3);
+			this.saveWaterPixels(TerrainType.WaterTriangle4);
 			//this.waterTerrainData.write();
 		};
+		this.screenResize();
 	}
 
 	screenResize(): void {
 		this.canvas.width = window.innerWidth;
 		this.canvas.height = window.innerHeight;
-		//console.log('Resize');
-		//console.log('width: width ' + this.canvas.width + ' height: ' + this.canvas.height);
+		this.screenCenterX = window.innerWidth / 2;
+		this.screenCenterY = window.innerHeight / 2;
 		this.changeResolutionAdjustment();
 	}
 
@@ -72,7 +113,7 @@ export default class View {
 		//console.log('finalAdjustment:', finalAdjustment);
 	}
 
-	private saveWaterPixels(waterType: string): void {
+	private saveWaterPixels(waterType: TerrainType): void {
 		const ctx = this.helperCanvas.getContext('2d');
 		this.helperCanvas.width = this.waterTrianglePNG.width;
 		this.helperCanvas.height = this.waterTrianglePNG.height;
@@ -83,16 +124,16 @@ export default class View {
 		ctx.save();
 		ctx.translate(middleImage, middleImage);
 		switch (waterType) {
-			case 'waterTriangle1':
+			case TerrainType.WaterTriangle1:
 				ctx.rotate(0 * Math.PI / 180);
 				break;
-			case 'waterTriangle2':
+			case TerrainType.WaterTriangle2:
 				ctx.rotate(90 * Math.PI / 180);
 				break;
-			case 'waterTriangle3':
+			case TerrainType.WaterTriangle3:
 				ctx.rotate(180 * Math.PI / 180);
 				break;
-			case 'waterTriangle4':
+			case TerrainType.WaterTriangle4:
 				ctx.rotate(270 * Math.PI / 180);
 				break;
 		}
@@ -117,262 +158,270 @@ export default class View {
 		else {
 			console.log("Your browser doesn't support web workers.");
 		}
-
-		/*
-		let waterData: boolean[][] = [];
-		console.time('a');
-		for (let x = 0; x < this.waterTrianglePNG.width; x++) {
-			waterData[x] = [];
-			for (let y = 0; y < this.waterTrianglePNG.height; y++) {
-				//const r = ctx.getImageData(x, y, 1, 1).data[0];
-				//const g = ctx.getImageData(x, y, 1, 1).data[1];
-				const b = ctx.getImageData(x, y, 1, 1).data[2];
-				if (b === 255) {
-					waterData[x][y] = false;
-				}
-				else {
-					waterData[x][y] = true;
-				}
-			}
-		}
-		console.timeEnd('a');
-		this.waterTerrainData.setData(waterType, waterData);
-		*/
 	}
 
-	draw(map: Map, player: Player, mouse: Mouse): void {
+	draw(): void {
 		const ctx = this.ctx;
 		//clear canvas
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-		//center player
-		const playerCenterX = player.getX() + player.size / 2;
-		const playerCenterY = player.getY() + player.size / 2;
-
-		//center screen
-		const screenCenterX = this.canvas.width / 2;
-		const screenCenterY = this.canvas.height / 2;
 
 		//water
 		ctx.fillStyle = '#69A2E0';
 		ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-		const gridSize = map.blocks[1].x * this.resolutionAdjustment;
-		//grass
+		//grass blocks
 		ctx.fillStyle = '#A2CB69';
-		for (const block of map.blocks) {
-			const x = screenCenterX + (block.x - playerCenterX) * this.resolutionAdjustment;
-			const y = screenCenterY + (block.y - playerCenterY) * this.resolutionAdjustment;
-			ctx.fillRect(x, y, gridSize, gridSize);
+		const blockSize = this.map.blocks[1].x;
+		for (const block of this.map.blocks) {
+			const { x, y, size, isOnScreen } = this.howToDraw({ x: block.x, y: block.y, size: blockSize });
+			if (isOnScreen) {
+				ctx.fillRect(x, y, size, size);
+			}
 		}
 
-		//terrain
+		//water terrain blocks
 		ctx.fillStyle = '#69A2E0';
-		for (const terrain of map.terrain) {
-			//position on screen from center
-			const x = screenCenterX + (terrain.x - playerCenterX) * this.resolutionAdjustment;
-			const y = screenCenterY + (terrain.y - playerCenterY) * this.resolutionAdjustment;
-			if (terrain.type === TerrainType.Water) {
-				ctx.fillRect(
-					x,
-					y,
-					terrain.width * this.resolutionAdjustment,
-					terrain.height * this.resolutionAdjustment
-				);
-			}
-			if (terrain.type === TerrainType.WaterTriangle1) {
-				ctx.drawImage(
-					this.waterTrianglePNG,
-					x,
-					y,
-					this.waterTrianglePNG.width * this.resolutionAdjustment,
-					this.waterTrianglePNG.height * this.resolutionAdjustment
-				);
-			}
-			if (
-				terrain.type === TerrainType.WaterTriangle2 ||
-				terrain.type === TerrainType.WaterTriangle3 ||
-				terrain.type === TerrainType.WaterTriangle4
-			) {
-				let middleImage = terrain.width / 2 * this.resolutionAdjustment;
-				this.ctx.save();
-				this.ctx.translate(x + middleImage, y + middleImage);
-				this.ctx.rotate(terrain.angle * Math.PI / 180);
-				this.ctx.drawImage(
-					this.waterTrianglePNG,
-					-middleImage,
-					-middleImage,
-					this.waterTrianglePNG.width * this.resolutionAdjustment,
-					this.waterTrianglePNG.height * this.resolutionAdjustment
-				);
-				this.ctx.restore();
+		for (const terrain of this.map.terrain) {
+			const { x, y, width, height, isOnScreen } = this.howToDraw({
+				x: terrain.x,
+				y: terrain.y,
+				width: terrain.width,
+				height: terrain.height
+			});
+			if (isOnScreen) {
+				if (terrain.type === TerrainType.Water) {
+					ctx.fillRect(x, y, width, height);
+				}
+				else if (terrain.type === TerrainType.WaterTriangle1) {
+					ctx.drawImage(this.waterTrianglePNG, x, y, width, height);
+				}
+				else if (
+					terrain.type === TerrainType.WaterTriangle2 ||
+					terrain.type === TerrainType.WaterTriangle3 ||
+					terrain.type === TerrainType.WaterTriangle4
+				) {
+					let middleImage = width / 2;
+					this.ctx.save();
+					this.ctx.translate(x + middleImage, y + middleImage);
+					this.ctx.rotate(terrain.angle * Math.PI / 180);
+					this.ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage, width, height);
+					this.ctx.restore();
+				}
 			}
 		}
 
 		//mapGrid
 		ctx.fillStyle = 'gray';
-		for (const block of map.blocks) {
-			const x = screenCenterX + (block.x - playerCenterX) * this.resolutionAdjustment;
-			const y = screenCenterY + (block.y - playerCenterY) * this.resolutionAdjustment;
+		for (const block of this.map.blocks) {
 			//top
-			if (block.y === 0) ctx.fillRect(x, y, gridSize, 1);
+			if (block.y === 0) {
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: block.x,
+					y: block.y,
+					size: blockSize
+				});
+				if (isOnScreen) ctx.fillRect(x, y, size, 1);
+			}
 			//bottom
-			ctx.fillRect(x, y + gridSize, gridSize, 1);
+			{
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: block.x,
+					y: block.y + blockSize,
+					size: blockSize
+				});
+				if (isOnScreen) ctx.fillRect(x, y, size, 1);
+			}
 			//left
-			if (block.x === 0) ctx.fillRect(x, y, 1, gridSize);
+			if (block.x === 0) {
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: block.x,
+					y: block.y,
+					size: blockSize
+				});
+				if (isOnScreen) ctx.fillRect(x, y, 1, size);
+			}
 			//right
-			ctx.fillRect(x + gridSize, y, 1, gridSize);
+			{
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: block.x + blockSize,
+					y: block.y,
+					size: blockSize
+				});
+				if (isOnScreen) ctx.fillRect(x, y, 1, size);
+			}
 		}
 
 		//rocks
-		for (let i = 0; i < map.rocks.length; i++) {
-			const rock = map.rocks[i];
-			ctx.save();
-			ctx.globalAlpha = rock.getOpacity();
-			let rockAnimateX = 0;
-			let rockAnimateY = 0;
-			const animateTimer = rock.getAnimateTimer();
-			switch (animateTimer) {
-				case 1:
-					rockAnimateX = rock.getHitAnimateShiftX();
-					rockAnimateY = rock.getHitAnimateShiftY();
-					break;
-				case 2:
-					rockAnimateX = 2 * rock.getHitAnimateShiftX();
-					rockAnimateY = 2 * rock.getHitAnimateShiftY();
-					break;
-				case 3:
-					rockAnimateX = 3 * rock.getHitAnimateShiftX();
-					rockAnimateY = 3 * rock.getHitAnimateShiftY();
-					break;
-				case 4:
-					rockAnimateX = 4 * rock.getHitAnimateShiftX();
-					rockAnimateY = 4 * rock.getHitAnimateShiftY();
-					break;
-				case 5:
-					rockAnimateX = 5 * rock.getHitAnimateShiftX();
-					rockAnimateY = 5 * rock.getHitAnimateShiftY();
-					break;
-				case 6:
-					rockAnimateX = 4 * rock.getHitAnimateShiftX();
-					rockAnimateY = 4 * rock.getHitAnimateShiftY();
-					break;
-				case 7:
-					rockAnimateX = 3 * rock.getHitAnimateShiftX();
-					rockAnimateY = 3 * rock.getHitAnimateShiftY();
-					break;
-				case 8:
-					rockAnimateX = 2 * rock.getHitAnimateShiftX();
-					rockAnimateY = 2 * rock.getHitAnimateShiftY();
-					break;
-				case 9:
-					rockAnimateX = 1 * rock.getHitAnimateShiftX();
-					rockAnimateY = 1 * rock.getHitAnimateShiftY();
-					break;
-				case 10:
-					break;
+		for (const rock of this.map.rocks) {
+			if (rock.isActive()) {
+				const { x, y, size, isOnScreen } = this.howToDraw(rock);
+				if (isOnScreen) {
+					ctx.save();
+					ctx.globalAlpha = rock.getOpacity();
+					ctx.drawImage(this.rockSVG, x, y, size, size);
+					ctx.restore();
+				}
 			}
-			ctx.drawImage(
-				this.rockSVG,
-				screenCenterX + (rock.x + rockAnimateX - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (rock.y + rockAnimateY - playerCenterY) * this.resolutionAdjustment,
-				rock.size * this.resolutionAdjustment,
-				rock.size * this.resolutionAdjustment
-			);
-			ctx.restore();
 		}
 
 		//walls
 		ctx.fillStyle = 'black';
-		for (let i = 0; i < map.rectangleObstacles.length; i++) {
-			const rectangleObstacle = map.rectangleObstacles[i];
+		for (const rectangleObstacle of this.map.rectangleObstacles) {
+			if (rectangleObstacle.isActive()) {
+				const { x, y, width, height, isOnScreen } = this.howToDraw(rectangleObstacle);
+				if (isOnScreen) {
+					ctx.save();
+					ctx.globalAlpha = rectangleObstacle.getOpacity();
+					ctx.fillRect(x, y, width, height);
+					ctx.restore();
+				}
+			}
+		}
 
-			ctx.save();
-			ctx.globalAlpha = rectangleObstacle.getOpacity();
-			ctx.fillRect(
-				screenCenterX + (rectangleObstacle.x - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (rectangleObstacle.y - playerCenterY) * this.resolutionAdjustment,
-				rectangleObstacle.width * this.resolutionAdjustment,
-				rectangleObstacle.height * this.resolutionAdjustment
-			);
-			ctx.restore();
+		//pistol
+		{
+			const { x, y, size } = this.howToDraw({
+				x: this.player.gun.getX(),
+				y: this.player.gun.getY(),
+				size: this.player.gun.size
+			});
+			const middleImage = size / 2;
+			this.ctx.save();
+			this.ctx.translate(x + middleImage, y + middleImage);
+			this.ctx.rotate(this.player.gun.getAngle() * Math.PI / 180);
+			ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
+			this.ctx.restore();
 		}
 
 		//player
-		ctx.drawImage(
-			this.playerSVG,
-			screenCenterX - player.size * this.resolutionAdjustment / 2,
-			screenCenterY - player.size * this.resolutionAdjustment / 2,
-			player.size * this.resolutionAdjustment,
-			player.size * this.resolutionAdjustment
-		);
+		{
+			//hands
+			for (const hand of this.player.hands) {
+				const { x, y, size } = this.howToDraw({
+					x: hand.getX(),
+					y: hand.getY(),
+					size: hand.size
+				});
+				ctx.drawImage(this.playerHandSVG, x, y, size, size);
+				//collisionPoints
+				for (const point of hand.collisionPoints) {
+					const { x, y, size } = this.howToDraw({
+						x: hand.getCenterX() + point.x,
+						y: hand.getCenterY() + point.y,
+						size: 1
+					});
+					ctx.fillRect(x, y, size, size);
+				}
+			}
+			//player
+			const { x, y, size } = this.howToDraw({
+				x: this.player.getX(),
+				y: this.player.getY(),
+				size: this.player.size
+			});
+			ctx.drawImage(this.playerSVG, x, y, size, size);
 
-		//collision points
-		ctx.fillStyle = 'blue';
-		for (let i = 0; i < player.collisionPoints.length; i++) {
-			const point = player.collisionPoints[i];
-			const x = screenCenterX + point.x * this.resolutionAdjustment;
-			const y = screenCenterY + point.y * this.resolutionAdjustment;
-			ctx.fillRect(x, y, 1, 1);
-		}
-
-		//player hands
-		for (let i = 0; i < player.hands.length; i++) {
-			const hand = player.hands[i];
-			ctx.drawImage(
-				this.playerHandSVG,
-				screenCenterX + (hand.getX() - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (hand.getY() - playerCenterY) * this.resolutionAdjustment,
-				hand.size * this.resolutionAdjustment,
-				hand.size * this.resolutionAdjustment
-			);
-			//hands collisionPoints
-			for (let j = 0; j < player.hands[i].collisionPoints.length; j++) {
-				const point = player.hands[i].collisionPoints[j];
-				const x = screenCenterX + (hand.getCenterX() + point.x - playerCenterX) * this.resolutionAdjustment;
-				const y = screenCenterY + (hand.getCenterY() + point.y - playerCenterY) * this.resolutionAdjustment;
-				ctx.fillRect(x, y, 1, 1);
+			//collision points
+			ctx.fillStyle = 'blue';
+			for (const point of this.player.collisionPoints) {
+				const { x, y, size } = this.howToDraw({
+					x: this.player.getCenterX() + point.x,
+					y: this.player.getCenterY() + point.y,
+					size: 1
+				});
+				ctx.fillRect(x, y, size, size);
 			}
 		}
 
 		//bushes
-		for (let i = 0; i < map.bushes.length; i++) {
-			const bush = map.bushes[i];
-			ctx.save();
-			ctx.globalAlpha = bush.getOpacity();
-			ctx.drawImage(
-				this.bushSVG,
-				screenCenterX + (bush.x - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (bush.y - playerCenterY) * this.resolutionAdjustment,
-				bush.size * this.resolutionAdjustment,
-				bush.size * this.resolutionAdjustment
-			);
-			ctx.restore();
+		for (const bush of this.map.bushes) {
+			if (bush.isActive()) {
+				const { x, y, size, isOnScreen } = this.howToDraw(bush);
+				if (isOnScreen) {
+					ctx.save();
+					ctx.globalAlpha = bush.getOpacity();
+					ctx.drawImage(this.bushSVG, x, y, size, size);
+					ctx.restore();
+				}
+			}
 		}
 
 		//trees
-		for (let i = 0; i < map.trees.length; i++) {
-			const tree = map.trees[i];
-			ctx.save();
-			ctx.globalAlpha = tree.getOpacity();
-			ctx.drawImage(
-				this.treeSVG,
-				screenCenterX + (tree.x - playerCenterX) * this.resolutionAdjustment,
-				screenCenterY + (tree.y - playerCenterY) * this.resolutionAdjustment,
-				tree.size * this.resolutionAdjustment,
-				tree.size * this.resolutionAdjustment
-			);
-			ctx.restore();
+		for (const tree of this.map.trees) {
+			if (tree.isActive()) {
+				const { x, y, size, isOnScreen } = this.howToDraw(tree);
+				if (isOnScreen) {
+					ctx.save();
+					ctx.globalAlpha = tree.getOpacity();
+					ctx.drawImage(this.treeSVG, x, y, size, size);
+					ctx.restore();
+				}
+			}
+		}
+
+		//bullets
+		ctx.fillStyle = 'red';
+		for (const bullet of this.bullets) {
+			const { x, y, size, isOnScreen } = this.howToDraw({
+				x: bullet.getX(),
+				y: bullet.getY(),
+				size: bullet.size
+			});
+			if (isOnScreen) ctx.fillRect(x, y, size, size);
 		}
 
 		//cursor
 		const mouseSize = 25;
 		ctx.drawImage(
 			this.cursorSVG,
-			mouse.x - mouseSize * this.resolutionAdjustment / 2,
-			mouse.y - mouseSize * this.resolutionAdjustment / 2,
+			this.mouse.x - mouseSize * this.resolutionAdjustment / 2,
+			this.mouse.y - mouseSize * this.resolutionAdjustment / 2,
 			mouseSize * this.resolutionAdjustment,
 			mouseSize * this.resolutionAdjustment
 		);
+	}
+
+	private howToDraw(gameObject: RoundObject | RectObject | RectangleObstacle | RoundObstacle): DrawData {
+		//size
+		let size = 0;
+		let width = 0;
+		let height = 0;
+		//round or square
+		if ((<RoundObject>gameObject).size) {
+			size = (<RoundObject>gameObject).size * this.resolutionAdjustment;
+			width = size;
+			height = size;
+		}
+		else {
+			//rect
+			width = (<RectObject>gameObject).width * this.resolutionAdjustment;
+			height = (<RectObject>gameObject).height * this.resolutionAdjustment;
+		}
+		//animate shift
+		let animateShiftX = 0;
+		let animateShiftY = 0;
+		if (gameObject instanceof RoundObstacle) {
+			const animateShift = gameObject.animate();
+			animateShiftX = animateShift.x;
+			animateShiftY = animateShift.y;
+		}
+		//positions on screen
+		const x =
+			this.screenCenterX + (gameObject.x + animateShiftX - this.player.getCenterX()) * this.resolutionAdjustment;
+		const y =
+			this.screenCenterY + (gameObject.y + animateShiftY - this.player.getCenterY()) * this.resolutionAdjustment;
+		//Is is on the screen?
+		let isOnScreen = true;
+		if (x > this.canvas.width || x < -width || y > this.canvas.height || y < -height) {
+			isOnScreen = false;
+		}
+		return {
+			x,
+			y,
+			size,
+			width,
+			height,
+			isOnScreen
+		};
 	}
 }

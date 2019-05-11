@@ -1,7 +1,7 @@
 onmessage = function(e) {
 	const data: number[] = e.data.data;
 	const size: number = e.data.size;
-	const type: string = e.data.type;
+	const type: any = e.data.type;
 	const time: number = e.data.time;
 	//rgbx - 0123 0123 0123
 	//choose only one color data

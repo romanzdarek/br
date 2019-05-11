@@ -1,4 +1,5 @@
 import Hand from './Hand';
+import Gun from './Gun';
 import Map from './Map';
 import Point from './Point';
 import Tree from './Tree';
@@ -15,6 +16,7 @@ export default class Player {
 	private angle: number = 0;
 	private map: Map;
 	hands: Hand[] = [];
+	gun: Gun;
 	private canvas: HTMLCanvasElement;
 	readonly collisionPoints: Point[] = [];
 	private slowAroundObstacle: boolean = false;
@@ -26,6 +28,7 @@ export default class Player {
 		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
 		this.hands.push(new Hand(this.size));
 		this.hands.push(new Hand(this.size));
+		this.gun = new Gun(this.size, 40);
 		this.map = map;
 		this.calculateCollisionsPoints();
 	}
@@ -39,11 +42,11 @@ export default class Player {
 		}
 	}
 
-	private getCenterX(): number {
+	getCenterX(): number {
 		return this.x + this.radius;
 	}
 
-	private getCenterY(): number {
+	getCenterY(): number {
 		return this.y + this.radius;
 	}
 
@@ -126,6 +129,7 @@ export default class Player {
 			this.shiftOnPosition(shiftX, shiftY);
 		}
 		this.rotatePlayer(mouseX, mouseY);
+		this.gun.move(this.angle, this.getCenterX(), this.getCenterY());
 		this.changeHandsPosition();
 	}
 

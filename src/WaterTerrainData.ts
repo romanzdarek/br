@@ -22,18 +22,18 @@ export default class WaterTerrainData {
 
 	constructor() {}
 
-	setData(type: string, data: boolean[][]): void {
+	setData(type: TerrainType, data: boolean[][]): void {
 		switch (type) {
-			case 'waterTriangle1':
+			case TerrainType.WaterTriangle1:
 				this.waterTriangle1 = data;
 				break;
-			case 'waterTriangle2':
+			case TerrainType.WaterTriangle2:
 				this.waterTriangle2 = data;
 				break;
-			case 'waterTriangle3':
+			case TerrainType.WaterTriangle3:
 				this.waterTriangle3 = data;
 				break;
-			case 'waterTriangle4':
+			case TerrainType.WaterTriangle4:
 				this.waterTriangle4 = data;
 				break;
 			default:
