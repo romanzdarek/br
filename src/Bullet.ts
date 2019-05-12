@@ -18,25 +18,31 @@ export default class Bullet {
 		this.angle = angle;
 		this.range = range;
 		//triangle
-		const bulletSpeed = 20;
+		const bulletSpeed = 30;
 		this.shiftX = Math.sin(angle * Math.PI / 180) * bulletSpeed;
 		this.shiftY = Math.cos(angle * Math.PI / 180) * bulletSpeed;
+
+		//start shift
+		const bulletStartShift = 1.5;
+		this.x += this.shiftX * bulletStartShift;
+		this.y -= this.shiftY * bulletStartShift;
 	}
 
 	move(map: Map): void {
-		this.x += this.shiftX;
-		this.y -= this.shiftY;
-		this.collisions(map);
+		if(!this.collisions(map)){
+			this.x += this.shiftX;
+			this.y -= this.shiftY;
+		}
 	}
 
-	private collisions(map: Map): void {
+	private collisions(map: Map): boolean {
 		const bulletPoint = new Point(this.getCenterX(), this.getCenterY());
 		//rounds
 		for (const obstacle of map.impassableRoundObstacles) {
 			if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
 				obstacle.acceptHit(bulletPoint);
 				this.active = false;
-				break;
+				return true;
 			}
 		}
 		//rects
@@ -45,10 +51,11 @@ export default class Bullet {
 				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
 					obstacle.acceptHit();
 					this.active = false;
-					break;
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 
 	getX(): number {

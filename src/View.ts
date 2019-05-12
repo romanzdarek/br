@@ -41,6 +41,8 @@ export default class View {
 	private treeSVG: HTMLImageElement;
 	private pistolSVG: HTMLImageElement;
 	private cursorSVG: HTMLImageElement;
+	private loadingProgresSVG: HTMLImageElement;
+	private loadingCircleSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
@@ -77,6 +79,12 @@ export default class View {
 
 		this.cursorSVG = new Image();
 		this.cursorSVG.src = 'img/cursor.svg';
+
+		this.loadingProgresSVG = new Image();
+		this.loadingProgresSVG.src = 'img/loadingProgres.svg';
+
+		this.loadingCircleSVG = new Image();
+		this.loadingCircleSVG.src = 'img/loadingCircle.svg';
 
 		this.pistolSVG = new Image();
 		this.pistolSVG.src = 'img/pistol.svg';
@@ -368,6 +376,35 @@ export default class View {
 				size: bullet.size
 			});
 			if (isOnScreen) ctx.fillRect(x, y, size, size);
+		}
+
+		//loading
+		const { time, max } = this.player.loading();
+		if (time < max) {
+			const maxViewLoadingSteps = 360;
+			const passedViewLoadingSteps = maxViewLoadingSteps / (max / time);
+			const loadingSVGSize = 100 * this.resolutionAdjustment;
+			const middleImage = loadingSVGSize / 2;
+			const x = this.screenCenterX - middleImage;
+			const y = this.screenCenterY - middleImage - 150 * this.resolutionAdjustment;
+			const timeToEnd = Math.round((max - time) / 60 * 10) / 10;
+			//background
+			ctx.save();
+			ctx.globalAlpha = 0.2;
+			ctx.drawImage(this.loadingCircleSVG, x, y, loadingSVGSize, loadingSVGSize);
+
+			ctx.restore();
+			for (let i = 0; i < passedViewLoadingSteps; i += 10) {
+				this.ctx.save();
+				this.ctx.translate(x + middleImage, y + middleImage);
+				this.ctx.rotate(i * Math.PI / 180);
+				ctx.drawImage(this.loadingProgresSVG, -middleImage, -middleImage, loadingSVGSize, loadingSVGSize);
+				this.ctx.restore();
+			}
+			const fontSize = 31 * this.resolutionAdjustment;
+			ctx.font = fontSize + 'px Arial';
+			ctx.fillStyle = 'white';
+			ctx.fillText(timeToEnd.toString(), x + 28 * this.resolutionAdjustment, y + 59 * this.resolutionAdjustment);
 		}
 
 		//cursor

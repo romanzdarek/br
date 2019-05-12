@@ -56,7 +56,6 @@ export default class Model {
 			}
 			this.mouse.left = false;
 		}
-
 		this.view.draw();
 	}
 

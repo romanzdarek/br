@@ -7,6 +7,11 @@ import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
 import { TerrainType } from './Terrain';
 
+type Loading = {
+	time: number;
+	max: number;
+};
+
 export default class Player {
 	readonly size: number = 80;
 	readonly radius: number = this.size / 2;
@@ -20,7 +25,8 @@ export default class Player {
 	private canvas: HTMLCanvasElement;
 	readonly collisionPoints: Point[] = [];
 	private slowAroundObstacle: boolean = false;
-	private denySlowAroundObstacle: boolean = false;
+	private loadingTime: number = 0;
+	private loadingMaxTime: number = 3 * 60;
 
 	constructor(map: Map) {
 		this.x = 550;
@@ -28,7 +34,7 @@ export default class Player {
 		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
 		this.hands.push(new Hand(this.size));
 		this.hands.push(new Hand(this.size));
-		this.gun = new Gun(this.size, 40);
+		this.gun = new Gun(this.size, 20);
 		this.map = map;
 		this.calculateCollisionsPoints();
 	}
@@ -40,6 +46,11 @@ export default class Player {
 			const y = Math.cos(i * Math.PI / 180) * this.radius;
 			this.collisionPoints.push(new Point(x, y));
 		}
+	}
+
+	loading(): Loading {
+		if (this.loadingTime < this.loadingMaxTime) this.loadingTime++;
+		return { time: this.loadingTime, max: this.loadingMaxTime };
 	}
 
 	getCenterX(): number {
