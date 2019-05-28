@@ -7,9 +7,8 @@
 	"author": "",
 	"license": "ISC",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "webpack --config webpack.prod.js",
-		"start": "webpack-dev-server --open --config webpack.dev.js"
+		"dev": "webpack-dev-server --open --config webpack.dev.js"
 	},
 	"devDependencies": {
 		"ts-loader": "^5.3.3",
@@ -18,5 +17,6 @@
 		"webpack-cli": "^3.2.3",
 		"webpack-dev-server": "^3.2.1",
 		"webpack-merge": "^4.2.1"
-	}
+	},
+	"dependencies": {}
 }

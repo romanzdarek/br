@@ -7,6 +7,9 @@ import Bullet from './Bullet';
 import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
 import Tree from './Tree';
+import ServerClientSync from './ServerClientSync';
+
+import { Controller } from './Controller';
 
 type DrawData = {
 	x: number;
@@ -53,7 +56,22 @@ export default class View {
 	private bullets: Bullet[];
 	private mouse: Mouse;
 
-	constructor(map: Map, player: Player, bullets: Bullet[], mouse: Mouse, waterTerrainData: WaterTerrainData) {
+	private startDraw = false;
+	private lastDrawFrameTS: number;
+	private lastDrawFrame: number;
+	private lastDraw: any;
+
+	private serverClientSync: ServerClientSync;
+
+	constructor(
+		map: Map,
+		player: Player,
+		bullets: Bullet[],
+		mouse: Mouse,
+		waterTerrainData: WaterTerrainData,
+		serverClientSync: ServerClientSync
+	) {
+		this.serverClientSync = serverClientSync;
 		this.map = map;
 		this.player = player;
 		this.bullets = bullets;
@@ -322,13 +340,244 @@ export default class View {
 				}
 			}
 			//player
+			/*
+			//client data
 			const { x, y, size } = this.howToDraw({
 				x: this.player.getX(),
 				y: this.player.getY(),
 				size: this.player.size
 			});
-			ctx.drawImage(this.playerSVG, x, y, size, size);
+			*/
 
+			//1. urcime si cas pred nejakou dobou a budeme hledat snimky hry pred timto a za timto bodem
+			//2. nemuzeme se spolehnout jen na cas klienta a musime nejperve synchronizovat
+			//3. dopocitame priblizny stav mezi snimky
+			//4. vykreslime
+
+			//sort - zatim nutne pro simulaci pingu...
+			Controller.playerData.sort((a, b) => {
+				return a.tick - b.tick;
+			});
+
+			//mazani dat ze zasobniku
+			if (Controller.playerData.length > 50) {
+				Controller.playerData.splice(0, 5);
+			}
+
+			if (this.serverClientSync.ready()) {
+				ctx.fillStyle = 'white';
+				ctx.fillText('Count frames: ' + Controller.playerData.length, 20, 40);
+				ctx.fillText('Time Diference: ' + this.serverClientSync.getTimeDiference(), 20, 80);
+				ctx.fillText('Draw delay ' + this.serverClientSync.getDrawDelay(), 20, 120);
+
+				//time
+				//server time is <
+				let direction = 1;
+				//server time is >
+				if (this.serverClientSync.getTimeDiference() < 0) direction = -1;
+				//time on server
+				const timeNowOnServer = Date.now() + this.serverClientSync.getTimeDiference() * direction;
+				//const delay = 70;
+				const wantedFrameTime = timeNowOnServer - this.serverClientSync.getDrawDelay();
+
+				//find last older (or same <=) frame
+				let olderFrame;
+				for (const frame of Controller.playerData) {
+					if (frame.time <= wantedFrameTime) olderFrame = frame;
+				}
+
+				//find newer (or same >=) frame
+				let newerFrame;
+				let sumaNewer = 0;
+				for (let i = Controller.playerData.length - 1; i >= 0; i--) {
+					const frame = Controller.playerData[i];
+					if (frame.time >= wantedFrameTime) {
+						newerFrame = frame;
+						sumaNewer++;
+					}
+				}
+
+				//change delay
+				if (sumaNewer > 2) this.serverClientSync.changeDrawDelay(-0.1);
+				if (sumaNewer < 2) this.serverClientSync.changeDrawDelay(0.1);
+
+				//err
+				if (!olderFrame) console.log('olderFrame is missing');
+				if (!newerFrame) console.log('newerFrame is missing');
+				if (!olderFrame || !newerFrame) {
+					//Controller._socket.emit('syncTime', 0);
+					//console.log('new sync');
+					this.serverClientSync.reset();
+
+					//err
+					ctx.fillStyle = 'white';
+					ctx.fillText('frame missing', 20, 300);
+				}
+
+				//count position
+				if (olderFrame && newerFrame) {
+					const timeDistance = newerFrame.time - olderFrame.time;
+					const distanceOlderFromWantedFrameTime = wantedFrameTime - olderFrame.time;
+					let percentShift = 0;
+					if (timeDistance) {
+						percentShift = distanceOlderFromWantedFrameTime / timeDistance;
+					}
+
+					//console.log('percentShift', percentShift);
+
+					const xDiference = Math.abs(newerFrame.x - olderFrame.x);
+					let direction = 1;
+					if (newerFrame.x < olderFrame.x) direction = -1;
+					let calculatedX = olderFrame.x + xDiference * percentShift * direction;
+					//calculatedX = olderFrame.x;
+					const { x, y, size } = this.howToDraw({
+						x: calculatedX,
+						y: 300,
+						size: this.player.size
+					});
+					ctx.drawImage(this.playerSVG, x, y, size, size);
+				}
+			}
+
+			/*
+			if (!this.lastDrawFrameTS && Controller.playerData.length) {
+				this.lastDrawFrameTS = Controller.playerData[Controller.playerData.length - 1].time;
+				console.log(1111, this.lastDrawFrameTS);
+			}
+
+			//////////////
+
+			const serverData = Controller.playerData;
+			if (serverData.length >= 5) {
+				let drawThis;
+				if (this.lastDrawFrame) {
+					for (const frame of serverData) {
+						if (frame.tick === this.lastDrawFrame + 1) {
+							drawThis = frame;
+						}
+					}
+				}
+
+				let nahrada = false;
+				if (!drawThis && this.lastDraw) {
+					drawThis = this.lastDraw;
+					console.log('frame nenalezen');
+					nahrada = true;
+
+					const last = this.lastDraw;
+					const lastLastTick = this.lastDraw.tick - 1;
+					let lastLast;
+					for (const frame of serverData) {
+						if (frame.tick === lastLastTick) {
+							lastLast = frame;
+						}
+					}
+					let calculatedFrame = { x: 0, y: this.lastDraw.y, tick: this.lastDraw + 1 };
+					if (last && lastLast) {
+						const diference = Math.abs(last.x - lastLast.x);
+						let direction = 1;
+						if (lastLast.x > last.x) direction = -1;
+						calculatedFrame.x = last.x + diference * direction;
+						drawThis = calculatedFrame;
+						console.log('frame dopocitan');
+						
+					}
+
+					
+				}
+
+				if (drawThis) {
+					this.lastDraw = drawThis;
+					this.lastDrawFrame = drawThis.tick;
+					//console.log('drawwwwwwwwwwww');
+					const { x, y, size } = this.howToDraw({
+						x: drawThis.x,
+						y: drawThis.y,
+						size: this.player.size
+					});
+					ctx.drawImage(this.playerSVG, x, y, size, size);
+				}
+				if (nahrada) this.lastDrawFrame = null;
+
+				if (serverData.length >= 5 && !this.lastDrawFrame) {
+					this.lastDrawFrame = serverData[serverData.length - 3].tick;
+					console.log('okkkkkkkkkkkkkkkkkkkk');
+					console.log(this.lastDrawFrame);
+				}
+			}
+
+			//////////////////
+
+			if (Controller.playerData.length > 10 && this.lastDrawFrameTS) {
+				const frameDelay = 100;
+
+				let thisFrameTime;
+				thisFrameTime = this.lastDrawFrameTS + frameDelay;
+
+				//find older (<= or equal) and newer (or equal)
+				let older;
+				for (let i = 0; i < Controller.playerData.length; i++) {
+					const frame = Controller.playerData[i];
+					if (frame.time <= thisFrameTime) {
+						older = frame;
+						//console.log('older', i);
+					}
+				}
+				let newer;
+				for (let i = Controller.playerData.length - 1; i >= 0; i--) {
+					const frame = Controller.playerData[i];
+					if (frame.time >= thisFrameTime) {
+						newer = frame;
+						//console.log('newer', i);
+					}
+				}
+
+				//newer do not exists
+				if (!newer) newer = older;
+
+				let drawFrame;
+				if (older && newer) {
+					//which is closer?
+					if (Math.abs(thisFrameTime - older) <= Math.abs(thisFrameTime - newer)) {
+						//older
+						drawFrame = older;
+					}
+					else {
+						//newer
+						drawFrame = newer;
+					}
+				}
+				if (drawFrame && false) {
+					this.lastDrawFrameTS = drawFrame.time;
+					
+					//let xx = drawFrame.x;
+					//let yy = drawFrame.y;
+
+
+					//const last = Controller.playerData[Controller.playerData.length - 3];
+					let xx = drawFrame.x;
+					let yy = drawFrame.y;
+
+					
+					//draw between frames
+					//xx = (older.x + newer.x) / 2;
+					//yy = (older.y + newer.y) / 2;
+					
+
+					const { x, y, size } = this.howToDraw({
+						x: xx,
+						y: yy,
+						size: this.player.size
+					});
+					ctx.drawImage(this.playerSVG, x, y, size, size);
+				}
+
+				if (Controller.playerData.length > 20) {
+					Controller.playerData.splice(0, 5);
+				}
+			}
+			//console.log(Controller.playerData.length);
+*/
 			//collision points
 			ctx.fillStyle = 'blue';
 			for (const point of this.player.collisionPoints) {

@@ -1,4 +1,12 @@
 import Model from './Model';
+import Socket from './Socket';
+import ServerClientSync from './ServerClientSync';
+
+//import { io, Socket } from './socket.io.d';
+
+declare const io: {
+	connect(url: string): Socket;
+};
 
 export type Keys = {
 	w: boolean;
@@ -18,6 +26,9 @@ export type Mouse = {
 export class Controller {
 	private static instance: Controller;
 	private model: Model;
+	private socket: Socket;
+	private serverClientSync: ServerClientSync;
+	static _socket: Socket;
 	private canvas: HTMLCanvasElement;
 	private keys: Keys = {
 		w: false,
@@ -33,9 +44,15 @@ export class Controller {
 		right: false
 	};
 
+	static playerData: any[] = [];
+	static timeDiference: number;
+
 	private constructor() {
 		this.canvas = document.getElementsByTagName('canvas')[0];
-		this.model = new Model(this.keys, this.mouse);
+		this.socket = io.connect('http://192.168.0.2:8888');
+		this.serverClientSync = new ServerClientSync();
+		Controller._socket = this.socket;
+		this.model = new Model(this.keys, this.mouse, this.socket, this.serverClientSync);
 		window.addEventListener('resize', () => {
 			this.model.screenResize();
 			const event = new Event('mousemove');
@@ -43,6 +60,7 @@ export class Controller {
 		});
 		this.keysController();
 		this.mouseController();
+		this.socketController();
 	}
 
 	static run(): void {
@@ -52,6 +70,40 @@ export class Controller {
 		else {
 			throw new Error('Only one controller!');
 		}
+	}
+
+	private socketController(): void {
+		this.socket.emit('syncTime', 0);
+		this.socket.on('serverClientSync', (clientDateNow, serverDateNow) => {
+			const timeNow = Date.now();
+			const ping = timeNow - clientDateNow;
+			const timeDiferenceClientServer = timeNow - serverDateNow;
+			this.serverClientSync.addData(ping, timeDiferenceClientServer);
+			console.log(this.serverClientSync);
+		});
+
+		this.socket.on('socketEvent', (data) => {
+			console.log(data);
+		});
+
+		this.socket.on('syncTime', (serverTime) => {
+			Controller.timeDiference = Date.now() - serverTime;
+			console.log('syncTime', Controller.timeDiference);
+		});
+
+		this.socket.on('p', (x, y, time, tick) => {
+			//console.log('transport time:', Date.now() - time);
+			const ping = Math.round(Math.random() * 25);
+			//console.log('ping:', ping);
+			setTimeout(() => {
+				if (Controller.playerData.length) {
+					const lastTick = Controller.playerData[Controller.playerData.length - 1].tick;
+					//if (tick - 1 !== lastTick) console.log('spatne poradi ticku');
+				}
+
+				Controller.playerData.push({ x, y, time: time, tick: tick });
+			}, ping);
+		});
 	}
 
 	private mouseController(): void {
