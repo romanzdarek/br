@@ -1,33 +1,24 @@
-import * as socketIO from 'socket.io';
+import * as SocketIO from 'socket.io';
+import Game from './Game';
+import WaterTerrainData from './WaterTerrainData';
 
 export default class Model {
-	private io: socketIO.Server;
-	playerData = { x: 0, y: 0, time: 0 };
+	private io: SocketIO.Server;
+	games: Game[] = [];
+	private waterTerrainData: WaterTerrainData;
 
-	private tick: number = 0;
-	private x: number = 0;
-
-	private direction: number = 1;
-
-	constructor(io: socketIO.Server) {
+	constructor(io: SocketIO.Server) {
 		this.io = io;
+		this.waterTerrainData = new WaterTerrainData();
+		this.games.push(new Game(this.waterTerrainData));
 		setInterval(() => {
-			this.gameLoop();
+			this.loop();
 		}, 1000 / 60);
 	}
 
-	private gameLoop(): void {
-		const shift = 5;
-		this.x += shift * this.direction;
-
-		if (this.x === 900) {
-			this.direction = -1;
+	private loop(): void {
+		for (const game of this.games) {
+			game.loop();
 		}
-		if (this.x === 0) {
-			this.direction = 1;
-		}
-
-		this.io.emit('p', this.x, 600, Date.now(), this.tick);
-		this.tick++;
 	}
 }

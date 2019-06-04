@@ -3,8 +3,8 @@ export default class ServerClientSync {
 	private pings: number[] = [];
 	private timeDiference: number | null = null;
 	private timeDiferences: number[] = [];
-	private readonly attempts: number = 10;
-	private readonly defaultDrawDelay: number = 50;
+	private readonly attempts: number = 5;
+	private readonly defaultDrawDelay: number = 700;
 	private drawDelay: number = this.defaultDrawDelay;
 
 	constructor() {}
@@ -55,5 +55,13 @@ export default class ServerClientSync {
 
 	getDrawDelay(): number {
 		return this.drawDelay;
+	}
+
+	getServerTime(): number {
+		let serverTime = 0;
+		if (this.ready()) {
+			serverTime = Date.now() + this.getTimeDiference();
+		}
+		return serverTime;
 	}
 }

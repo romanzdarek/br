@@ -49,6 +49,7 @@ export default class Map {
 		this.terrain.push(new Terrain(TerrainType.WaterTriangle2, 3 * blockSize, blockSize, blockSize, blockSize));
 		this.terrain.push(new Terrain(TerrainType.WaterTriangle3, 3 * blockSize, 3 * blockSize, blockSize, blockSize));
 		this.terrain.push(new Terrain(TerrainType.WaterTriangle4, blockSize, 3 * blockSize, blockSize, blockSize));
+		
 
 		let id = 0;
 		//bushes

@@ -2,7 +2,7 @@ import Point from './Point';
 
 export default abstract class RoundObstacle {
 	readonly id: number;
-	protected changed: boolean = false;
+	protected  changed: boolean = false;
 	readonly x: number;
 	readonly y: number;
 	protected opacity: number = 1;
@@ -21,16 +21,16 @@ export default abstract class RoundObstacle {
 		this.radius = size / 2;
 	}
 
-	getChanged(): boolean {
+	getChanged():boolean{
 		return this.changed;
 	}
 
-	nullChanged(): void {
+	nullChanged():void{
 		this.changed = false;
 	}
 
-	update(opacity: number): void {
-		this.opacity = opacity;
+	getChangedData(): any {
+		return { id: this.id, opacity: this.opacity };
 	}
 
 	isPointIn(point: Point): boolean {
@@ -59,11 +59,15 @@ export default abstract class RoundObstacle {
 	}
 
 	acceptHit(handCenter: Point): void {
-		if (this.opacity > 0.1) this.opacity -= 0.1;
-		this.createAnimateHit(handCenter);
-		if (this.opacity < 0.1) {
-			this.active = false;
+		if (this.active) {
+			if (this.opacity > 0.1) this.opacity -= 0.1;
+			this.createAnimateHit(handCenter);
+			if (this.opacity < 0.1) {
+				this.active = false;
+			}
+			this.changed = true;
 		}
+		
 	}
 
 	private createAnimateHit(handCenter: Point): void {

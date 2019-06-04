@@ -6,18 +6,21 @@ import Map from './Map';
 import WaterTerrainData from './WaterTerrainData';
 import Bullet from './Bullet';
 import ServerClientSync from './ServerClientSync';
+import {Snapshot} from './Snapshot';
 
 export default class Model {
+	private game: number = 0;
+	private name: string;
+	private id: string;
 	private view: View;
 	private player: Player;
+	snapshots: Snapshot[] = [];
 	private socket: Socket;
 	private waterTerrainData: WaterTerrainData;
 	private keys: Keys;
 	private mouse: Mouse;
-	private map: Map;
+	map: Map;
 	private bullets: Bullet[] = [];
-	private halfFPS: boolean = true;
-	private time = Date.now();
 	private serverClientSync: ServerClientSync;
 
 	constructor(keys: Keys, mouse: Mouse, socket: Socket, serverClientSync: ServerClientSync) {
@@ -31,20 +34,35 @@ export default class Model {
 		this.view = new View(
 			this.map,
 			this.player,
+			this.snapshots,
 			this.bullets,
 			this.mouse,
 			this.waterTerrainData,
 			this.serverClientSync
 		);
-		//this.gameLoop();
 		setTimeout(() => {
 			this.gameLoop();
 		}, 200);
-		/*
-		setInterval(() => {
-			this.gameLoop();
-		}, 1000 / 60);
-		*/
+	}
+
+	setID(id: string): void {
+		this.id = id;
+	}
+
+	setName(name: string): void {
+		this.name = name;
+	}
+
+	getID(): string {
+		return this.id;
+	}
+
+	getName(): string {
+		return this.name;
+	}
+
+	getGame(): number {
+		return this.game;
 	}
 
 	private gameLoop(): void {
@@ -58,20 +76,8 @@ export default class Model {
 			this.socket.emit('serverClientSync', Date.now());
 		}
 
-		//const now = Date.now();
-		//console.log(now - this.time);
-		//this.time = now;
-
+		/*
 		this.player.playerMove(this.keys.w, this.keys.a, this.keys.s, this.keys.d, this.mouse.x, this.mouse.y);
-
-		//#################################
-		//send player Data...
-		const playerData = {
-			x: this.player.getX(),
-			y: this.player.getY()
-		};
-		//this.socket.emit('p', this.player.getX(), this.player.getY(), Date.now());
-		//#################################
 
 		//move and delete bullets
 		for (let i = this.bullets.length - 1; i >= 0; i--) {
@@ -98,15 +104,8 @@ export default class Model {
 			}
 			this.mouse.left = false;
 		}
-		/*
-		if(this.halfFPS){
-			this.view.draw();
-			this.halfFPS = false;
-		}
-		else{
-			this.halfFPS = true;
-		}
 		*/
+
 		this.view.draw();
 	}
 

@@ -30,10 +30,6 @@ export default abstract class RectangleObstacle {
 		return { id: this.id, opacity: this.opacity };
 	}
 
-	update(opacity: number): void {
-		this.opacity = opacity;
-	}
-
 	isPointIn(point: Point): boolean {
 		const { x, y } = point;
 		if (x < this.x + this.width && x >= this.x && y >= this.y && y < this.y + this.height) {

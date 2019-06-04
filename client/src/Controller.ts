@@ -1,8 +1,8 @@
 import Model from './Model';
 import Socket from './Socket';
 import ServerClientSync from './ServerClientSync';
-
-//import { io, Socket } from './socket.io.d';
+import { Snapshot } from './Snapshot';
+import Map from './Map';
 
 declare const io: {
 	connect(url: string): Socket;
@@ -28,7 +28,6 @@ export class Controller {
 	private model: Model;
 	private socket: Socket;
 	private serverClientSync: ServerClientSync;
-	static _socket: Socket;
 	private canvas: HTMLCanvasElement;
 	private keys: Keys = {
 		w: false,
@@ -44,14 +43,12 @@ export class Controller {
 		right: false
 	};
 
-	static playerData: any[] = [];
-	static timeDiference: number;
+	private playerAngle: number = 0;
 
 	private constructor() {
 		this.canvas = document.getElementsByTagName('canvas')[0];
 		this.socket = io.connect('http://192.168.0.2:8888');
 		this.serverClientSync = new ServerClientSync();
-		Controller._socket = this.socket;
 		this.model = new Model(this.keys, this.mouse, this.socket, this.serverClientSync);
 		window.addEventListener('resize', () => {
 			this.model.screenResize();
@@ -73,36 +70,78 @@ export class Controller {
 	}
 
 	private socketController(): void {
-		this.socket.emit('syncTime', 0);
+		this.socket.emit('createPlayer', 'playerName', this.model.getGame());
+
+		this.socket.on('createPlayer', (id: string, name: string) => {
+			if (id && name) {
+				this.model.setID(id);
+				this.model.setName(name);
+
+				//this.model.players.push(new PlayerFromServer(id, name));
+				console.log('player created', id);
+			}
+			else {
+				console.log('error created player', id, name);
+			}
+		});
+
+		//sync
 		this.socket.on('serverClientSync', (clientDateNow, serverDateNow) => {
 			const timeNow = Date.now();
 			const ping = timeNow - clientDateNow;
-			const timeDiferenceClientServer = timeNow - serverDateNow;
+			const timeDiferenceClientServer = serverDateNow - (timeNow - ping / 2);
 			this.serverClientSync.addData(ping, timeDiferenceClientServer);
-			console.log(this.serverClientSync);
 		});
 
-		this.socket.on('socketEvent', (data) => {
-			console.log(data);
-		});
-
-		this.socket.on('syncTime', (serverTime) => {
-			Controller.timeDiference = Date.now() - serverTime;
-			console.log('syncTime', Controller.timeDiference);
-		});
-
-		this.socket.on('p', (x, y, time, tick) => {
-			//console.log('transport time:', Date.now() - time);
-			const ping = Math.round(Math.random() * 25);
-			//console.log('ping:', ping);
+		//u === update positions
+		this.socket.on('u', (Snapshot: Snapshot) => {
+			const ping = Math.round(Math.random() * 50);
 			setTimeout(() => {
-				if (Controller.playerData.length) {
-					const lastTick = Controller.playerData[Controller.playerData.length - 1].tick;
-					//if (tick - 1 !== lastTick) console.log('spatne poradi ticku');
+				this.model.snapshots.push(Snapshot);
+				//delete old snapshots
+				if (this.model.snapshots.length > 50) {
+					this.model.snapshots.splice(0, 1);
 				}
-
-				Controller.playerData.push({ x, y, time: time, tick: tick });
 			}, ping);
+		});
+
+		//update map
+		this.socket.on('m', (mapObject, serverTime, data) => {
+			const updateTime =
+				this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - serverTime);
+			//walls
+			if (mapObject === 'w') {
+				for (const wall of this.model.map.rectangleObstacles) {
+					if (wall.id === data.id) {
+						setTimeout(() => {
+							wall.update(data.opacity);
+						}, updateTime);
+						break;
+					}
+				}
+			}
+			//rounds
+			if (mapObject === 'r') {
+				for (const round of this.model.map.impassableRoundObstacles) {
+					if (round.id === data.id) {
+						setTimeout(() => {
+							round.update(data.opacity);
+						}, updateTime);
+						break;
+					}
+				}
+			}
+			//bushes
+			if (mapObject === 'b') {
+				for (const round of this.model.map.bushes) {
+					if (round.id === data.id) {
+						setTimeout(() => {
+							round.update(data.opacity);
+						}, updateTime);
+						break;
+					}
+				}
+			}
 		});
 	}
 
@@ -116,25 +155,70 @@ export class Controller {
 				this.mouse.x = e.x;
 				this.mouse.y = e.y;
 			}
+
+			const previousPlayerAngle = this.playerAngle;
+			this.rotatePlayer(this.mouse.x, this.mouse.y);
+			//change
+			if (this.playerAngle !== previousPlayerAngle) {
+				this.socket.emit('a', this.model.getGame(), this.model.getID(), this.playerAngle);
+			}
 		});
 		this.canvas.addEventListener('click', (e: MouseEvent) => {
 			this.mouse.left = true;
+			this.socket.emit('m', this.model.getGame(), this.model.getID(), 'l');
 		});
+	}
+
+	private rotatePlayer(mouseX: number, mouseY: number): void {
+		//triangular sides
+		const centerX = this.canvas.width / 2;
+		const centerY = this.canvas.height / 2;
+		let x = centerX - mouseX;
+		let y = centerY - mouseY;
+		//can not set x and y to 0 because angle
+		if (x === 0) x = 0.1;
+		//atangens
+		let angle = Math.abs(Math.atan(x / y) * 180 / Math.PI);
+		//1..2..3..4.. Q; 0 - 90, 90 - 180...
+		//1
+		if (mouseX >= centerX && mouseY < centerY) {
+			this.playerAngle = angle;
+		}
+		//2
+		if (mouseX >= centerX && mouseY >= centerY) {
+			this.playerAngle = 90 + 90 - angle;
+		}
+		//3
+		if (mouseX < centerX && mouseY >= centerY) {
+			this.playerAngle = 180 + angle;
+		}
+		//4
+		if (mouseX < centerX && mouseY < centerY) {
+			this.playerAngle = 270 + 90 - angle;
+		}
+		this.playerAngle = Math.round(this.playerAngle);
+		if (this.playerAngle === 360) this.playerAngle = 0;
 	}
 
 	private keysController(): void {
 		document.addEventListener('keydown', (e: KeyboardEvent) => {
 			switch (e.code) {
 				case 'KeyW':
+					if (!this.keys.w) this.socket.emit('c', this.model.getGame(), this.model.getID(), 'u');
 					this.keys.w = true;
 					break;
 				case 'KeyA':
+					if (!this.keys.a) this.socket.emit('c', this.model.getGame(), this.model.getID(), 'l');
 					this.keys.a = true;
+
 					break;
 				case 'KeyS':
+					if (!this.keys.s) this.socket.emit('c', this.model.getGame(), this.model.getID(), 'd');
 					this.keys.s = true;
+
 					break;
 				case 'KeyD':
+					if (!this.keys.d) this.socket.emit('c', this.model.getGame(), this.model.getID(), 'r');
 					this.keys.d = true;
 					break;
 			}
@@ -143,15 +227,19 @@ export class Controller {
 		document.addEventListener('keyup', (e: KeyboardEvent) => {
 			switch (e.code) {
 				case 'KeyW':
+					if (this.keys.w) this.socket.emit('c', this.model.getGame(), this.model.getID(), '-u');
 					this.keys.w = false;
 					break;
 				case 'KeyA':
+					if (this.keys.a) this.socket.emit('c', this.model.getGame(), this.model.getID(), '-l');
 					this.keys.a = false;
 					break;
 				case 'KeyS':
+					if (this.keys.s) this.socket.emit('c', this.model.getGame(), this.model.getID(), '-d');
 					this.keys.s = false;
 					break;
 				case 'KeyD':
+					if (this.keys.d) this.socket.emit('c', this.model.getGame(), this.model.getID(), '-r');
 					this.keys.d = false;
 					break;
 			}
