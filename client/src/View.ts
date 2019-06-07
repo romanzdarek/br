@@ -7,8 +7,13 @@ import Bullet from './Bullet';
 import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
 import Tree from './Tree';
+import Rock from './Rock';
+import Bush from './Bush';
+import Wall from './Wall';
 import ServerClientSync from './ServerClientSync';
 import { Snapshot } from './Snapshot';
+import MyHtmlElements from './MyHtmlElements';
+import Editor from './Editor';
 
 type DrawData = {
 	x: number;
@@ -34,8 +39,10 @@ interface RectObject {
 
 export default class View {
 	private canvas: HTMLCanvasElement;
+	private editorCanvas: HTMLCanvasElement;
 	private helperCanvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
+	private ctxEditor: CanvasRenderingContext2D;
 	private playerSVG: HTMLImageElement;
 	private playerHandSVG: HTMLImageElement;
 	private bushSVG: HTMLImageElement;
@@ -60,6 +67,7 @@ export default class View {
 
 	private serverClientSync: ServerClientSync;
 	private snapshots: Snapshot[] = [];
+	private myHtmlElements: MyHtmlElements;
 
 	constructor(
 		map: Map,
@@ -68,17 +76,21 @@ export default class View {
 		bullets: Bullet[],
 		mouse: Mouse,
 		waterTerrainData: WaterTerrainData,
-		serverClientSync: ServerClientSync
+		serverClientSync: ServerClientSync,
+		myHtmlElements: MyHtmlElements
 	) {
 		this.serverClientSync = serverClientSync;
+		this.myHtmlElements = myHtmlElements;
 		this.map = map;
 		this.player = player;
 		this.snapshots = gameSnapshots;
 		this.bullets = bullets;
 		this.mouse = mouse;
-		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
+		this.canvas = <HTMLCanvasElement>this.myHtmlElements.gameScreen;
+		this.editorCanvas = <HTMLCanvasElement>this.myHtmlElements.editor.screen;
 		this.helperCanvas = <HTMLCanvasElement>document.getElementById('helper');
 		this.ctx = this.canvas.getContext('2d');
+		this.ctxEditor = this.editorCanvas.getContext('2d');
 
 		this.playerSVG = new Image();
 		this.playerSVG.src = 'img/player.svg';
@@ -185,6 +197,212 @@ export default class View {
 		}
 	}
 
+	drawEditor(editor: Editor): void {
+		const ctx = this.ctxEditor;
+		//clear canvas
+		ctx.clearRect(0, 0, this.editorCanvas.width, this.editorCanvas.height);
+
+		//grass
+		ctx.fillStyle = '#A2CB69';
+		ctx.fillRect(0, 0, this.editorCanvas.width, this.editorCanvas.height);
+
+		//terrain blocks
+		ctx.fillStyle = '#69A2E0';
+		for (const terrain of editor.terrains) {
+			switch (terrain.type) {
+				case TerrainType.Water:
+					ctx.fillRect(terrain.x, terrain.y, editor.blockSize, editor.blockSize);
+					break;
+				case TerrainType.WaterTriangle1:
+					ctx.drawImage(this.waterTrianglePNG, terrain.x, terrain.y, editor.blockSize, editor.blockSize);
+					break;
+				case TerrainType.WaterTriangle2:
+				case TerrainType.WaterTriangle3:
+				case TerrainType.WaterTriangle4:
+					let middleImage = editor.blockSize / 2;
+					ctx.save();
+					ctx.translate(terrain.x + middleImage, terrain.y + middleImage);
+					ctx.rotate(terrain.angle * Math.PI / 180);
+					ctx.drawImage(
+						this.waterTrianglePNG,
+						-middleImage,
+						-middleImage,
+						editor.blockSize,
+						editor.blockSize
+					);
+					ctx.restore();
+					break;
+			}
+		}
+
+		//terrain blocks under mouse
+		let blockX, blockY;
+		if (editor.getTerrainType() != null) {
+			//x, y to [blocks]
+			blockX = Math.floor(editor.getX() / editor.blockSize) * editor.blockSize;
+			blockY = Math.floor(editor.getY() / editor.blockSize) * editor.blockSize;
+			let angle = -1;
+			switch (editor.getTerrainType()) {
+				case TerrainType.Water:
+					ctx.fillStyle = '#69A2E0';
+					ctx.fillRect(blockX, blockY, editor.blockSize, editor.blockSize);
+					break;
+				case TerrainType.Grass:
+					ctx.fillStyle = '#A2CB69';
+					ctx.fillRect(blockX, blockY, editor.blockSize, editor.blockSize);
+					break;
+				case TerrainType.WaterTriangle1:
+					angle = 0;
+					break;
+				case TerrainType.WaterTriangle2:
+					angle = 90;
+					break;
+				case TerrainType.WaterTriangle3:
+					angle = 180;
+					break;
+				case TerrainType.WaterTriangle4:
+					angle = 270;
+					break;
+			}
+			if (angle !== -1) {
+				//grass
+				ctx.fillStyle = '#A2CB69';
+				ctx.fillRect(blockX, blockY, editor.blockSize, editor.blockSize);
+				let middleImage = editor.blockSize / 2;
+				ctx.save();
+				ctx.translate(blockX + middleImage, blockY + middleImage);
+				ctx.rotate(angle * Math.PI / 180);
+				ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage, editor.blockSize, editor.blockSize);
+				ctx.restore();
+			}
+		}
+
+		//mapGrid
+		ctx.fillStyle = 'gray';
+		for (let i = 0; i < editor.getWidth(); i++) {
+			ctx.fillRect(i * editor.blockSize, 0, 1, editor.getHeight() * editor.blockSize);
+		}
+		for (let i = 0; i < editor.getHeight(); i++) {
+			ctx.fillRect(0, i * editor.blockSize, editor.getWidth() * editor.blockSize, 1);
+		}
+
+		if (editor.getTerrainType() != null) {
+			//frame
+			ctx.fillStyle = 'red';
+			ctx.fillRect(blockX, blockY, editor.blockSize, 1);
+			ctx.fillRect(blockX, blockY + editor.blockSize, editor.blockSize, 1);
+
+			ctx.fillRect(blockX, blockY, 1, editor.blockSize);
+			ctx.fillRect(blockX + editor.blockSize, blockY, 1, editor.blockSize);
+		}
+
+		//objects
+		ctx.save();
+		if (editor.getObjectType() === 'delete') ctx.globalAlpha = 0.6;
+
+		for (const rock of editor.rocks) {
+			ctx.drawImage(this.rockSVG, rock.x, rock.y, rock.size, rock.size);
+		}
+		ctx.fillStyle = 'black';
+		for (const wall of editor.walls) {
+			ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+		}
+		for (const bush of editor.bushes) {
+			ctx.drawImage(this.bushSVG, bush.x, bush.y, bush.size, bush.size);
+		}
+		for (const tree of editor.trees) {
+			ctx.drawImage(this.treeSVG, tree.x, tree.y, tree.size, tree.size);
+		}
+		ctx.restore();
+
+		if (editor.getObjectType() === 'delete') {
+			//delete object
+			let deleteObject;
+			for (const rock of editor.rocks) {
+				const object = rock;
+				if (
+					object.x <= editor.getX() &&
+					object.x + object.size >= editor.getX() &&
+					object.y <= editor.getY() &&
+					object.y + object.size >= editor.getY()
+				) {
+					deleteObject = object;
+				}
+			}
+			for (const wall of editor.walls) {
+				const object = wall;
+				if (
+					object.x <= editor.getX() &&
+					object.x + object.width >= editor.getX() &&
+					object.y <= editor.getY() &&
+					object.y + object.height >= editor.getY()
+				) {
+					deleteObject = object;
+				}
+			}
+			for (const bush of editor.bushes) {
+				const object = bush;
+				if (
+					object.x <= editor.getX() &&
+					object.x + object.size >= editor.getX() &&
+					object.y <= editor.getY() &&
+					object.y + object.size >= editor.getY()
+				) {
+					deleteObject = object;
+				}
+			}
+			for (const tree of editor.trees) {
+				const object = tree;
+				if (
+					object.x <= editor.getX() &&
+					object.x + object.size >= editor.getX() &&
+					object.y <= editor.getY() &&
+					object.y + object.size >= editor.getY()
+				) {
+					deleteObject = object;
+				}
+			}
+
+			if (deleteObject instanceof Rock) {
+				ctx.drawImage(this.rockSVG, deleteObject.x, deleteObject.y, deleteObject.size, deleteObject.size);
+			}
+			if (deleteObject instanceof Bush) {
+				ctx.drawImage(this.bushSVG, deleteObject.x, deleteObject.y, deleteObject.size, deleteObject.size);
+			}
+			if (deleteObject instanceof Tree) {
+				ctx.drawImage(this.treeSVG, deleteObject.x, deleteObject.y, deleteObject.size, deleteObject.size);
+			}
+			if (deleteObject instanceof Wall) {
+				ctx.fillStyle = 'black';
+				ctx.fillRect(deleteObject.x, deleteObject.y, deleteObject.width, deleteObject.height);
+			}
+		}
+
+		//objects under mouse
+		if (editor.getObjectType()) {
+			let size;
+			switch (editor.getObjectType()) {
+				case 'bush':
+					size = editor.bush.size;
+					ctx.drawImage(this.bushSVG, editor.getX() - size / 2, editor.getY() - size / 2, size, size);
+					break;
+				case 'rock':
+					size = editor.rock.size;
+					ctx.drawImage(this.rockSVG, editor.getX() - size / 2, editor.getY() - size / 2, size, size);
+					break;
+				case 'tree':
+					size = editor.tree.size;
+					ctx.drawImage(this.treeSVG, editor.getX() - size / 2, editor.getY() - size / 2, size, size);
+					break;
+				case 'rect':
+					size = editor.rock.size;
+					ctx.fillStyle = 'black';
+					ctx.fillRect(editor.getX() - size / 2, editor.getY() - size / 2, size, size);
+					break;
+			}
+		}
+	}
+
 	draw(): void {
 		const ctx = this.ctx;
 		//clear canvas
@@ -285,11 +503,11 @@ export default class View {
 					terrain.type === TerrainType.WaterTriangle4
 				) {
 					let middleImage = width / 2;
-					this.ctx.save();
-					this.ctx.translate(x + middleImage, y + middleImage);
-					this.ctx.rotate(terrain.angle * Math.PI / 180);
-					this.ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage, width, height);
-					this.ctx.restore();
+					ctx.save();
+					ctx.translate(x + middleImage, y + middleImage);
+					ctx.rotate(terrain.angle * Math.PI / 180);
+					ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage, width, height);
+					ctx.restore();
 				}
 			}
 		}

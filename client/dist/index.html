@@ -13,7 +13,7 @@
 		body{
 			overflow: hidden;
 		}
-		canvas{
+		canvas#gameScreen{
 			cursor: none;
 		}
 		canvas#helper{
@@ -22,10 +22,119 @@
 			top:0;
 			left:0;
 		}
+		.menu{
+			border-radius: 5px;
+			border: 3px solid gray;
+			background: silver;
+			width: 250px;
+			height: 250px;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			margin-left: -125px;
+			margin-top: -125px;
+			padding: 0 20px;
+		}
+		#editorContainer{
+			display: none;
+		}
+		#editorMenuContainer{
+			width: 15%;
+			height: 100%;
+			position: absolute;
+			top: 0;
+			left: 0;
+			background: silver;
+		}
+
+		#editorScreenContainer{
+			width: 85%;
+			height: 100%;
+			position: absolute;
+			top: 0;
+			left: 15%;
+			overflow: scroll;
+		}
+		#editorMenuContainer img{
+			width: 100px;
+			height: 100px;
+			background:#A2CB69;
+			border: 1px solid gray;
+		}
+		#editorMenuContainer img:hover{
+			border-color: red !important;
+		}
+
+		#terrainWaterTriangle2{
+			transform:rotate(90deg);
+		}
+		#terrainWaterTriangle3{
+			transform:rotate(180deg);
+		}
+		#terrainWaterTriangle4{
+			transform:rotate(270deg);
+		}
 	</style>
 </head>
 <body>
-	<canvas id="gameScreen" width="800" height="600"></canvas>
+	<div class="menu" id="mapSizeMenu">
+		<h1>Map size</h1>
+        <p>Width [blocks]</p>
+        <select id="mapSizeWidth">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5" selected>5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+			<option value="9">9</option>
+			<option value="10">10</option>
+        </select>
+        <p>Height [blocks]</p>
+        <select id="mapSizeHeight">
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+				<option value="4">4</option>
+				<option value="5" selected>5</option>
+				<option value="6">6</option>
+				<option value="7">7</option>
+				<option value="8">8</option>
+				<option value="9">9</option>
+				<option value="10">10</option>
+        </select>
+		<p>
+        <button id="mapSizeOk">OK</button>
+		<button id="mapSizeBack">Back</button>
+	</p>
+	</div>
+	<canvas id="gameScreen" width="1" height="1"></canvas>
+	<div id="editorContainer">
+		<div id="editorMenuContainer">
+			<div id="editorCoordinates"></div>
+			<div id="editorTerrainImgs">
+				<img id="terrainWater" src="img/water.png">
+				<img id="terrainGrass" src="img/grass.png">
+				<img id="terrainWaterTriangle3" src="img/waterTriangle.png">
+				<img id="terrainWaterTriangle4" src="img/waterTriangle.png">
+				<img id="terrainWaterTriangle2" src="img/waterTriangle.png">
+				<img id="terrainWaterTriangle1" src="img/waterTriangle.png">
+			</div>
+			<div id="editorObjectImgs">
+				<img id="editorObjectBush" src="img/bush.svg">
+				<img id="editorObjectRock" src="img/rock.svg">
+				<img id="editorObjectTree" src="img/tree.svg">
+				<img id="editorObjectRect" src="img/rect.png">
+				<img id="editorObjectDelete" src="img/delete.png">
+			</div>
+			<button id="editorSave">Save</button>
+		</div>
+		<div id="editorScreenContainer">
+			<canvas id="editorScreen" width="1" height="1"></canvas>
+		</div>
+	</div>
 	<canvas id="helper"></canvas>
 	<script src="app.js"></script>
 </body>

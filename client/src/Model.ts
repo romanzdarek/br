@@ -7,6 +7,8 @@ import WaterTerrainData from './WaterTerrainData';
 import Bullet from './Bullet';
 import ServerClientSync from './ServerClientSync';
 import {Snapshot} from './Snapshot';
+import MyHtmlElements from './MyHtmlElements';
+import Editor from './Editor';
 
 export default class Model {
 	private game: number = 0;
@@ -22,8 +24,10 @@ export default class Model {
 	map: Map;
 	private bullets: Bullet[] = [];
 	private serverClientSync: ServerClientSync;
+	private myHtmlElements: MyHtmlElements;
+	private editor: Editor;
 
-	constructor(keys: Keys, mouse: Mouse, socket: Socket, serverClientSync: ServerClientSync) {
+	constructor(keys: Keys, mouse: Mouse, socket: Socket, serverClientSync: ServerClientSync, myHtmlElements: MyHtmlElements, editor: Editor) {
 		this.socket = socket;
 		this.serverClientSync = serverClientSync;
 		this.waterTerrainData = new WaterTerrainData();
@@ -31,6 +35,8 @@ export default class Model {
 		this.player = new Player(this.map);
 		this.keys = keys;
 		this.mouse = mouse;
+		this.myHtmlElements = myHtmlElements;
+		this.editor = editor;
 		this.view = new View(
 			this.map,
 			this.player,
@@ -38,7 +44,8 @@ export default class Model {
 			this.bullets,
 			this.mouse,
 			this.waterTerrainData,
-			this.serverClientSync
+			this.serverClientSync,
+			this.myHtmlElements
 		);
 		setTimeout(() => {
 			this.gameLoop();
@@ -105,7 +112,9 @@ export default class Model {
 			this.mouse.left = false;
 		}
 		*/
-
+		if(this.editor.isActive()){
+			this.view.drawEditor(this.editor);
+		}
 		this.view.draw();
 	}
 

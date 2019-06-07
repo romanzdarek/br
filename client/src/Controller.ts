@@ -2,7 +2,8 @@ import Model from './Model';
 import Socket from './Socket';
 import ServerClientSync from './ServerClientSync';
 import { Snapshot } from './Snapshot';
-import Map from './Map';
+import MyHtmlElements from './MyHtmlElements';
+import Editor from './Editor';
 
 declare const io: {
 	connect(url: string): Socket;
@@ -25,7 +26,9 @@ export type Mouse = {
 
 export class Controller {
 	private static instance: Controller;
+	private myHtmlElements: MyHtmlElements;
 	private model: Model;
+	private editor: Editor;
 	private socket: Socket;
 	private serverClientSync: ServerClientSync;
 	private canvas: HTMLCanvasElement;
@@ -46,10 +49,19 @@ export class Controller {
 	private playerAngle: number = 0;
 
 	private constructor() {
+		this.myHtmlElements = new MyHtmlElements();
 		this.canvas = document.getElementsByTagName('canvas')[0];
 		this.socket = io.connect('http://192.168.0.2:8888');
 		this.serverClientSync = new ServerClientSync();
-		this.model = new Model(this.keys, this.mouse, this.socket, this.serverClientSync);
+		this.editor = new Editor(this.myHtmlElements, this.socket);
+		this.model = new Model(
+			this.keys,
+			this.mouse,
+			this.socket,
+			this.serverClientSync,
+			this.myHtmlElements,
+			this.editor
+		);
 		window.addEventListener('resize', () => {
 			this.model.screenResize();
 			const event = new Event('mousemove');
@@ -71,6 +83,12 @@ export class Controller {
 
 	private socketController(): void {
 		this.socket.emit('createPlayer', 'playerName', this.model.getGame());
+		this.socket.emit('sendMap', 0);
+
+		//map
+		this.socket.on('sendMap', (map) => {
+			this.model.map.openMap(map);
+		});
 
 		this.socket.on('createPlayer', (id: string, name: string) => {
 			if (id && name) {

@@ -13,8 +13,8 @@ type Block = {
 };
 
 export default class Map {
-	readonly width: number;
-	readonly height: number;
+	width: number;
+	height: number;
 	readonly blocks: Block[] = [];
 	readonly terrain: Terrain[] = [];
 	readonly impassableRoundObstacles: RoundObstacle[] = [];
@@ -26,6 +26,7 @@ export default class Map {
 
 	constructor(waterTerrainData: WaterTerrainData) {
 		this.waterTerrainData = waterTerrainData;
+		/*
 		const blockSize = 300;
 		this.width = 5 * blockSize;
 		this.height = 5 * blockSize;
@@ -83,5 +84,43 @@ export default class Map {
 		this.rectangleObstacles.push(new Wall(++id, 600, 800, 20, 200));
 		this.rectangleObstacles.push(new Wall(++id, 500, 900, 200, 20));
 		this.rectangleObstacles.push(new Wall(++id, 500, 350, 300, 100));
+		*/
+	}
+
+	openMap(map: any): void {
+		this.width = map.width * map.blockSize;
+		this.height = map.height * map.blockSize;
+		//Create blocks
+		for (let yy = 0; yy < map.height; yy++) {
+			for (let xx = 0; xx < map.width; xx++) {
+				this.blocks.push({ x: xx * map.blockSize, y: yy * map.blockSize });
+			}
+		}
+
+		//terrains
+		for (const terrain of map.terrains) {
+			this.terrain.push(new Terrain(terrain.type, terrain.x, terrain.y, terrain.width, terrain.height));
+		}
+		//rocks
+		let id = 0;
+		for (const rock of map.rocks) {
+			const newRock = new Rock(id++, rock.x, rock.y);
+			this.rocks.push(newRock);
+			this.impassableRoundObstacles.push(newRock);
+		}
+		//bushes
+		for (const bush of map.bushes) {
+			this.bushes.push(new Bush(id++, bush.x, bush.y));
+		}
+		//trees
+		for (const tree of map.trees) {
+			const newTree = new Tree(id++, tree.x, tree.y);
+			this.trees.push(newTree);
+			this.impassableRoundObstacles.push(newTree);
+		}
+		//walls
+		for (const wall of map.rects) {
+			this.rectangleObstacles.push(new Wall(id++, wall.x, wall.y, wall.width, wall.height));
+		}
 	}
 }

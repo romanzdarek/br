@@ -6,6 +6,9 @@ import Wall from './Wall';
 import WaterTerrainData from './WaterTerrainData';
 import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
+//node modules
+import * as fs from 'fs';
+import * as path from 'path';
 
 type Block = {
 	x: number;
@@ -13,8 +16,8 @@ type Block = {
 };
 
 export default class Map {
-	readonly width: number;
-	readonly height: number;
+	width: number = 0;
+	height: number = 0;
 	readonly blocks: Block[] = [];
 	readonly terrain: Terrain[] = [];
 	readonly impassableRoundObstacles: RoundObstacle[] = [];
@@ -26,6 +29,9 @@ export default class Map {
 
 	constructor(waterTerrainData: WaterTerrainData) {
 		this.waterTerrainData = waterTerrainData;
+		this.openMap();
+
+		/*
 		const blockSize = 300;
 		this.width = 5 * blockSize;
 		this.height = 5 * blockSize;
@@ -49,7 +55,6 @@ export default class Map {
 		this.terrain.push(new Terrain(TerrainType.WaterTriangle2, 3 * blockSize, blockSize, blockSize, blockSize));
 		this.terrain.push(new Terrain(TerrainType.WaterTriangle3, 3 * blockSize, 3 * blockSize, blockSize, blockSize));
 		this.terrain.push(new Terrain(TerrainType.WaterTriangle4, blockSize, 3 * blockSize, blockSize, blockSize));
-		
 
 		let id = 0;
 		//bushes
@@ -84,5 +89,54 @@ export default class Map {
 		this.rectangleObstacles.push(new Wall(++id, 600, 800, 20, 200));
 		this.rectangleObstacles.push(new Wall(++id, 500, 900, 200, 20));
 		this.rectangleObstacles.push(new Wall(++id, 500, 350, 300, 100));
+		*/
+	}
+
+	openMap(): void {
+		const fullPath = path.resolve('./dist/maps/mainMap.json');
+		if (fs.existsSync(fullPath)) {
+			//je třeba smazat keš jinak by se vracela první verze souboru z doby spuštění aplikace pokud aplikace soubor již jednou načetla
+			delete require.cache[fullPath];
+			const map = require(fullPath);
+
+
+			this.width = map.width * map.blockSize;
+			this.height = map.height * map.blockSize;
+			//Create blocks
+			for (let yy = 0; yy < map.height; yy++) {
+				for (let xx = 0; xx < map.width; xx++) {
+					this.blocks.push({ x: xx * map.blockSize, y: yy * map.blockSize });
+				}
+			}
+
+			//terrains
+			for (const terrain of map.terrains) {
+				this.terrain.push(new Terrain(terrain.type, terrain.x, terrain.y, terrain.width, terrain.height));
+			}
+			//rocks
+			let id = 0;
+			for (const rock of map.rocks) {
+				const newRock = new Rock(id++, rock.x, rock.y);
+				this.rocks.push(newRock);
+				this.impassableRoundObstacles.push(newRock);
+			}
+			//bushes
+			for (const bush of map.bushes) {
+				this.bushes.push(new Bush(id++, bush.x, bush.y));
+			}
+			//trees
+			for (const tree of map.trees) {
+				const newTree = new Tree(id++, tree.x, tree.y);
+				this.trees.push(newTree);
+				this.impassableRoundObstacles.push(newTree);
+			}
+			//walls
+			for (const wall of map.rects) {
+				this.rectangleObstacles.push(new Wall(id++, wall.x, wall.y, wall.width, wall.height));
+			}
+		}
+		else {
+			console.log('Error open map');
+		}
 	}
 }

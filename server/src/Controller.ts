@@ -1,5 +1,8 @@
 import * as SocketIO from 'socket.io';
 import Model from './Model';
+//node modules
+import * as fs from 'fs';
+import * as path from 'path';
 
 export default class Controller {
 	private io: SocketIO.Server;
@@ -14,6 +17,26 @@ export default class Controller {
 	private controll(): void {
 		this.io.on('connection', (socket: SocketIO.Socket) => {
 			console.log(socket.id, 'connect');
+
+			/**
+			 * 
+			 * let mapPath = './dist/maps/' + 'mainMap' + '.json';
+		if (fs.existsSync(mapPath)) {
+			//je třeba smazat keš jinak by se vracela první verze souboru z doby spuštění aplikace pokud aplikace soubor již jednou načetla
+			const fullPath = path.resolve(mapPath);
+			delete require.cache[fullPath];
+			const map = require(mapPath);
+			 */
+
+			socket.on('sendMap', () => {
+				const fullPath = path.resolve('./dist/maps/mainMap.json');
+				if (fs.existsSync(fullPath)) {
+					//je třeba smazat keš jinak by se vracela první verze souboru z doby spuštění aplikace pokud aplikace soubor již jednou načetla
+					delete require.cache[fullPath];
+					const map = require(fullPath);
+					socket.emit('sendMap', map);
+				}
+			});
 
 			socket.on('disconnect', () => {
 				console.log(socket.id, 'disconnect');
@@ -80,6 +103,20 @@ export default class Controller {
 					}
 				}
 				console.log('Error: m (controll player)');
+			});
+
+			//save level from editor
+			socket.on('editorSaveMap', (data: any) => {
+				console.log(data);
+				let map = JSON.stringify(data);
+				fs.writeFile('./dist/maps/' + 'mainMap' + '.json', map, (err) => {
+					if (!err) {
+						console.log('level saved');
+					}
+					else {
+						console.log('err: sendLevel:  fs.writeFile', err);
+					}
+				});
 			});
 		});
 	}

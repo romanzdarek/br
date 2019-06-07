@@ -4,7 +4,7 @@ export default class ServerClientSync {
 	private timeDiference: number | null = null;
 	private timeDiferences: number[] = [];
 	private readonly attempts: number = 5;
-	private readonly defaultDrawDelay: number = 700;
+	private readonly defaultDrawDelay: number = 90;
 	private drawDelay: number = this.defaultDrawDelay;
 
 	constructor() {}

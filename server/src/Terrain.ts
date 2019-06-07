@@ -1,4 +1,5 @@
 export enum TerrainType {
+	Grass,
 	Water,
 	WaterTriangle1,
 	WaterTriangle2,

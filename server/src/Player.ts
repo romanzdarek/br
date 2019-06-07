@@ -28,6 +28,8 @@ export default class Player {
 	gun: Gun;
 	readonly collisionPoints: Point[] = [];
 	private slowAroundObstacle: boolean = false;
+	private goAroundObstacleCalls: number = 0;
+	private goAroundObstacleMaxCalls: number = 10;
 	private loadingTime: number = 0;
 	private loadingMaxTime: number = 3 * 60;
 
@@ -154,6 +156,7 @@ export default class Player {
 	}
 
 	move(): void {
+		this.goAroundObstacleCalls = 0;
 		//hit
 		if (this.mouseControll.left) this.hit();
 
@@ -279,7 +282,10 @@ export default class Player {
 						);
 						//point collisions
 						if (rectangleObstacle.isPointIn(pointOnMyPosition)) {
-							this.goAroundRectangleObstacle(shiftX, shiftY, countShifts, rectangleObstacle);
+							if (this.goAroundObstacleCalls <= this.goAroundObstacleMaxCalls) {
+								this.goAroundObstacleCalls++;
+								this.goAroundRectangleObstacle(shiftX, shiftY, countShifts, rectangleObstacle);
+							}
 							return false;
 						}
 					}
@@ -298,7 +304,10 @@ export default class Player {
 				const y = this.getCenterY() + shiftY - roundObstacle.getCenterY();
 				const distance = Math.sqrt(x * x + y * y);
 				if (distance < obstacleAndPlayerRadius) {
-					this.goAroundRoundObstacle(shiftX, shiftY, countShifts, roundObstacle);
+					if (this.goAroundObstacleCalls <= this.goAroundObstacleMaxCalls) {
+						this.goAroundObstacleCalls++;
+						this.goAroundRoundObstacle(shiftX, shiftY, countShifts, roundObstacle);
+					}
 					return false;
 				}
 			}
