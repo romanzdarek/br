@@ -13,7 +13,12 @@ type Loading = {
 	max: number;
 };
 
-export default class Player {
+export enum Weapon {
+	hand,
+	pistol
+}
+
+export class Player {
 	socket: SocketIO.Socket;
 	readonly id: string;
 	readonly name: string;
@@ -32,6 +37,7 @@ export default class Player {
 	private goAroundObstacleMaxCalls: number = 10;
 	private loadingTime: number = 0;
 	private loadingMaxTime: number = 3 * 60;
+	private activeWeapon: Weapon = Weapon.pistol;
 
 	private controll = {
 		up: false,
@@ -40,13 +46,16 @@ export default class Player {
 		right: false
 	};
 
-	private mouseControll = {
+	mouseControll = {
 		left: false,
 		middle: false,
 		right: false
 	};
 
 	constructor(name: string, id: string, map: Map, socket: SocketIO.Socket) {
+		if (Math.round(Math.random())) {
+			this.activeWeapon = Weapon.hand;
+		}
 		this.socket = socket;
 		this.id = id;
 		this.name = name;
@@ -147,6 +156,10 @@ export default class Player {
 		return this.angle;
 	}
 
+	getActiveWeapon(): Weapon {
+		return this.activeWeapon;
+	}
+
 	hit(): void {
 		if (this.hands[0].ready() && this.hands[1].ready()) {
 			let random = Math.round(Math.random());
@@ -157,8 +170,6 @@ export default class Player {
 
 	move(): void {
 		this.goAroundObstacleCalls = 0;
-		//hit
-		if (this.mouseControll.left) this.hit();
 
 		/*
 		up: boolean, left: boolean, down: boolean, right: boolean, mouseX: number, mouseY: number

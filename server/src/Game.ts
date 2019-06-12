@@ -1,12 +1,15 @@
 import Map from './Map';
-import Player from './Player';
+import Bullet from './Bullet';
+import { Player, Weapon } from './Player';
 import PlayerSnapshot from './PlayerSnapshot';
+import BulletSnapshot from './BulletSnapshot';
 import WaterTerrainData from './WaterTerrainData';
 import * as SocketIO from 'socket.io';
 
 export default class Game {
 	private map: Map;
 	players: Player[] = [];
+	private bullets: Bullet[] = [];
 
 	constructor(waterTerrainData: WaterTerrainData) {
 		this.map = new Map(waterTerrainData);
@@ -49,12 +52,41 @@ export default class Game {
 	}
 
 	loop(): void {
-		//move
+		//move and delete bullets
+		for (let i = this.bullets.length - 1; i >= 0; i--) {
+			const bullet = this.bullets[i];
+			if (bullet.flying()) {
+				bullet.move(this.map);
+			}
+			else {
+				this.bullets.splice(i, 1);
+			}
+		}
+
+		//player move
 		for (const player of this.players) {
 			player.move();
+			//hit
+			if (player.mouseControll.left) {
+				if (player.getActiveWeapon() === Weapon.hand) player.hit();
+
+				if (player.getActiveWeapon() === Weapon.pistol) {
+					if (player.gun.ready()) {
+						this.bullets.push(
+							new Bullet(player.getCenterX(), player.getCenterY(), player.getAngle(), player.gun.range)
+						);
+					}
+					player.mouseControll.left = false;
+				}
+			}
 		}
 		const dateNow = Date.now();
 		//update for clients
+		//bullets
+		const bulletSnapshots: BulletSnapshot[] = [];
+		for(const bullet of this.bullets){
+			bulletSnapshots.push(new BulletSnapshot(bullet));
+		}
 		//players
 		for (const player of this.players) {
 			const playerSnapshotArr: PlayerSnapshot[] = [];
@@ -68,7 +100,8 @@ export default class Game {
 			}
 			player.socket.emit('u', {
 				t: dateNow,
-				p: playerSnapshotArr
+				p: playerSnapshotArr,
+				b: bulletSnapshots
 			});
 		}
 		//map objects

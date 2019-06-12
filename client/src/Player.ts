@@ -12,7 +12,12 @@ type Loading = {
 	max: number;
 };
 
-export default class Player {
+export enum Weapon {
+	hand,
+	pistol
+}
+
+export class Player {
 	readonly size: number = 80;
 	readonly radius: number = this.size / 2;
 	readonly speed: number = 6;

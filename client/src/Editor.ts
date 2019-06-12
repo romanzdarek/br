@@ -6,6 +6,7 @@ import Rock from './Rock';
 import Tree from './Tree';
 import Wall from './Wall';
 import Socket from './Socket';
+import Colors from './Colors';
 
 export default class Editor {
 	private terrainType: TerrainType | null;
@@ -28,10 +29,12 @@ export default class Editor {
 	private objects: any[] = [];
 	private myHtmlElements: MyHtmlElements;
 	private socket: Socket;
+	private colors: Colors;
 
 	constructor(myHtmlElements: MyHtmlElements, socket: Socket) {
 		this.myHtmlElements = myHtmlElements;
 		this.socket = socket;
+		this.colors = new Colors();
 		this.bush = new Bush(0, 0, 0);
 		this.rock = new Rock(0, 0, 0);
 		this.tree = new Tree(0, 0, 0);
@@ -110,13 +113,13 @@ export default class Editor {
 		el.editor.terrainImgs.addEventListener('click', (e: MouseEvent) => {
 			const terrainImgs = el.editor.terrainImgs.children;
 			for (let i = 0; i < terrainImgs.length; i++) {
-				(<HTMLElement>terrainImgs[i]).style.borderColor = 'gray';
+				(<HTMLElement>terrainImgs[i]).style.borderColor = this.colors.blockFrame;
 			}
 			const objectImgs = el.editor.objectImgs.children;
 			for (let i = 0; i < objectImgs.length; i++) {
-				(<HTMLElement>objectImgs[i]).style.borderColor = 'gray';
+				(<HTMLElement>objectImgs[i]).style.borderColor = this.colors.blockFrame;
 			}
-			(<HTMLElement>e.target).style.borderColor = 'red';
+			(<HTMLElement>e.target).style.borderColor = this.colors.blockFrameActive;
 			this.objectType = null;
 			switch (e.target) {
 				case el.editor.terrainWater:
@@ -144,13 +147,13 @@ export default class Editor {
 		el.editor.objectImgs.addEventListener('click', (e: MouseEvent) => {
 			const terrainImgs = el.editor.terrainImgs.children;
 			for (let i = 0; i < terrainImgs.length; i++) {
-				(<HTMLElement>terrainImgs[i]).style.borderColor = 'gray';
+				(<HTMLElement>terrainImgs[i]).style.borderColor = this.colors.blockFrame;
 			}
 			const objectImgs = el.editor.objectImgs.children;
 			for (let i = 0; i < objectImgs.length; i++) {
-				(<HTMLElement>objectImgs[i]).style.borderColor = 'gray';
+				(<HTMLElement>objectImgs[i]).style.borderColor = this.colors.blockFrame;
 			}
-			(<HTMLElement>e.target).style.borderColor = 'red';
+			(<HTMLElement>e.target).style.borderColor = this.colors.blockFrameActive;
 			this.terrainType = null;
 			switch (e.target) {
 				case el.editor.objectBush:
@@ -307,7 +310,7 @@ export default class Editor {
 		//save
 		el.editor.save.addEventListener('click', () => {
 			const map = {
-                blockSize: this.blockSize,
+				blockSize: this.blockSize,
 				width: this.getWidth(),
 				height: this.getHeight(),
 				terrains: this.terrains,

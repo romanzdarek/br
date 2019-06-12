@@ -1,4 +1,4 @@
-import Player from './Player';
+import { Player, Weapon } from './Player';
 import Map from './Map';
 import { Mouse } from './Controller';
 import WaterTerrainData from './WaterTerrainData';
@@ -14,6 +14,7 @@ import ServerClientSync from './ServerClientSync';
 import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
+import Colors from './Colors';
 
 type DrawData = {
 	x: number;
@@ -69,6 +70,8 @@ export default class View {
 	private snapshots: Snapshot[] = [];
 	private myHtmlElements: MyHtmlElements;
 
+	private colors: Colors;
+
 	constructor(
 		map: Map,
 		player: Player,
@@ -79,6 +82,7 @@ export default class View {
 		serverClientSync: ServerClientSync,
 		myHtmlElements: MyHtmlElements
 	) {
+		this.colors = new Colors();
 		this.serverClientSync = serverClientSync;
 		this.myHtmlElements = myHtmlElements;
 		this.map = map;
@@ -203,11 +207,11 @@ export default class View {
 		ctx.clearRect(0, 0, this.editorCanvas.width, this.editorCanvas.height);
 
 		//grass
-		ctx.fillStyle = '#A2CB69';
+		ctx.fillStyle = this.colors.grass;
 		ctx.fillRect(0, 0, this.editorCanvas.width, this.editorCanvas.height);
 
 		//terrain blocks
-		ctx.fillStyle = '#69A2E0';
+		ctx.fillStyle = this.colors.water;
 		for (const terrain of editor.terrains) {
 			switch (terrain.type) {
 				case TerrainType.Water:
@@ -244,11 +248,11 @@ export default class View {
 			let angle = -1;
 			switch (editor.getTerrainType()) {
 				case TerrainType.Water:
-					ctx.fillStyle = '#69A2E0';
+					ctx.fillStyle = this.colors.water;
 					ctx.fillRect(blockX, blockY, editor.blockSize, editor.blockSize);
 					break;
 				case TerrainType.Grass:
-					ctx.fillStyle = '#A2CB69';
+					ctx.fillStyle = this.colors.grass;
 					ctx.fillRect(blockX, blockY, editor.blockSize, editor.blockSize);
 					break;
 				case TerrainType.WaterTriangle1:
@@ -266,7 +270,7 @@ export default class View {
 			}
 			if (angle !== -1) {
 				//grass
-				ctx.fillStyle = '#A2CB69';
+				ctx.fillStyle = this.colors.grass;
 				ctx.fillRect(blockX, blockY, editor.blockSize, editor.blockSize);
 				let middleImage = editor.blockSize / 2;
 				ctx.save();
@@ -278,7 +282,7 @@ export default class View {
 		}
 
 		//mapGrid
-		ctx.fillStyle = 'gray';
+		ctx.fillStyle = this.colors.blockFrame;
 		for (let i = 0; i < editor.getWidth(); i++) {
 			ctx.fillRect(i * editor.blockSize, 0, 1, editor.getHeight() * editor.blockSize);
 		}
@@ -288,7 +292,7 @@ export default class View {
 
 		if (editor.getTerrainType() != null) {
 			//frame
-			ctx.fillStyle = 'red';
+			ctx.fillStyle = this.colors.blockFrameActive;
 			ctx.fillRect(blockX, blockY, editor.blockSize, 1);
 			ctx.fillRect(blockX, blockY + editor.blockSize, editor.blockSize, 1);
 
@@ -409,15 +413,15 @@ export default class View {
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 		//water
-		ctx.fillStyle = '#69A2E0';
+		ctx.fillStyle = this.colors.water;
 		ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
 		//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 		let percentShift = 0;
 		let sumaNewerSnapshots = 0;
 		let newerSnapshotMissing = false;
-		let newerSnapshot;
-		let olderSnapshot;
+		let newerSnapshot: Snapshot;
+		let olderSnapshot: Snapshot;
 
 		//get my player center
 		if (this.snapshots.length > 0 && this.serverClientSync.ready()) {
@@ -472,7 +476,7 @@ export default class View {
 		//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 		//grass blocks
-		ctx.fillStyle = '#A2CB69';
+		ctx.fillStyle = this.colors.grass;
 		const blockSize = this.map.blocks[1].x;
 		for (const block of this.map.blocks) {
 			const { x, y, size, isOnScreen } = this.howToDraw({ x: block.x, y: block.y, size: blockSize });
@@ -482,7 +486,7 @@ export default class View {
 		}
 
 		//water terrain blocks
-		ctx.fillStyle = '#69A2E0';
+		ctx.fillStyle = this.colors.water;
 		for (const terrain of this.map.terrain) {
 			const { x, y, width, height, isOnScreen } = this.howToDraw({
 				x: terrain.x,
@@ -513,7 +517,7 @@ export default class View {
 		}
 
 		//mapGrid
-		ctx.fillStyle = 'gray';
+		ctx.fillStyle = this.colors.blockFrame;
 		for (const block of this.map.blocks) {
 			//top
 			if (block.y === 0) {
@@ -637,6 +641,25 @@ export default class View {
 								});
 								ctx.fillRect(x, y, size, size);
 							}
+							//pistol
+							if (newer.w === Weapon.pistol) {
+								//draw pistol
+								const pistolSize = 200;
+								const pistolX = calculatedX + this.player.radius - pistolSize / 2;
+								const pistolY = calculatedY + this.player.radius - pistolSize / 2;
+								const { x, y, size } = this.howToDraw({
+									x: pistolX,
+									y: pistolY,
+									size: pistolSize
+								});
+
+								let middleImage = size / 2;
+								ctx.save();
+								ctx.translate(x + middleImage, y + middleImage);
+								ctx.rotate(newer.a * Math.PI / 180);
+								ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
+								ctx.restore();
+							}
 						}
 
 						//player hands
@@ -669,6 +692,19 @@ export default class View {
 						}
 					}
 				}
+
+				//bullets
+				ctx.fillStyle = this.colors.bullet;
+				for (const bullet of newerSnapshot.b) {
+					const { x, y, size, isOnScreen } = this.howToDraw({
+						x: bullet.x,
+						y: bullet.y,
+						size: 4
+					});
+					if (isOnScreen) {
+						ctx.fillRect(x, y, size, size);
+					}
+				}
 			}
 		}
 
@@ -699,7 +735,7 @@ export default class View {
 		}
 
 		//bullets
-		ctx.fillStyle = 'red';
+		ctx.fillStyle = this.colors.bullet;
 		for (const bullet of this.bullets) {
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: bullet.getX(),
@@ -734,13 +770,13 @@ export default class View {
 			}
 			const fontSize = Math.floor(31 * this.resolutionAdjustment);
 			ctx.font = fontSize + 'px Arial';
-			ctx.fillStyle = 'white';
+			ctx.fillStyle = this.colors.text;
 			ctx.fillText(timeToEnd.toString(), x + 28 * this.resolutionAdjustment, y + 59 * this.resolutionAdjustment);
 		}
 
 		//info
 		ctx.font = '20px Arial';
-		ctx.fillStyle = 'white';
+		ctx.fillStyle = this.colors.text;
 		const x = 15;
 		let row = 30;
 		let rowMultiple = 0;

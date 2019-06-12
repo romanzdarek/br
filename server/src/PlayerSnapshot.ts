@@ -1,4 +1,4 @@
-import Player from './Player';
+import { Weapon, Player } from './Player';
 
 type HandPackage = { x: number; y: number };
 
@@ -11,6 +11,8 @@ export default class PlayerSnapshot {
 	readonly h: HandPackage[] = [];
 	//name
 	readonly n: string;
+	//active weapon
+	readonly w: Weapon;
 
 	constructor(player: Player) {
 		//1 = zero digit after the comma
@@ -21,6 +23,7 @@ export default class PlayerSnapshot {
 		this.y = Math.round(player.getY() * afterComma) / afterComma;
 		this.a = player.getAngle();
 		this.n = player.name;
+		this.w = player.getActiveWeapon();
 		for (const hand of player.hands) {
 			this.h.push({
 				x: Math.round(hand.getX() * afterComma) / afterComma,

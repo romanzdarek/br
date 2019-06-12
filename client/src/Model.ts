@@ -1,12 +1,12 @@
 import { Keys, Mouse } from './Controller';
 import Socket from './Socket';
 import View from './View';
-import Player from './Player';
+import { Player } from './Player';
 import Map from './Map';
 import WaterTerrainData from './WaterTerrainData';
 import Bullet from './Bullet';
 import ServerClientSync from './ServerClientSync';
-import {Snapshot} from './Snapshot';
+import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
 
@@ -27,7 +27,14 @@ export default class Model {
 	private myHtmlElements: MyHtmlElements;
 	private editor: Editor;
 
-	constructor(keys: Keys, mouse: Mouse, socket: Socket, serverClientSync: ServerClientSync, myHtmlElements: MyHtmlElements, editor: Editor) {
+	constructor(
+		keys: Keys,
+		mouse: Mouse,
+		socket: Socket,
+		serverClientSync: ServerClientSync,
+		myHtmlElements: MyHtmlElements,
+		editor: Editor
+	) {
 		this.socket = socket;
 		this.serverClientSync = serverClientSync;
 		this.waterTerrainData = new WaterTerrainData();
@@ -112,7 +119,7 @@ export default class Model {
 			this.mouse.left = false;
 		}
 		*/
-		if(this.editor.isActive()){
+		if (this.editor.isActive()) {
 			this.view.drawEditor(this.editor);
 		}
 		this.view.draw();
