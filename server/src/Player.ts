@@ -38,6 +38,7 @@ export class Player {
 	private loadingTime: number = 0;
 	private loadingMaxTime: number = 3 * 60;
 	private activeWeapon: Weapon = Weapon.pistol;
+	private lives: number = 3;
 
 	private controll = {
 		up: false,
@@ -66,6 +67,29 @@ export class Player {
 		this.gun = new Gun(this.size, 20);
 		this.map = map;
 		this.calculateCollisionsPoints();
+	}
+
+	isPointIn(point: Point): boolean {
+		//triangle
+		const x = this.x + this.radius - point.x;
+		const y = this.y + this.radius - point.y;
+		const radius = Math.sqrt(x * x + y * y);
+		if (radius <= this.radius) return true;
+		return false;
+	}
+
+	acceptHit(power: number): void {
+		this.lives -= power;
+	}
+
+	isActive(): boolean {
+		return this.lives > 0;
+	}
+
+	die(): void {
+		this.x = 0;
+		this.y = 0;
+		this.lives = 3;
 	}
 
 	keyController(key: string): void {
@@ -168,7 +192,7 @@ export class Player {
 		this.mouseControll.left = false;
 	}
 
-	move(): void {
+	move(players: Player[]): void {
 		this.goAroundObstacleCalls = 0;
 
 		/*
@@ -231,13 +255,13 @@ export class Player {
 			this.shiftOnPosition(shiftX, shiftY);
 		}
 		//this.rotatePlayer(angle);
-		this.gun.move(this.angle, this.getCenterX(), this.getCenterY());
-		this.changeHandsPosition();
+		//this.gun.move(this.angle, this.getCenterX(), this.getCenterY());
+		this.changeHandsPosition(players);
 	}
 
-	private changeHandsPosition(): void {
-		this.hands[0].moveHand(this.angle, -1, this.size, this.x, this.y, this.map);
-		this.hands[1].moveHand(this.angle, 1, this.size, this.x, this.y, this.map);
+	private changeHandsPosition(players: Player[]): void {
+		this.hands[0].move(-1, this.map, this, players);
+		this.hands[1].move(1, this.map, this, players);
 	}
 
 	private shiftOnPosition(shiftX: number, shiftY: number): void {

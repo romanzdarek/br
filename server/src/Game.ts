@@ -56,7 +56,7 @@ export default class Game {
 		for (let i = this.bullets.length - 1; i >= 0; i--) {
 			const bullet = this.bullets[i];
 			if (bullet.flying()) {
-				bullet.move(this.map);
+				bullet.move(this.map, this.players);
 			}
 			else {
 				this.bullets.splice(i, 1);
@@ -65,7 +65,7 @@ export default class Game {
 
 		//player move
 		for (const player of this.players) {
-			player.move();
+			player.move(this.players);
 			//hit
 			if (player.mouseControll.left) {
 				if (player.getActiveWeapon() === Weapon.hand) player.hit();

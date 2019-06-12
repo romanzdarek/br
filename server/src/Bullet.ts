@@ -1,5 +1,6 @@
 import Map from './Map';
 import Point from './Point';
+import { Player } from './Player';
 
 export default class Bullet {
 	readonly size: number = 5;
@@ -28,21 +29,23 @@ export default class Bullet {
 		this.y -= this.shiftY * bulletStartShift;
 	}
 
-	move(map: Map): void {
-		if(!this.collisions(map)){
+	move(map: Map, players: Player[]): void {
+		if (!this.collisions(map, players)) {
 			this.x += this.shiftX;
 			this.y -= this.shiftY;
 		}
 	}
 
-	private collisions(map: Map): boolean {
+	private collisions(map: Map, players: Player[]): boolean {
 		const bulletPoint = new Point(this.getCenterX(), this.getCenterY());
 		//rounds
-		for (const obstacle of map.impassableRoundObstacles) {
-			if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
-				obstacle.acceptHit(bulletPoint);
-				this.active = false;
-				return true;
+		if (this.active) {
+			for (const obstacle of map.impassableRoundObstacles) {
+				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
+					obstacle.acceptHit(bulletPoint);
+					this.active = false;
+					return true;
+				}
 			}
 		}
 		//rects
@@ -50,6 +53,17 @@ export default class Bullet {
 			for (const obstacle of map.rectangleObstacles) {
 				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
 					obstacle.acceptHit();
+					this.active = false;
+					return true;
+				}
+			}
+		}
+		//players
+		if (this.active) {
+			for (const player of players) {
+				if (player.isActive() && player.isPointIn(bulletPoint)) {
+					player.acceptHit(1);
+					if (!player.isActive()) player.die();
 					this.active = false;
 					return true;
 				}

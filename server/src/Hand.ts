@@ -1,5 +1,6 @@
 import Map from './Map';
 import Point from './Point';
+import { Player } from './Player';
 
 export default class Hand {
 	readonly size: number = 40;
@@ -46,13 +47,18 @@ export default class Hand {
 		return this.y;
 	}
 
-	moveHand(
+	move(
+		/*
 		playerAngle: number,
 		direction: number,
 		playerSize: number,
 		playerX: number,
 		playerY: number,
-		map: Map
+		*/
+		direction: number,
+		map: Map,
+		myPlayer: Player,
+		players: Player[]
 	): void {
 		let shiftAngle = this.shiftAngle;
 		let playerRadius = this.playerRadius;
@@ -142,6 +148,23 @@ export default class Hand {
 			}
 
 			//hit?
+			//hit players
+			if (this.inAction) {
+				for (const player of players) {
+					if (player.isActive() && player != myPlayer) {
+						const playerAndHandRadius = player.radius + this.radius;
+						const x = this.getCenterX() - player.getCenterX();
+						const y = this.getCenterY() - player.getCenterY();
+						const distance = Math.sqrt(x * x + y * y);
+						if (distance < playerAndHandRadius) {
+							player.acceptHit(1);
+							if(!player.isActive()) player.die();
+							this.inAction = false;
+							break;
+						}
+					}
+				}
+			}
 			if (this.inAction) {
 				for (let i = 0; i < map.bushes.length; i++) {
 					const obstacle = map.bushes[i];
@@ -222,7 +245,7 @@ export default class Hand {
 			this.hitTimer--;
 		}
 
-		let playerAngleForHand = playerAngle + shiftAngle * direction;
+		let playerAngleForHand = myPlayer.getAngle() + shiftAngle * direction;
 		//0 - 359...
 		if (playerAngleForHand < 0) playerAngleForHand = 359 + playerAngleForHand;
 		if (playerAngleForHand > 359) playerAngleForHand = playerAngleForHand - 359;
@@ -230,8 +253,8 @@ export default class Hand {
 		const x = Math.sin(playerAngleForHand * Math.PI / 180) * playerRadius;
 		const y = Math.cos(playerAngleForHand * Math.PI / 180) * playerRadius;
 		//set final position from center
-		this.x = playerX + playerSize / 2 + x - this.size / 2;
-		this.y = playerY + playerSize / 2 - y - this.size / 2;
+		this.x = myPlayer.getX() + myPlayer.size / 2 + x - this.size / 2;
+		this.y = myPlayer.getY() + myPlayer.size / 2 - y - this.size / 2;
 	}
 
 	hit(): void {
