@@ -1,4 +1,5 @@
-import { Player, Weapon } from './Player';
+import { Player } from './Player';
+import { Weapon } from './Weapon';
 import Map from './Map';
 import { Mouse } from './Controller';
 import WaterTerrainData from './WaterTerrainData';
@@ -15,6 +16,8 @@ import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
 import Colors from './Colors';
+import BulletLine from './BulletLine';
+import PartBulletLine from './PartBulletLine';
 
 type DrawData = {
 	x: number;
@@ -50,6 +53,9 @@ export default class View {
 	private rockSVG: HTMLImageElement;
 	private treeSVG: HTMLImageElement;
 	private pistolSVG: HTMLImageElement;
+	private machinegunSVG: HTMLImageElement;
+	private shotgunSVG: HTMLImageElement;
+	private rifleSVG: HTMLImageElement;
 	private cursorSVG: HTMLImageElement;
 	private loadingProgresSVG: HTMLImageElement;
 	private loadingCircleSVG: HTMLImageElement;
@@ -71,6 +77,7 @@ export default class View {
 	private myHtmlElements: MyHtmlElements;
 
 	private colors: Colors;
+	private bulletLines: BulletLine[] = [];
 
 	constructor(
 		map: Map,
@@ -122,6 +129,15 @@ export default class View {
 
 		this.pistolSVG = new Image();
 		this.pistolSVG.src = 'img/pistol.svg';
+
+		this.machinegunSVG = new Image();
+		this.machinegunSVG.src = 'img/machinegun.svg';
+
+		this.rifleSVG = new Image();
+		this.rifleSVG.src = 'img/rifle.svg';
+
+		this.shotgunSVG = new Image();
+		this.shotgunSVG.src = 'img/shotgun.svg';
 
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
@@ -584,24 +600,7 @@ export default class View {
 			}
 		}
 
-		//pistol
-		/*
-		{
-			const { x, y, size } = this.howToDraw({
-				x: this.player.gun.getX(),
-				y: this.player.gun.getY(),
-				size: this.player.gun.size
-			});
-			const middleImage = size / 2;
-			this.ctx.save();
-			this.ctx.translate(x + middleImage, y + middleImage);
-			this.ctx.rotate(this.player.gun.getAngle() * Math.PI / 180);
-			ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
-			this.ctx.restore();
-		}
-		*/
-
-		//players
+		//players and bullets
 		{
 			//1. urcime si cas pred nejakou dobou a budeme hledat snimky hry pred timto a za timto bodem
 			//2. nemuzeme se spolehnout jen na cas klienta a musime nejperve synchronizovat
@@ -629,7 +628,92 @@ export default class View {
 							y: calculatedY,
 							size: this.player.size
 						});
+
+						//weapons block
+						{
+							//pistol
+							if (newer.w === Weapon.Pistol) {
+								//draw pistol
+								const gunSize = 200;
+								const gunX = calculatedX + this.player.radius - gunSize / 2;
+								const gunY = calculatedY + this.player.radius - gunSize / 2;
+								const { x, y, size, isOnScreen } = this.howToDraw({
+									x: gunX,
+									y: gunY,
+									size: gunSize
+								});
+								if (isOnScreen) {
+									let middleImage = size / 2;
+									ctx.save();
+									ctx.translate(x + middleImage, y + middleImage);
+									ctx.rotate(newer.a * Math.PI / 180);
+									ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
+									ctx.restore();
+								}
+							}
+							//machineGun
+							if (newer.w === Weapon.Machinegun) {
+								const gunSize = 200;
+								const gunX = calculatedX + this.player.radius - gunSize / 2;
+								const gunY = calculatedY + this.player.radius - gunSize / 2;
+								const { x, y, size, isOnScreen } = this.howToDraw({
+									x: gunX,
+									y: gunY,
+									size: gunSize
+								});
+								if (isOnScreen) {
+									let middleImage = size / 2;
+									ctx.save();
+									ctx.translate(x + middleImage, y + middleImage);
+									ctx.rotate(newer.a * Math.PI / 180);
+									ctx.drawImage(this.machinegunSVG, -middleImage, -middleImage, size, size);
+									ctx.restore();
+								}
+							}
+
+							//shotgun
+							if (newer.w === Weapon.Shotgun) {
+								const gunSize = 200;
+								const gunX = calculatedX + this.player.radius - gunSize / 2;
+								const gunY = calculatedY + this.player.radius - gunSize / 2;
+								const { x, y, size, isOnScreen } = this.howToDraw({
+									x: gunX,
+									y: gunY,
+									size: gunSize
+								});
+								if (isOnScreen) {
+									let middleImage = size / 2;
+									ctx.save();
+									ctx.translate(x + middleImage, y + middleImage);
+									ctx.rotate(newer.a * Math.PI / 180);
+									ctx.drawImage(this.shotgunSVG, -middleImage, -middleImage, size, size);
+									ctx.restore();
+								}
+							}
+
+							//rifle
+							if (newer.w === Weapon.Rifle) {
+								const gunSize = 200;
+								const gunX = calculatedX + this.player.radius - gunSize / 2;
+								const gunY = calculatedY + this.player.radius - gunSize / 2;
+								const { x, y, size, isOnScreen } = this.howToDraw({
+									x: gunX,
+									y: gunY,
+									size: gunSize
+								});
+								if (isOnScreen) {
+									let middleImage = size / 2;
+									ctx.save();
+									ctx.translate(x + middleImage, y + middleImage);
+									ctx.rotate(newer.a * Math.PI / 180);
+									ctx.drawImage(this.rifleSVG, -middleImage, -middleImage, size, size);
+									ctx.restore();
+								}
+							}
+						}
+
 						if (isOnScreen) {
+							//player body
 							ctx.drawImage(this.playerSVG, x, y, size, size);
 							//player collision points
 							ctx.fillStyle = 'blue';
@@ -641,52 +725,35 @@ export default class View {
 								});
 								ctx.fillRect(x, y, size, size);
 							}
-							//pistol
-							if (newer.w === Weapon.pistol) {
-								//draw pistol
-								const pistolSize = 200;
-								const pistolX = calculatedX + this.player.radius - pistolSize / 2;
-								const pistolY = calculatedY + this.player.radius - pistolSize / 2;
-								const { x, y, size } = this.howToDraw({
-									x: pistolX,
-									y: pistolY,
-									size: pistolSize
-								});
-
-								let middleImage = size / 2;
-								ctx.save();
-								ctx.translate(x + middleImage, y + middleImage);
-								ctx.rotate(newer.a * Math.PI / 180);
-								ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
-								ctx.restore();
-							}
 						}
 
 						//player hands
-						for (let i = 0; i < 2; i++) {
-							xDiference = Math.abs(newer.h[i].x - older.h[i].x);
-							yDiference = Math.abs(newer.h[i].y - older.h[i].y);
-							(directionX = 1), (directionY = 1);
-							if (newer.h[i].x < older.h[i].x) directionX = -1;
-							if (newer.h[i].y < older.h[i].y) directionY = -1;
-							calculatedX = older.h[i].x + xDiference * percentShift * directionX;
-							calculatedY = older.h[i].y + yDiference * percentShift * directionY;
+						if (newer.w === Weapon.Hand) {
+							for (let i = 0; i < 2; i++) {
+								xDiference = Math.abs(newer.h[i].x - older.h[i].x);
+								yDiference = Math.abs(newer.h[i].y - older.h[i].y);
+								(directionX = 1), (directionY = 1);
+								if (newer.h[i].x < older.h[i].x) directionX = -1;
+								if (newer.h[i].y < older.h[i].y) directionY = -1;
+								calculatedX = older.h[i].x + xDiference * percentShift * directionX;
+								calculatedY = older.h[i].y + yDiference * percentShift * directionY;
 
-							const { x, y, size, isOnScreen } = this.howToDraw({
-								x: calculatedX,
-								y: calculatedY,
-								size: this.player.hands[i].size
-							});
-							if (isOnScreen) {
-								ctx.drawImage(this.playerHandSVG, x, y, size, size);
-								//hand collisionPoints
-								for (const point of this.player.hands[0].collisionPoints) {
-									const { x, y, size } = this.howToDraw({
-										x: calculatedX + this.player.hands[0].size / 2 + point.x,
-										y: calculatedY + this.player.hands[0].size / 2 + point.y,
-										size: 1
-									});
-									ctx.fillRect(x, y, size, size);
+								const { x, y, size, isOnScreen } = this.howToDraw({
+									x: calculatedX,
+									y: calculatedY,
+									size: this.player.hands[i].size
+								});
+								if (isOnScreen) {
+									ctx.drawImage(this.playerHandSVG, x, y, size, size);
+									//hand collisionPoints
+									for (const point of this.player.hands[0].collisionPoints) {
+										const { x, y, size } = this.howToDraw({
+											x: calculatedX + this.player.hands[0].size / 2 + point.x,
+											y: calculatedY + this.player.hands[0].size / 2 + point.y,
+											size: 1
+										});
+										ctx.fillRect(x, y, size, size);
+									}
 								}
 							}
 						}
@@ -699,10 +766,64 @@ export default class View {
 					const { x, y, size, isOnScreen } = this.howToDraw({
 						x: bullet.x,
 						y: bullet.y,
-						size: 4
+						size: 1
 					});
 					if (isOnScreen) {
 						ctx.fillRect(x, y, size, size);
+					}
+
+					//////////////////  bullet lines
+					{
+						let thereIsLine = false;
+						//set end
+						for (const line of this.bulletLines) {
+							if (line.id === bullet.id) {
+								line.setEnd(bullet.x, bullet.y);
+								thereIsLine = true;
+								break;
+							}
+						}
+						//create line
+						if (!thereIsLine) {
+							const newLine = new BulletLine(bullet.id, bullet.x, bullet.y);
+							this.bulletLines.push(newLine);
+						}
+					}
+					//////////////////  bullet lines
+				}
+				//draw bullet lines
+				for (const line of this.bulletLines) {
+					for (const partLine of line.parts) {
+						if (partLine.isActive()) {
+							//draw part
+							ctx.save();
+							ctx.globalAlpha = 0.7 - partLine.getAge() / 14.3;
+							ctx.beginPath();
+							const { x: startX, y: startY } = this.howToDraw({
+								x: partLine.startX,
+								y: partLine.startY,
+								size: 1
+							});
+							ctx.moveTo(startX, startY);
+							const { x: endX, y: endY } = this.howToDraw({
+								x: partLine.endX,
+								y: partLine.endY,
+								size: 1
+							});
+							ctx.lineTo(endX, endY);
+							ctx.lineWidth = 3 - partLine.getAge() / 3.33;
+							ctx.strokeStyle = 'white';
+							ctx.stroke();
+							ctx.restore();
+
+							partLine.increaseAge();
+						}
+					}
+				}
+				//delete lines
+				for (let i = this.bulletLines.length - 1; i >= 0; i--) {
+					if (!this.bulletLines[i].isActive()) {
+						this.bulletLines.splice(i, 1);
 					}
 				}
 			}
@@ -732,17 +853,6 @@ export default class View {
 					ctx.restore();
 				}
 			}
-		}
-
-		//bullets
-		ctx.fillStyle = this.colors.bullet;
-		for (const bullet of this.bullets) {
-			const { x, y, size, isOnScreen } = this.howToDraw({
-				x: bullet.getX(),
-				y: bullet.getY(),
-				size: bullet.size
-			});
-			if (isOnScreen) ctx.fillRect(x, y, size, size);
 		}
 
 		//loading

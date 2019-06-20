@@ -1,4 +1,4 @@
-import { Weapon } from './Player';
+import { Weapon } from './Weapon';
 
 export default interface PlayerSnapshot {
 	readonly x: number;

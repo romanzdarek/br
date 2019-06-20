@@ -47,19 +47,7 @@ export default class Hand {
 		return this.y;
 	}
 
-	move(
-		/*
-		playerAngle: number,
-		direction: number,
-		playerSize: number,
-		playerX: number,
-		playerY: number,
-		*/
-		direction: number,
-		map: Map,
-		myPlayer: Player,
-		players: Player[]
-	): void {
+	move(direction: number, map: Map, myPlayer: Player, players: Player[]): void {
 		let shiftAngle = this.shiftAngle;
 		let playerRadius = this.playerRadius;
 		//hit move
@@ -146,102 +134,7 @@ export default class Hand {
 					playerRadius += 0;
 					break;
 			}
-
-			//hit?
-			//hit players
-			if (this.inAction) {
-				for (const player of players) {
-					if (player.isActive() && player != myPlayer) {
-						const playerAndHandRadius = player.radius + this.radius;
-						const x = this.getCenterX() - player.getCenterX();
-						const y = this.getCenterY() - player.getCenterY();
-						const distance = Math.sqrt(x * x + y * y);
-						if (distance < playerAndHandRadius) {
-							player.acceptHit(1);
-							if(!player.isActive()) player.die();
-							this.inAction = false;
-							break;
-						}
-					}
-				}
-			}
-			if (this.inAction) {
-				for (let i = 0; i < map.bushes.length; i++) {
-					const obstacle = map.bushes[i];
-					if (obstacle.isActive()) {
-						const obstacleAndHandRadius = obstacle.radius + this.radius;
-						const x = this.getCenterX() - obstacle.getCenterX();
-						const y = this.getCenterY() - obstacle.getCenterY();
-						const distance = Math.sqrt(x * x + y * y);
-						if (distance < obstacleAndHandRadius) {
-							obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
-							this.inAction = false;
-							break;
-						}
-					}
-				}
-			}
-			if (this.inAction) {
-				for (let i = 0; i < map.rocks.length; i++) {
-					const obstacle = map.rocks[i];
-					if (obstacle.isActive()) {
-						const obstacleAndHandRadius = obstacle.radius + this.radius;
-						const x = this.getCenterX() - obstacle.getCenterX();
-						const y = this.getCenterY() - obstacle.getCenterY();
-						const distance = Math.sqrt(x * x + y * y);
-						if (distance < obstacleAndHandRadius) {
-							obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
-							this.inAction = false;
-							break;
-						}
-					}
-				}
-			}
-			if (this.inAction) {
-				for (let i = 0; i < map.trees.length; i++) {
-					const obstacle = map.trees[i];
-					if (obstacle.isActive()) {
-						const obstacleAndHandRadius = obstacle.radius + this.radius;
-						const x = this.getCenterX() - obstacle.getCenterX();
-						const y = this.getCenterY() - obstacle.getCenterY();
-						const distance = Math.sqrt(x * x + y * y);
-						if (distance < obstacleAndHandRadius) {
-							obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
-							this.inAction = false;
-							break;
-						}
-					}
-				}
-			}
-			//walls
-			if (this.inAction) {
-				for (let i = 0; i < map.rectangleObstacles.length; i++) {
-					const obstacle = map.rectangleObstacles[i];
-					if (obstacle.isActive()) {
-						if (
-							this.x <= obstacle.x + obstacle.width &&
-							this.x + this.size >= obstacle.x &&
-							this.y <= obstacle.y + obstacle.height &&
-							this.y + this.size >= obstacle.y
-						) {
-							for (let j = 0; j < this.collisionPoints.length; j++) {
-								const point = this.collisionPoints[j];
-								if (
-									obstacle.isPointIn(
-										new Point(this.getCenterX() + point.x, this.getCenterY() + point.y)
-									)
-								) {
-									obstacle.acceptHit();
-									this.inAction = false;
-									console.log('hit');
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-
+			this.collisions(map, myPlayer, players);
 			this.hitTimer--;
 		}
 
@@ -260,5 +153,100 @@ export default class Hand {
 	hit(): void {
 		this.hitTimer = 20;
 		this.inAction = true;
+	}
+
+	collisions(map: Map, myPlayer: Player, players: Player[]): void {
+		//hit?
+		//hit players
+		if (this.inAction) {
+			for (const player of players) {
+				if (player.isActive() && player != myPlayer) {
+					const playerAndHandRadius = player.radius + this.radius;
+					const x = this.getCenterX() - player.getCenterX();
+					const y = this.getCenterY() - player.getCenterY();
+					const distance = Math.sqrt(x * x + y * y);
+					if (distance < playerAndHandRadius) {
+						player.acceptHit(1);
+						if (!player.isActive()) player.die();
+						this.inAction = false;
+						break;
+					}
+				}
+			}
+		}
+		if (this.inAction) {
+			for (let i = 0; i < map.bushes.length; i++) {
+				const obstacle = map.bushes[i];
+				if (obstacle.isActive()) {
+					const obstacleAndHandRadius = obstacle.radius + this.radius;
+					const x = this.getCenterX() - obstacle.getCenterX();
+					const y = this.getCenterY() - obstacle.getCenterY();
+					const distance = Math.sqrt(x * x + y * y);
+					if (distance < obstacleAndHandRadius) {
+						obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
+						this.inAction = false;
+						break;
+					}
+				}
+			}
+		}
+		if (this.inAction) {
+			for (let i = 0; i < map.rocks.length; i++) {
+				const obstacle = map.rocks[i];
+				if (obstacle.isActive()) {
+					const obstacleAndHandRadius = obstacle.radius + this.radius;
+					const x = this.getCenterX() - obstacle.getCenterX();
+					const y = this.getCenterY() - obstacle.getCenterY();
+					const distance = Math.sqrt(x * x + y * y);
+					if (distance < obstacleAndHandRadius) {
+						obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
+						this.inAction = false;
+						break;
+					}
+				}
+			}
+		}
+		if (this.inAction) {
+			for (let i = 0; i < map.trees.length; i++) {
+				const obstacle = map.trees[i];
+				if (obstacle.isActive()) {
+					const obstacleAndHandRadius = obstacle.treeTrankRadius + this.radius;
+					const x = this.getCenterX() - obstacle.getCenterX();
+					const y = this.getCenterY() - obstacle.getCenterY();
+					const distance = Math.sqrt(x * x + y * y);
+					if (distance < obstacleAndHandRadius) {
+						obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
+						this.inAction = false;
+						break;
+					}
+				}
+			}
+		}
+		//walls
+		if (this.inAction) {
+			for (let i = 0; i < map.rectangleObstacles.length; i++) {
+				const obstacle = map.rectangleObstacles[i];
+				if (obstacle.isActive()) {
+					if (
+						this.x <= obstacle.x + obstacle.width &&
+						this.x + this.size >= obstacle.x &&
+						this.y <= obstacle.y + obstacle.height &&
+						this.y + this.size >= obstacle.y
+					) {
+						for (let j = 0; j < this.collisionPoints.length; j++) {
+							const point = this.collisionPoints[j];
+							if (
+								obstacle.isPointIn(new Point(this.getCenterX() + point.x, this.getCenterY() + point.y))
+							) {
+								obstacle.acceptHit();
+								this.inAction = false;
+								console.log('hit');
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }

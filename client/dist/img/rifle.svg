@@ -3,6 +3,6 @@
  <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
  <g class="layer">
   <title>Layer 1</title>
-  <line fill="none" id="svg_1" stroke="#333333" stroke-linecap="round" stroke-linejoin="null" stroke-width="15" x1="100" x2="100" y1="8.5" y2="58"/>
+  <line fill="none" id="svg_1" stroke="silver" stroke-linecap="round" stroke-linejoin="null" stroke-width="15" x1="100" x2="100" y1="8.5" y2="58"/>
  </g>
 </svg>

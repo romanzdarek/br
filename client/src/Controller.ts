@@ -178,12 +178,22 @@ export class Controller {
 			this.rotatePlayer(this.mouse.x, this.mouse.y);
 			//change
 			if (this.playerAngle !== previousPlayerAngle) {
-				this.socket.emit('a', this.model.getGame(), this.model.getID(), this.playerAngle);
+				this.socket.emit('a', this.model.getGame(), this.playerAngle);
 			}
 		});
+		/*
 		this.canvas.addEventListener('click', (e: MouseEvent) => {
 			this.mouse.left = true;
-			this.socket.emit('m', this.model.getGame(), this.model.getID(), 'l');
+			this.socket.emit('m', this.model.getGame(), 'l');
+		});
+		*/
+		this.canvas.addEventListener('mousedown', (e: MouseEvent) => {
+			this.mouse.left = true;
+			this.socket.emit('m', this.model.getGame(), 'l');
+		});
+		this.canvas.addEventListener('mouseup', (e: MouseEvent) => {
+			this.mouse.left = false;
+			this.socket.emit('m', this.model.getGame(), '-l');
 		});
 	}
 
@@ -222,22 +232,42 @@ export class Controller {
 		document.addEventListener('keydown', (e: KeyboardEvent) => {
 			switch (e.code) {
 				case 'KeyW':
-					if (!this.keys.w) this.socket.emit('c', this.model.getGame(), this.model.getID(), 'u');
+					if (!this.keys.w) this.socket.emit('c', this.model.getGame(), 'u');
 					this.keys.w = true;
 					break;
 				case 'KeyA':
-					if (!this.keys.a) this.socket.emit('c', this.model.getGame(), this.model.getID(), 'l');
+					if (!this.keys.a) this.socket.emit('c', this.model.getGame(), 'l');
 					this.keys.a = true;
 
 					break;
 				case 'KeyS':
-					if (!this.keys.s) this.socket.emit('c', this.model.getGame(), this.model.getID(), 'd');
+					if (!this.keys.s) this.socket.emit('c', this.model.getGame(), 'd');
 					this.keys.s = true;
 
 					break;
 				case 'KeyD':
-					if (!this.keys.d) this.socket.emit('c', this.model.getGame(), this.model.getID(), 'r');
+					if (!this.keys.d) this.socket.emit('c', this.model.getGame(), 'r');
 					this.keys.d = true;
+					break;
+
+				case 'Digit0':
+					this.socket.emit('i', this.model.getGame(), 0);
+					break;
+
+				case 'Digit1':
+					this.socket.emit('i', this.model.getGame(), 1);
+					break;
+				case 'Digit2':
+					this.socket.emit('i', this.model.getGame(), 2);
+					break;
+				case 'Digit3':
+					this.socket.emit('i', this.model.getGame(), 3);
+					break;
+				case 'Digit4':
+					this.socket.emit('i', this.model.getGame(), 4);
+					break;
+				case 'Digit5':
+					this.socket.emit('i', this.model.getGame(), 5);
 					break;
 			}
 		});
@@ -245,19 +275,19 @@ export class Controller {
 		document.addEventListener('keyup', (e: KeyboardEvent) => {
 			switch (e.code) {
 				case 'KeyW':
-					if (this.keys.w) this.socket.emit('c', this.model.getGame(), this.model.getID(), '-u');
+					if (this.keys.w) this.socket.emit('c', this.model.getGame(), '-u');
 					this.keys.w = false;
 					break;
 				case 'KeyA':
-					if (this.keys.a) this.socket.emit('c', this.model.getGame(), this.model.getID(), '-l');
+					if (this.keys.a) this.socket.emit('c', this.model.getGame(), '-l');
 					this.keys.a = false;
 					break;
 				case 'KeyS':
-					if (this.keys.s) this.socket.emit('c', this.model.getGame(), this.model.getID(), '-d');
+					if (this.keys.s) this.socket.emit('c', this.model.getGame(), '-d');
 					this.keys.s = false;
 					break;
 				case 'KeyD':
-					if (this.keys.d) this.socket.emit('c', this.model.getGame(), this.model.getID(), '-r');
+					if (this.keys.d) this.socket.emit('c', this.model.getGame(), '-r');
 					this.keys.d = false;
 					break;
 			}

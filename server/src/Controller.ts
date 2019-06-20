@@ -67,10 +67,10 @@ export default class Controller {
 			});
 
 			//'c' === controll player
-			socket.on('c', (game: number, id: string, key: string) => {
-				if (this.model.games[game] && id && key) {
+			socket.on('c', (game: number, key: string) => {
+				if (this.model.games[game] && key) {
 					for (const player of this.model.games[game].players) {
-						if (player.id === id) {
+						if (player.socket === socket) {
 							player.keyController(key);
 							return;
 						}
@@ -80,10 +80,10 @@ export default class Controller {
 			});
 
 			//change angle
-			socket.on('a', (game: number, id: string, angle: number) => {
-				if (this.model.games[game] && id && angle >= 0) {
+			socket.on('a', (game: number, angle: number) => {
+				if (this.model.games[game] && angle >= 0) {
 					for (const player of this.model.games[game].players) {
-						if (player.id === id) {
+						if (player.socket === socket) {
 							player.changeAngle(angle);
 							return;
 						}
@@ -93,16 +93,28 @@ export default class Controller {
 			});
 
 			//controll mouse
-			socket.on('m', (game: number, id: string, mouse: string) => {
-				if (this.model.games[game] && id && mouse) {
+			socket.on('m', (game: number, mouse: string) => {
+				if (this.model.games[game] && mouse) {
 					for (const player of this.model.games[game].players) {
-						if (player.id === id) {
+						if (player.socket === socket) {
 							player.mouseController(mouse);
 							return;
 						}
 					}
 				}
 				console.log('Error: m (controll player)');
+			});
+
+			socket.on('i', (game: number, inventoryIndex: number) => {
+				if (this.model.games[game] && inventoryIndex > -1) {
+					for (const player of this.model.games[game].players) {
+						if (player.socket === socket) {
+							player.changeWeapon(inventoryIndex);
+							return;
+						}
+					}
+				}
+				console.log('Error: i (controll player)');
 			});
 
 			//save level from editor

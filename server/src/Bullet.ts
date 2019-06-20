@@ -1,9 +1,11 @@
 import Map from './Map';
 import Point from './Point';
 import { Player } from './Player';
+import Gun from './Gun';
 
 export default class Bullet {
-	readonly size: number = 5;
+	readonly id: number;
+	readonly size: number = 1;
 	readonly range: number;
 	private x: number = 0;
 	private y: number = 0;
@@ -12,35 +14,56 @@ export default class Bullet {
 	private shiftY: number = 0;
 	private distance: number = 0;
 	private active: boolean = true;
+	private map: Map;
+	private players: Player[];
 
-	constructor(x: number, y: number, angle: number, range: number) {
-		this.x = x - this.size / 2;
-		this.y = y - this.size / 2;
-		this.angle = angle;
-		this.range = range;
+	constructor(id: number, player: Player, gun: Gun, map: Map, players: Player[]) {
+		this.id = id;
+		this.map = map;
+		this.players = players;
+		this.x = player.getCenterX();
+		this.y = player.getCenterY();
+		//spray
+		let randomchange = Math.round(Math.random() * gun.spray * 10) / 10;
+		let randomDirection = Math.round(Math.random());
+		if (!randomDirection) randomDirection = -1;
+		this.angle = player.getAngle() + randomchange * randomDirection;
+		if (this.angle < 0) {
+			this.angle = 360 + this.angle;
+		}
+		if (this.angle >= 360) {
+			this.angle = 360 - this.angle;
+		}
+		this.range = gun.range;
 		//triangle
-		const bulletSpeed = 30;
-		this.shiftX = Math.sin(angle * Math.PI / 180) * bulletSpeed;
-		this.shiftY = Math.cos(angle * Math.PI / 180) * bulletSpeed;
+		const bulletSpeed = gun.bulletSpeed;
+		this.shiftX = Math.sin(this.angle * Math.PI / 180) * bulletSpeed;
+		this.shiftY = Math.cos(this.angle * Math.PI / 180) * bulletSpeed;
 
-		//start shift
-		const bulletStartShift = 1.5;
+		//start shift to edge the of player
+		const bulletStartShift = player.radius / gun.bulletSpeed + 0.1;
 		this.x += this.shiftX * bulletStartShift;
 		this.y -= this.shiftY * bulletStartShift;
+
+		//shift to the edge of gun
+		const bulletShiftToTheGunEdge = Math.ceil(gun.length / gun.bulletSpeed);
+		for (let i = 0; i < bulletShiftToTheGunEdge; i++) {
+			this.move();
+		}
 	}
 
-	move(map: Map, players: Player[]): void {
-		if (!this.collisions(map, players)) {
+	move(): void {
+		if (!this.collisions()) {
 			this.x += this.shiftX;
 			this.y -= this.shiftY;
 		}
 	}
 
-	private collisions(map: Map, players: Player[]): boolean {
+	private collisions(): boolean {
 		const bulletPoint = new Point(this.getCenterX(), this.getCenterY());
 		//rounds
 		if (this.active) {
-			for (const obstacle of map.impassableRoundObstacles) {
+			for (const obstacle of this.map.impassableRoundObstacles) {
 				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
 					obstacle.acceptHit(bulletPoint);
 					this.active = false;
@@ -50,7 +73,7 @@ export default class Bullet {
 		}
 		//rects
 		if (this.active) {
-			for (const obstacle of map.rectangleObstacles) {
+			for (const obstacle of this.map.rectangleObstacles) {
 				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
 					obstacle.acceptHit();
 					this.active = false;
@@ -60,7 +83,7 @@ export default class Bullet {
 		}
 		//players
 		if (this.active) {
-			for (const player of players) {
+			for (const player of this.players) {
 				if (player.isActive() && player.isPointIn(bulletPoint)) {
 					player.acceptHit(1);
 					if (!player.isActive()) player.die();

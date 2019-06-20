@@ -1,6 +1,7 @@
 import Map from './Map';
 import Bullet from './Bullet';
-import { Player, Weapon } from './Player';
+import { Player } from './Player';
+import { Weapon } from './Weapon';
 import PlayerSnapshot from './PlayerSnapshot';
 import BulletSnapshot from './BulletSnapshot';
 import WaterTerrainData from './WaterTerrainData';
@@ -10,6 +11,7 @@ export default class Game {
 	private map: Map;
 	players: Player[] = [];
 	private bullets: Bullet[] = [];
+	private numberOfBullets: number = 0;
 
 	constructor(waterTerrainData: WaterTerrainData) {
 		this.map = new Map(waterTerrainData);
@@ -56,7 +58,8 @@ export default class Game {
 		for (let i = this.bullets.length - 1; i >= 0; i--) {
 			const bullet = this.bullets[i];
 			if (bullet.flying()) {
-				bullet.move(this.map, this.players);
+				bullet.move();
+				bullet.move();
 			}
 			else {
 				this.bullets.splice(i, 1);
@@ -68,15 +71,47 @@ export default class Game {
 			player.move(this.players);
 			//hit
 			if (player.mouseControll.left) {
-				if (player.getActiveWeapon() === Weapon.hand) player.hit();
+				switch (player.getActiveWeapon()) {
+					case Weapon.Hand:
+						player.hit();
+						break;
 
-				if (player.getActiveWeapon() === Weapon.pistol) {
-					if (player.gun.ready()) {
-						this.bullets.push(
-							new Bullet(player.getCenterX(), player.getCenterY(), player.getAngle(), player.gun.range)
-						);
-					}
-					player.mouseControll.left = false;
+					case Weapon.Pistol:
+						if (player.pistol.ready()) {
+							this.bullets.push(
+								new Bullet(++this.numberOfBullets, player, player.pistol, this.map, this.players)
+							);
+						}
+						player.mouseControll.left = false;
+						break;
+
+					case Weapon.Machinegun:
+						if (player.machinegun.ready()) {
+							this.bullets.push(
+								new Bullet(++this.numberOfBullets, player, player.machinegun, this.map, this.players)
+							);
+						}
+						break;
+
+					case Weapon.Shotgun:
+						if (player.shotgun.ready()) {
+							for (let i = 0; i < 6; i++) {
+								this.bullets.push(
+									new Bullet(++this.numberOfBullets, player, player.shotgun, this.map, this.players)
+								);
+							}
+							player.mouseControll.left = false;
+						}
+						break;
+
+					case Weapon.Rifle:
+						if (player.rifle.ready()) {
+							this.bullets.push(
+								new Bullet(++this.numberOfBullets, player, player.rifle, this.map, this.players)
+							);
+							player.mouseControll.left = false;
+						}
+						break;
 				}
 			}
 		}
@@ -84,7 +119,7 @@ export default class Game {
 		//update for clients
 		//bullets
 		const bulletSnapshots: BulletSnapshot[] = [];
-		for(const bullet of this.bullets){
+		for (const bullet of this.bullets) {
 			bulletSnapshots.push(new BulletSnapshot(bullet));
 		}
 		//players

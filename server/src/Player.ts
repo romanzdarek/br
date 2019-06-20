@@ -1,22 +1,22 @@
 import Hand from './Hand';
-import Gun from './Gun';
+import Pistol from './Pistol';
+import Machinegun from './Machinegun';
+import Shotgun from './Shotgun';
+import Rifle from './Rifle';
 import Map from './Map';
 import Point from './Point';
 import Tree from './Tree';
 import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
 import { TerrainType } from './Terrain';
+import { Weapon } from './Weapon';
 import * as SocketIO from 'socket.io';
+
 
 type Loading = {
 	time: number;
 	max: number;
 };
-
-export enum Weapon {
-	hand,
-	pistol
-}
 
 export class Player {
 	socket: SocketIO.Socket;
@@ -30,15 +30,19 @@ export class Player {
 	private angle: number = 0;
 	private map: Map;
 	hands: Hand[] = [];
-	gun: Gun;
+	pistol: Pistol;
+	machinegun: Machinegun;
+	shotgun: Shotgun;
+	rifle: Rifle;
 	readonly collisionPoints: Point[] = [];
 	private slowAroundObstacle: boolean = false;
 	private goAroundObstacleCalls: number = 0;
 	private goAroundObstacleMaxCalls: number = 10;
 	private loadingTime: number = 0;
 	private loadingMaxTime: number = 3 * 60;
-	private activeWeapon: Weapon = Weapon.pistol;
 	private lives: number = 3;
+	private weaponInventory: Weapon[] = [Weapon.Empty, Weapon.Hand, Weapon.Pistol, Weapon.Rifle, Weapon.Machinegun, Weapon.Shotgun ];
+	private activeWeapon: Weapon = Weapon.Hand;
 
 	private controll = {
 		up: false,
@@ -54,9 +58,7 @@ export class Player {
 	};
 
 	constructor(name: string, id: string, map: Map, socket: SocketIO.Socket) {
-		if (Math.round(Math.random())) {
-			this.activeWeapon = Weapon.hand;
-		}
+		this.activeWeapon = Weapon.Hand;
 		this.socket = socket;
 		this.id = id;
 		this.name = name;
@@ -64,9 +66,18 @@ export class Player {
 		this.y = 700;
 		this.hands.push(new Hand(this.size));
 		this.hands.push(new Hand(this.size));
-		this.gun = new Gun(this.size, 20);
+		this.pistol = new Pistol(this.radius);
+		this.machinegun = new Machinegun(this.radius);
+		this.shotgun = new Shotgun(this.radius);
+		this.rifle = new Rifle(this.radius);
 		this.map = map;
 		this.calculateCollisionsPoints();
+	}
+
+	changeWeapon(inventoryIndex: number): void {
+		if (inventoryIndex >= 0 && inventoryIndex < this.weaponInventory.length) {
+			this.activeWeapon = this.weaponInventory[inventoryIndex];
+		}
 	}
 
 	isPointIn(point: Point): boolean {
@@ -127,12 +138,11 @@ export class Player {
 				this.mouseControll.left = true;
 				break;
 			case 'm':
-				this.mouseControll.left = true;
 				break;
 			case 'r':
-				this.mouseControll.left = true;
 				break;
 			case '-l':
+				this.mouseControll.left = false;
 				break;
 			case '-m':
 				break;

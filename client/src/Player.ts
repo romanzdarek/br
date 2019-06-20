@@ -6,16 +6,14 @@ import Tree from './Tree';
 import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
 import { TerrainType } from './Terrain';
+import { Weapon } from './Weapon';
 
 type Loading = {
 	time: number;
 	max: number;
 };
 
-export enum Weapon {
-	hand,
-	pistol
-}
+
 
 export class Player {
 	readonly size: number = 80;
