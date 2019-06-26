@@ -5,7 +5,7 @@ export default class Shotgun extends Gun {
 		const length = 70;
 		const range = 20;
 		const bulletSpeed = 12;
-		const spray = 10;
+		const spray = 0.7;
 		super(playerRadius, length, range, bulletSpeed, spray);
 	}
 }

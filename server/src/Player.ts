@@ -3,6 +3,7 @@ import Pistol from './Pistol';
 import Machinegun from './Machinegun';
 import Shotgun from './Shotgun';
 import Rifle from './Rifle';
+import Hammer from './Hammer';
 import Map from './Map';
 import Point from './Point';
 import Tree from './Tree';
@@ -11,7 +12,7 @@ import RectangleObstacle from './RectangleObstacle';
 import { TerrainType } from './Terrain';
 import { Weapon } from './Weapon';
 import * as SocketIO from 'socket.io';
-
+import CollisionPoints from './CollisionPoints';
 
 type Loading = {
 	time: number;
@@ -29,20 +30,30 @@ export class Player {
 	private y: number;
 	private angle: number = 0;
 	private map: Map;
+	private players: Player[];
 	hands: Hand[] = [];
 	pistol: Pistol;
 	machinegun: Machinegun;
 	shotgun: Shotgun;
 	rifle: Rifle;
-	readonly collisionPoints: Point[] = [];
+	hammer: Hammer;
 	private slowAroundObstacle: boolean = false;
 	private goAroundObstacleCalls: number = 0;
 	private goAroundObstacleMaxCalls: number = 10;
 	private loadingTime: number = 0;
 	private loadingMaxTime: number = 3 * 60;
 	private lives: number = 3;
-	private weaponInventory: Weapon[] = [Weapon.Empty, Weapon.Hand, Weapon.Pistol, Weapon.Rifle, Weapon.Machinegun, Weapon.Shotgun ];
+	private weaponInventory: Weapon[] = [
+		Weapon.Empty,
+		Weapon.Hand,
+		Weapon.Pistol,
+		Weapon.Rifle,
+		Weapon.Machinegun,
+		Weapon.Shotgun,
+		Weapon.Hammer
+	];
 	private activeWeapon: Weapon = Weapon.Hand;
+	private collisionPoints: CollisionPoints;
 
 	private controll = {
 		up: false,
@@ -57,21 +68,30 @@ export class Player {
 		right: false
 	};
 
-	constructor(name: string, id: string, map: Map, socket: SocketIO.Socket) {
+	constructor(
+		id: string,
+		name: string,
+		socket: SocketIO.Socket,
+		map: Map,
+		collisionPoints: CollisionPoints,
+		players: Player[]
+	) {
 		this.activeWeapon = Weapon.Hand;
 		this.socket = socket;
 		this.id = id;
 		this.name = name;
+		this.players = players;
 		this.x = 550;
 		this.y = 700;
-		this.hands.push(new Hand(this.size));
-		this.hands.push(new Hand(this.size));
+		this.map = map;
+		this.collisionPoints = collisionPoints;
+		this.hands.push(new Hand(this, players, map, collisionPoints));
+		this.hands.push(new Hand(this, players, map, collisionPoints));
 		this.pistol = new Pistol(this.radius);
 		this.machinegun = new Machinegun(this.radius);
 		this.shotgun = new Shotgun(this.radius);
 		this.rifle = new Rifle(this.radius);
-		this.map = map;
-		this.calculateCollisionsPoints();
+		this.hammer = new Hammer(this, players, map, collisionPoints);
 	}
 
 	changeWeapon(inventoryIndex: number): void {
@@ -154,15 +174,6 @@ export class Player {
 	changeAngle(angle: number): void {
 		if (angle >= 360 || angle < 0) angle = 0;
 		this.angle = angle;
-	}
-
-	private calculateCollisionsPoints(): void {
-		for (let i = 0; i < 360; i += 10) {
-			//triangle
-			const x = Math.sin(i * Math.PI / 180) * this.radius;
-			const y = Math.cos(i * Math.PI / 180) * this.radius;
-			this.collisionPoints.push(new Point(x, y));
-		}
 	}
 
 	loading(): Loading {
@@ -264,14 +275,14 @@ export class Player {
 			//i want to go this way...
 			this.shiftOnPosition(shiftX, shiftY);
 		}
-		//this.rotatePlayer(angle);
-		//this.gun.move(this.angle, this.getCenterX(), this.getCenterY());
-		this.changeHandsPosition(players);
+
+		this.changeHandsPosition();
+		if (this.activeWeapon === Weapon.Hammer) this.hammer.move();
 	}
 
-	private changeHandsPosition(players: Player[]): void {
-		this.hands[0].move(-1, this.map, this, players);
-		this.hands[1].move(1, this.map, this, players);
+	private changeHandsPosition(): void {
+		this.hands[0].move(-1);
+		this.hands[1].move(1);
 	}
 
 	private shiftOnPosition(shiftX: number, shiftY: number): void {
@@ -319,8 +330,8 @@ export class Player {
 					this.y + shiftY <= rectangleObstacle.y + rectangleObstacle.height &&
 					this.y + shiftY + this.size >= rectangleObstacle.y
 				) {
-					for (let j = 0; j < this.collisionPoints.length; j++) {
-						const point = this.collisionPoints[j];
+					for (let j = 0; j < this.collisionPoints.body.length; j++) {
+						const point = this.collisionPoints.body[j];
 						const pointOnMyPosition = new Point(
 							this.getCenterX() + shiftX + point.x,
 							this.getCenterY() + shiftY + point.y

@@ -5,6 +5,7 @@ import { Weapon } from './Weapon';
 import PlayerSnapshot from './PlayerSnapshot';
 import BulletSnapshot from './BulletSnapshot';
 import WaterTerrainData from './WaterTerrainData';
+import CollisionPoints from './CollisionPoints';
 import * as SocketIO from 'socket.io';
 
 export default class Game {
@@ -12,8 +13,10 @@ export default class Game {
 	players: Player[] = [];
 	private bullets: Bullet[] = [];
 	private numberOfBullets: number = 0;
+	private collisionPoints: CollisionPoints;
 
-	constructor(waterTerrainData: WaterTerrainData) {
+	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints ) {
+		this.collisionPoints = collisionPoints;
 		this.map = new Map(waterTerrainData);
 	}
 
@@ -38,7 +41,7 @@ export default class Game {
 				name = uniqueName(0);
 			}
 		}
-		this.players.push(new Player(name, id, this.map, socket));
+		this.players.push(new Player(id, name, socket, this.map, this.collisionPoints, this.players));
 		return id;
 	}
 
@@ -95,9 +98,18 @@ export default class Game {
 
 					case Weapon.Shotgun:
 						if (player.shotgun.ready()) {
-							for (let i = 0; i < 6; i++) {
+							let shotgunSpray = -12;
+							for (let i = 0; i < 7; i++) {
+								shotgunSpray += 3;
 								this.bullets.push(
-									new Bullet(++this.numberOfBullets, player, player.shotgun, this.map, this.players)
+									new Bullet(
+										++this.numberOfBullets,
+										player,
+										player.shotgun,
+										this.map,
+										this.players,
+										shotgunSpray
+									)
 								);
 							}
 							player.mouseControll.left = false;
@@ -112,11 +124,21 @@ export default class Game {
 							player.mouseControll.left = false;
 						}
 						break;
+
+					case Weapon.Hammer:
+						if (player.hammer.ready()) {
+							player.hammer.hit();
+							player.mouseControll.left = false;
+						}
+						break;
 				}
 			}
 		}
+		this.clientsUpdate();
+	}
+
+	private clientsUpdate(): void {
 		const dateNow = Date.now();
-		//update for clients
 		//bullets
 		const bulletSnapshots: BulletSnapshot[] = [];
 		for (const bullet of this.bullets) {

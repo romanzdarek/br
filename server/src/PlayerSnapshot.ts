@@ -1,4 +1,5 @@
-import { Weapon, Player } from './Player';
+import { Player } from './Player';
+import { Weapon } from './Weapon';
 
 type HandPackage = { x: number; y: number };
 
@@ -13,6 +14,8 @@ export default class PlayerSnapshot {
 	readonly n: string;
 	//active weapon
 	readonly w: Weapon;
+	//hammer angle
+	readonly m: number = 0;
 
 	constructor(player: Player) {
 		//1 = zero digit after the comma
@@ -29,6 +32,9 @@ export default class PlayerSnapshot {
 				x: Math.round(hand.getX() * afterComma) / afterComma,
 				y: Math.round(hand.getY() * afterComma) / afterComma
 			});
+		}
+		if (player.getActiveWeapon() === Weapon.Hammer) {
+			this.m = player.hammer.getAngle();
 		}
 	}
 }

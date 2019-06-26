@@ -18,6 +18,7 @@ import Editor from './Editor';
 import Colors from './Colors';
 import BulletLine from './BulletLine';
 import PartBulletLine from './PartBulletLine';
+import CollisionPoints from './CollisionPoints';
 
 type DrawData = {
 	x: number;
@@ -56,6 +57,7 @@ export default class View {
 	private machinegunSVG: HTMLImageElement;
 	private shotgunSVG: HTMLImageElement;
 	private rifleSVG: HTMLImageElement;
+	private hammerSVG: HTMLImageElement;
 	private cursorSVG: HTMLImageElement;
 	private loadingProgresSVG: HTMLImageElement;
 	private loadingCircleSVG: HTMLImageElement;
@@ -78,6 +80,7 @@ export default class View {
 
 	private colors: Colors;
 	private bulletLines: BulletLine[] = [];
+	private collisionPoints: CollisionPoints;
 
 	constructor(
 		map: Map,
@@ -87,13 +90,15 @@ export default class View {
 		mouse: Mouse,
 		waterTerrainData: WaterTerrainData,
 		serverClientSync: ServerClientSync,
-		myHtmlElements: MyHtmlElements
+		myHtmlElements: MyHtmlElements,
+		collisionPoints: CollisionPoints
 	) {
 		this.colors = new Colors();
 		this.serverClientSync = serverClientSync;
 		this.myHtmlElements = myHtmlElements;
 		this.map = map;
 		this.player = player;
+		this.collisionPoints = collisionPoints;
 		this.snapshots = gameSnapshots;
 		this.bullets = bullets;
 		this.mouse = mouse;
@@ -138,6 +143,9 @@ export default class View {
 
 		this.shotgunSVG = new Image();
 		this.shotgunSVG.src = 'img/shotgun.svg';
+
+		this.hammerSVG = new Image();
+		this.hammerSVG.src = 'img/hammer.svg';
 
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
@@ -620,8 +628,8 @@ export default class View {
 						let directionY = 1;
 						if (newer.x < older.x) directionX = -1;
 						if (newer.y < older.y) directionY = -1;
-						let calculatedX = older.x + xDiference * percentShift * directionX;
-						let calculatedY = older.y + yDiference * percentShift * directionY;
+						const calculatedX = older.x + xDiference * percentShift * directionX;
+						const calculatedY = older.y + yDiference * percentShift * directionY;
 
 						const { x, y, size, isOnScreen } = this.howToDraw({
 							x: calculatedX,
@@ -710,6 +718,69 @@ export default class View {
 									ctx.restore();
 								}
 							}
+							//hammer
+							if (newer.w === Weapon.Hammer) {
+								const gunSize = 200;
+								const gunX = calculatedX + this.player.radius - gunSize / 2;
+								const gunY = calculatedY + this.player.radius - gunSize / 2;
+								const { x, y, size, isOnScreen } = this.howToDraw({
+									x: gunX,
+									y: gunY,
+									size: gunSize
+								});
+								if (isOnScreen) {
+									let middleImage = size / 2;
+									ctx.save();
+									ctx.translate(x + middleImage, y + middleImage);
+									ctx.rotate(newer.m * Math.PI / 180);
+									ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
+									ctx.restore();
+
+									if (this.collisionPoints.isReady()) {
+										//hammer collisionPoints
+										ctx.fillStyle = this.colors.collisionPoint;
+										for (const point of this.collisionPoints.hammer[newer.m]) {
+											const { x, y, size } = this.howToDraw({
+												x: calculatedX + this.player.size / 2 - 100 + point.x,
+												y: calculatedY + this.player.size / 2 - 100 + point.y,
+												size: 1
+											});
+											ctx.fillRect(x, y, size, size);
+										}
+									}
+								}
+							}
+
+							//player hands
+							if (newer.w === Weapon.Hand) {
+								for (let i = 0; i < 2; i++) {
+									xDiference = Math.abs(newer.h[i].x - older.h[i].x);
+									yDiference = Math.abs(newer.h[i].y - older.h[i].y);
+									(directionX = 1), (directionY = 1);
+									if (newer.h[i].x < older.h[i].x) directionX = -1;
+									if (newer.h[i].y < older.h[i].y) directionY = -1;
+									const handCalculatedX = older.h[i].x + xDiference * percentShift * directionX;
+									const handCalculatedY = older.h[i].y + yDiference * percentShift * directionY;
+
+									const { x, y, size, isOnScreen } = this.howToDraw({
+										x: handCalculatedX,
+										y: handCalculatedY,
+										size: this.player.hands[i].size
+									});
+									if (isOnScreen) {
+										ctx.drawImage(this.playerHandSVG, x, y, size, size);
+										//hand collisionPoints
+										for (const point of this.player.hands[0].collisionPoints) {
+											const { x, y, size } = this.howToDraw({
+												x: handCalculatedX + this.player.hands[0].size / 2 + point.x,
+												y: handCalculatedY + this.player.hands[0].size / 2 + point.y,
+												size: 1
+											});
+											ctx.fillRect(x, y, size, size);
+										}
+									}
+								}
+							}
 						}
 
 						if (isOnScreen) {
@@ -724,37 +795,6 @@ export default class View {
 									size: 1
 								});
 								ctx.fillRect(x, y, size, size);
-							}
-						}
-
-						//player hands
-						if (newer.w === Weapon.Hand) {
-							for (let i = 0; i < 2; i++) {
-								xDiference = Math.abs(newer.h[i].x - older.h[i].x);
-								yDiference = Math.abs(newer.h[i].y - older.h[i].y);
-								(directionX = 1), (directionY = 1);
-								if (newer.h[i].x < older.h[i].x) directionX = -1;
-								if (newer.h[i].y < older.h[i].y) directionY = -1;
-								calculatedX = older.h[i].x + xDiference * percentShift * directionX;
-								calculatedY = older.h[i].y + yDiference * percentShift * directionY;
-
-								const { x, y, size, isOnScreen } = this.howToDraw({
-									x: calculatedX,
-									y: calculatedY,
-									size: this.player.hands[i].size
-								});
-								if (isOnScreen) {
-									ctx.drawImage(this.playerHandSVG, x, y, size, size);
-									//hand collisionPoints
-									for (const point of this.player.hands[0].collisionPoints) {
-										const { x, y, size } = this.howToDraw({
-											x: calculatedX + this.player.hands[0].size / 2 + point.x,
-											y: calculatedY + this.player.hands[0].size / 2 + point.y,
-											size: 1
-										});
-										ctx.fillRect(x, y, size, size);
-									}
-								}
 							}
 						}
 					}

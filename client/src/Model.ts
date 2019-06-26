@@ -9,6 +9,7 @@ import ServerClientSync from './ServerClientSync';
 import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
+import CollisionPoints from './CollisionPoints';
 
 export default class Model {
 	private game: number = 0;
@@ -26,6 +27,7 @@ export default class Model {
 	private serverClientSync: ServerClientSync;
 	private myHtmlElements: MyHtmlElements;
 	private editor: Editor;
+	collisionPoints: CollisionPoints;
 
 	constructor(
 		keys: Keys,
@@ -44,6 +46,7 @@ export default class Model {
 		this.mouse = mouse;
 		this.myHtmlElements = myHtmlElements;
 		this.editor = editor;
+		this.collisionPoints = new CollisionPoints();
 		this.view = new View(
 			this.map,
 			this.player,
@@ -52,7 +55,8 @@ export default class Model {
 			this.mouse,
 			this.waterTerrainData,
 			this.serverClientSync,
-			this.myHtmlElements
+			this.myHtmlElements,
+			this.collisionPoints
 		);
 		setTimeout(() => {
 			this.gameLoop();

@@ -18,15 +18,12 @@ export default class Controller {
 		this.io.on('connection', (socket: SocketIO.Socket) => {
 			console.log(socket.id, 'connect');
 
-			/**
-			 * 
-			 * let mapPath = './dist/maps/' + 'mainMap' + '.json';
-		if (fs.existsSync(mapPath)) {
-			//je třeba smazat keš jinak by se vracela první verze souboru z doby spuštění aplikace pokud aplikace soubor již jednou načetla
-			const fullPath = path.resolve(mapPath);
-			delete require.cache[fullPath];
-			const map = require(mapPath);
-			 */
+			socket.emit(
+				'collisionPoints',
+				this.model.collisionPoints.body,
+				this.model.collisionPoints.hand,
+				this.model.collisionPoints.hammer.getAllPoints()
+			);
 
 			socket.on('sendMap', () => {
 				const fullPath = path.resolve('./dist/maps/mainMap.json');

@@ -17,17 +17,18 @@ export default class Bullet {
 	private map: Map;
 	private players: Player[];
 
-	constructor(id: number, player: Player, gun: Gun, map: Map, players: Player[]) {
+	constructor(id: number, player: Player, gun: Gun, map: Map, players: Player[], shiftAngle: number = 0) {
 		this.id = id;
 		this.map = map;
 		this.players = players;
 		this.x = player.getCenterX();
 		this.y = player.getCenterY();
 		//spray
-		let randomchange = Math.round(Math.random() * gun.spray * 10) / 10;
+		let randomchange = Math.round(Math.random() * gun.spray * 100) / 100;
 		let randomDirection = Math.round(Math.random());
 		if (!randomDirection) randomDirection = -1;
 		this.angle = player.getAngle() + randomchange * randomDirection;
+		this.angle += shiftAngle;
 		if (this.angle < 0) {
 			this.angle = 360 + this.angle;
 		}

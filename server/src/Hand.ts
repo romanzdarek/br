@@ -1,30 +1,26 @@
 import Map from './Map';
 import Point from './Point';
 import { Player } from './Player';
+import CollisionPoints from './CollisionPoints';
 
 export default class Hand {
 	readonly size: number = 40;
 	private x: number = 0;
 	private y: number = 0;
 	private radius: number = this.size / 2;
-	private playerRadius: number;
 	private shiftAngle: number = 40;
 	private hitTimer: number = 0;
 	private inAction: boolean = false;
-	readonly collisionPoints: Point[] = [];
+	private map: Map;
+	private player: Player;
+	private players: Player[];
+	private collisionPoints: CollisionPoints;
 
-	constructor(playerSize: number) {
-		this.playerRadius = playerSize / 2;
-		this.calculateCollisionsPoints();
-	}
-
-	private calculateCollisionsPoints(): void {
-		for (let i = 0; i < 360; i += 20) {
-			//triangle
-			const x = Math.sin(i * Math.PI / 180) * this.radius;
-			const y = Math.cos(i * Math.PI / 180) * this.radius;
-			this.collisionPoints.push(new Point(x, y));
-		}
+	constructor(myPlayer: Player, players: Player[], map: Map, collisionPoints: CollisionPoints) {
+		this.player = myPlayer;
+		this.players = players;
+		this.map = map;
+		this.collisionPoints = collisionPoints;
 	}
 
 	ready(): boolean {
@@ -47,107 +43,107 @@ export default class Hand {
 		return this.y;
 	}
 
-	move(direction: number, map: Map, myPlayer: Player, players: Player[]): void {
+	move(direction: number): void {
 		let shiftAngle = this.shiftAngle;
-		let playerRadius = this.playerRadius;
+		let playerAndHandDistance = this.player.radius;
 		//hit move
 		if (this.hitTimer > 0) {
 			switch (this.hitTimer) {
 				case 20:
 					shiftAngle -= 4;
-					playerRadius += 2;
+					playerAndHandDistance += 2;
 					break;
 				case 19:
 					shiftAngle -= 8;
-					playerRadius += 4;
+					playerAndHandDistance += 4;
 					break;
 				case 18:
 					shiftAngle -= 12;
-					playerRadius += 6;
+					playerAndHandDistance += 6;
 					break;
 				case 17:
 					shiftAngle -= 16;
-					playerRadius += 8;
+					playerAndHandDistance += 8;
 					break;
 				case 16:
 					shiftAngle -= 20;
-					playerRadius += 10;
+					playerAndHandDistance += 10;
 					break;
 				case 15:
 					shiftAngle -= 24;
-					playerRadius += 12;
+					playerAndHandDistance += 12;
 					break;
 				case 14:
 					shiftAngle -= 28;
-					playerRadius += 14;
+					playerAndHandDistance += 14;
 					break;
 				case 13:
 					shiftAngle -= 32;
-					playerRadius += 16;
+					playerAndHandDistance += 16;
 					break;
 				case 12:
 					shiftAngle -= 36;
-					playerRadius += 18;
+					playerAndHandDistance += 18;
 					break;
 				case 11:
 					shiftAngle -= 40;
-					playerRadius += 20;
+					playerAndHandDistance += 20;
 					break;
 				case 10:
 					shiftAngle -= 36;
-					playerRadius += 18;
+					playerAndHandDistance += 18;
 					break;
 				case 9:
 					shiftAngle -= 32;
-					playerRadius += 16;
+					playerAndHandDistance += 16;
 					break;
 				case 8:
 					shiftAngle -= 28;
-					playerRadius += 14;
+					playerAndHandDistance += 14;
 					break;
 				case 7:
 					shiftAngle -= 24;
-					playerRadius += 12;
+					playerAndHandDistance += 12;
 					break;
 				case 6:
 					shiftAngle -= 20;
-					playerRadius += 10;
+					playerAndHandDistance += 10;
 					break;
 				case 5:
 					shiftAngle -= 16;
-					playerRadius += 8;
+					playerAndHandDistance += 8;
 					break;
 				case 4:
 					shiftAngle -= 12;
-					playerRadius += 6;
+					playerAndHandDistance += 6;
 					break;
 				case 3:
 					shiftAngle -= 8;
-					playerRadius += 4;
+					playerAndHandDistance += 4;
 					break;
 				case 2:
 					shiftAngle -= 4;
-					playerRadius += 2;
+					playerAndHandDistance += 2;
 					break;
 				case 1:
 					shiftAngle -= 0;
-					playerRadius += 0;
+					playerAndHandDistance += 0;
 					break;
 			}
-			this.collisions(map, myPlayer, players);
+			this.collisions();
 			this.hitTimer--;
 		}
 
-		let playerAngleForHand = myPlayer.getAngle() + shiftAngle * direction;
+		let playerAngleForHand = this.player.getAngle() + shiftAngle * direction;
 		//0 - 359...
 		if (playerAngleForHand < 0) playerAngleForHand = 359 + playerAngleForHand;
 		if (playerAngleForHand > 359) playerAngleForHand = playerAngleForHand - 359;
 		//triangle
-		const x = Math.sin(playerAngleForHand * Math.PI / 180) * playerRadius;
-		const y = Math.cos(playerAngleForHand * Math.PI / 180) * playerRadius;
+		const x = Math.sin(playerAngleForHand * Math.PI / 180) * playerAndHandDistance;
+		const y = Math.cos(playerAngleForHand * Math.PI / 180) * playerAndHandDistance;
 		//set final position from center
-		this.x = myPlayer.getX() + myPlayer.size / 2 + x - this.size / 2;
-		this.y = myPlayer.getY() + myPlayer.size / 2 - y - this.size / 2;
+		this.x = this.player.getX() + this.player.size / 2 + x - this.size / 2;
+		this.y = this.player.getY() + this.player.size / 2 - y - this.size / 2;
 	}
 
 	hit(): void {
@@ -155,12 +151,12 @@ export default class Hand {
 		this.inAction = true;
 	}
 
-	collisions(map: Map, myPlayer: Player, players: Player[]): void {
+	private collisions(): void {
 		//hit?
 		//hit players
 		if (this.inAction) {
-			for (const player of players) {
-				if (player.isActive() && player != myPlayer) {
+			for (const player of this.players) {
+				if (player.isActive() && player != this.player) {
 					const playerAndHandRadius = player.radius + this.radius;
 					const x = this.getCenterX() - player.getCenterX();
 					const y = this.getCenterY() - player.getCenterY();
@@ -175,8 +171,8 @@ export default class Hand {
 			}
 		}
 		if (this.inAction) {
-			for (let i = 0; i < map.bushes.length; i++) {
-				const obstacle = map.bushes[i];
+			for (let i = 0; i < this.map.bushes.length; i++) {
+				const obstacle = this.map.bushes[i];
 				if (obstacle.isActive()) {
 					const obstacleAndHandRadius = obstacle.radius + this.radius;
 					const x = this.getCenterX() - obstacle.getCenterX();
@@ -191,8 +187,8 @@ export default class Hand {
 			}
 		}
 		if (this.inAction) {
-			for (let i = 0; i < map.rocks.length; i++) {
-				const obstacle = map.rocks[i];
+			for (let i = 0; i < this.map.rocks.length; i++) {
+				const obstacle = this.map.rocks[i];
 				if (obstacle.isActive()) {
 					const obstacleAndHandRadius = obstacle.radius + this.radius;
 					const x = this.getCenterX() - obstacle.getCenterX();
@@ -207,8 +203,8 @@ export default class Hand {
 			}
 		}
 		if (this.inAction) {
-			for (let i = 0; i < map.trees.length; i++) {
-				const obstacle = map.trees[i];
+			for (let i = 0; i < this.map.trees.length; i++) {
+				const obstacle = this.map.trees[i];
 				if (obstacle.isActive()) {
 					const obstacleAndHandRadius = obstacle.treeTrankRadius + this.radius;
 					const x = this.getCenterX() - obstacle.getCenterX();
@@ -224,8 +220,8 @@ export default class Hand {
 		}
 		//walls
 		if (this.inAction) {
-			for (let i = 0; i < map.rectangleObstacles.length; i++) {
-				const obstacle = map.rectangleObstacles[i];
+			for (let i = 0; i < this.map.rectangleObstacles.length; i++) {
+				const obstacle = this.map.rectangleObstacles[i];
 				if (obstacle.isActive()) {
 					if (
 						this.x <= obstacle.x + obstacle.width &&
@@ -233,8 +229,8 @@ export default class Hand {
 						this.y <= obstacle.y + obstacle.height &&
 						this.y + this.size >= obstacle.y
 					) {
-						for (let j = 0; j < this.collisionPoints.length; j++) {
-							const point = this.collisionPoints[j];
+						for (let j = 0; j < this.collisionPoints.hand.length; j++) {
+							const point = this.collisionPoints.hand[j];
 							if (
 								obstacle.isPointIn(new Point(this.getCenterX() + point.x, this.getCenterY() + point.y))
 							) {

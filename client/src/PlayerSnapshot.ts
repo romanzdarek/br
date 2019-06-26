@@ -11,6 +11,8 @@ export default interface PlayerSnapshot {
 	readonly n: string;
 	//active weapon
 	readonly w: Weapon;
+	//hammer angle
+	readonly m: number;
 };
 
 type HandPackage = { x: number; y: number };

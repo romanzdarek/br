@@ -4,6 +4,8 @@ import ServerClientSync from './ServerClientSync';
 import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
+import CollisionPoints from './CollisionPoints';
+import Point from './Point';
 
 declare const io: {
 	connect(url: string): Socket;
@@ -84,6 +86,10 @@ export class Controller {
 	private socketController(): void {
 		this.socket.emit('createPlayer', 'playerName', this.model.getGame());
 		this.socket.emit('sendMap', 0);
+
+		this.socket.on('collisionPoints', (body: Point[], hand: Point[], hammer: Point[][]) => {
+			this.model.collisionPoints.setData(body, hand, hammer);
+		});
 
 		//map
 		this.socket.on('sendMap', (map) => {
@@ -268,6 +274,9 @@ export class Controller {
 					break;
 				case 'Digit5':
 					this.socket.emit('i', this.model.getGame(), 5);
+					break;
+				case 'Digit6':
+					this.socket.emit('i', this.model.getGame(), 6);
 					break;
 			}
 		});

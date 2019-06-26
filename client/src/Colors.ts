@@ -5,4 +5,5 @@ export default class Colors {
 	readonly blockFrameActive: string = 'red';
 	readonly bullet: string = 'red';
 	readonly text: string = 'white';
+	readonly collisionPoint: string = 'red';
 }
