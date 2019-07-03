@@ -5,5 +5,6 @@ export enum Weapon {
     Machinegun,
     Shotgun,
     Rifle,
-    Hammer
+    Hammer,
+    Granade
 }

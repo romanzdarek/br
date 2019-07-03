@@ -1,4 +1,5 @@
 import Map from './Map';
+import Granade from './Granade';
 import Bullet from './Bullet';
 import { Player } from './Player';
 import { Weapon } from './Weapon';
@@ -6,16 +7,18 @@ import PlayerSnapshot from './PlayerSnapshot';
 import BulletSnapshot from './BulletSnapshot';
 import WaterTerrainData from './WaterTerrainData';
 import CollisionPoints from './CollisionPoints';
+import ThrowingObjectSnapshot from './ThrowingObjectSnapshot';
 import * as SocketIO from 'socket.io';
 
 export default class Game {
 	private map: Map;
 	players: Player[] = [];
 	private bullets: Bullet[] = [];
+	private granades: Granade[] = [];
 	private numberOfBullets: number = 0;
 	private collisionPoints: CollisionPoints;
 
-	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints ) {
+	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints) {
 		this.collisionPoints = collisionPoints;
 		this.map = new Map(waterTerrainData);
 	}
@@ -56,7 +59,38 @@ export default class Game {
 		return id;
 	}
 
+	private shuffleFragments(fragments: Bullet[]): Bullet[] {
+		const shuffleFragments = [];
+		while (fragments.length) {
+			const randomIndex = Math.floor(Math.random() * fragments.length);
+			shuffleFragments.push(fragments[randomIndex]);
+			fragments.splice(randomIndex, 1);
+		}
+		return shuffleFragments;
+	}
+
 	loop(): void {
+		//move granades
+		for (let i = this.granades.length - 1; i >= 0; i--) {
+			const granade = this.granades[i];
+			if (!granade.explode()) {
+				granade.move();
+				granade.tick();
+			}
+			else {
+				const shiftAngle = 360 / granade.fragmentCount;
+				const fragments = [];
+				for (let i = 0; i < granade.fragmentCount; i++) {
+					const angle = i * shiftAngle;
+					fragments.push(Bullet.makeFragment(++this.numberOfBullets, granade, this.map, this.players, angle));
+				}
+
+				this.bullets = [ ...this.bullets, ...this.shuffleFragments(fragments) ];
+
+				this.granades.splice(i, 1);
+			}
+		}
+
 		//move and delete bullets
 		for (let i = this.bullets.length - 1; i >= 0; i--) {
 			const bullet = this.bullets[i];
@@ -82,7 +116,7 @@ export default class Game {
 					case Weapon.Pistol:
 						if (player.pistol.ready()) {
 							this.bullets.push(
-								new Bullet(++this.numberOfBullets, player, player.pistol, this.map, this.players)
+								Bullet.makeBullet(++this.numberOfBullets, player, player.pistol, this.map, this.players)
 							);
 						}
 						player.mouseControll.left = false;
@@ -91,7 +125,13 @@ export default class Game {
 					case Weapon.Machinegun:
 						if (player.machinegun.ready()) {
 							this.bullets.push(
-								new Bullet(++this.numberOfBullets, player, player.machinegun, this.map, this.players)
+								Bullet.makeBullet(
+									++this.numberOfBullets,
+									player,
+									player.machinegun,
+									this.map,
+									this.players
+								)
 							);
 						}
 						break;
@@ -102,7 +142,7 @@ export default class Game {
 							for (let i = 0; i < 7; i++) {
 								shotgunSpray += 3;
 								this.bullets.push(
-									new Bullet(
+									Bullet.makeBullet(
 										++this.numberOfBullets,
 										player,
 										player.shotgun,
@@ -119,7 +159,7 @@ export default class Game {
 					case Weapon.Rifle:
 						if (player.rifle.ready()) {
 							this.bullets.push(
-								new Bullet(++this.numberOfBullets, player, player.rifle, this.map, this.players)
+								Bullet.makeBullet(++this.numberOfBullets, player, player.rifle, this.map, this.players)
 							);
 							player.mouseControll.left = false;
 						}
@@ -131,6 +171,16 @@ export default class Game {
 							player.mouseControll.left = false;
 						}
 						break;
+
+					case Weapon.Granade:
+						if (true) {
+							this.granades.push(
+								new Granade(player.hands[1], player.mouseControll.x, player.mouseControll.y)
+							);
+							console.log(this.granades);
+							player.mouseControll.left = false;
+						}
+						break;
 				}
 			}
 		}
@@ -139,6 +189,12 @@ export default class Game {
 
 	private clientsUpdate(): void {
 		const dateNow = Date.now();
+		//granades
+		const granadesSnapshots: ThrowingObjectSnapshot[] = [];
+		for (const granade of this.granades) {
+			granadesSnapshots.push(new ThrowingObjectSnapshot(granade));
+		}
+
 		//bullets
 		const bulletSnapshots: BulletSnapshot[] = [];
 		for (const bullet of this.bullets) {
@@ -158,7 +214,8 @@ export default class Game {
 			player.socket.emit('u', {
 				t: dateNow,
 				p: playerSnapshotArr,
-				b: bulletSnapshots
+				b: bulletSnapshots,
+				g: granadesSnapshots
 			});
 		}
 		//map objects

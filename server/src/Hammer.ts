@@ -71,14 +71,14 @@ export default class Hammer {
 				const pointY = hammerY + point.y;
 				const collisionPoint = new Point(pointX, pointY);
 				for (const round of this.map.impassableRoundObstacles) {
-					if (round.isActive && round.isPointIn(collisionPoint)) {
+					if (round.isActive() && round.isPointIn(collisionPoint)) {
 						round.acceptHit(collisionPoint);
 						this.inAction = false;
 						break;
 					}
 				}
 				for (const rect of this.map.rectangleObstacles) {
-					if (rect.isActive && rect.isPointIn(collisionPoint)) {
+					if (rect.isActive() && rect.isPointIn(collisionPoint)) {
 						rect.acceptHit();
 						this.inAction = false;
 						break;

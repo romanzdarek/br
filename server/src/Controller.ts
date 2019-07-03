@@ -1,5 +1,6 @@
 import * as SocketIO from 'socket.io';
 import Model from './Model';
+import Point from './Point';
 //node modules
 import * as fs from 'fs';
 import * as path from 'path';
@@ -90,11 +91,11 @@ export default class Controller {
 			});
 
 			//controll mouse
-			socket.on('m', (game: number, mouse: string) => {
+			socket.on('m', (game: number, mouse: string, position: Point) => {
 				if (this.model.games[game] && mouse) {
 					for (const player of this.model.games[game].players) {
 						if (player.socket === socket) {
-							player.mouseController(mouse);
+							player.mouseController(mouse, position);
 							return;
 						}
 					}

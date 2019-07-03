@@ -65,7 +65,7 @@ export class Controller {
 			this.editor
 		);
 		window.addEventListener('resize', () => {
-			this.model.screenResize();
+			this.model.view.screenResize();
 			const event = new Event('mousemove');
 			this.canvas.dispatchEvent(event);
 		});
@@ -118,10 +118,10 @@ export class Controller {
 		});
 
 		//u === update positions
-		this.socket.on('u', (Snapshot: Snapshot) => {
+		this.socket.on('u', (snapshot: Snapshot) => {
 			const ping = Math.round(Math.random() * 50);
 			setTimeout(() => {
-				this.model.snapshots.push(Snapshot);
+				this.model.snapshots.push(snapshot);
 				//delete old snapshots
 				if (this.model.snapshots.length > 50) {
 					this.model.snapshots.splice(0, 1);
@@ -187,15 +187,11 @@ export class Controller {
 				this.socket.emit('a', this.model.getGame(), this.playerAngle);
 			}
 		});
-		/*
-		this.canvas.addEventListener('click', (e: MouseEvent) => {
-			this.mouse.left = true;
-			this.socket.emit('m', this.model.getGame(), 'l');
-		});
-		*/
 		this.canvas.addEventListener('mousedown', (e: MouseEvent) => {
 			this.mouse.left = true;
-			this.socket.emit('m', this.model.getGame(), 'l');
+			const clickPosition = this.model.view.calculateServerPositionFromClick(e);
+			console.log(clickPosition);
+			this.socket.emit('m', this.model.getGame(), 'l', clickPosition);
 		});
 		this.canvas.addEventListener('mouseup', (e: MouseEvent) => {
 			this.mouse.left = false;
@@ -277,6 +273,9 @@ export class Controller {
 					break;
 				case 'Digit6':
 					this.socket.emit('i', this.model.getGame(), 6);
+					break;
+				case 'Digit7':
+					this.socket.emit('i', this.model.getGame(), 7);
 					break;
 			}
 		});

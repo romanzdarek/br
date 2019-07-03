@@ -15,7 +15,7 @@ export default class Model {
 	private game: number = 0;
 	private name: string;
 	private id: string;
-	private view: View;
+	view: View;
 	private player: Player;
 	snapshots: Snapshot[] = [];
 	private socket: Socket;
@@ -127,9 +127,5 @@ export default class Model {
 			this.view.drawEditor(this.editor);
 		}
 		this.view.draw();
-	}
-
-	screenResize(): void {
-		this.view.screenResize();
 	}
 }

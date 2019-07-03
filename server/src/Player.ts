@@ -50,7 +50,8 @@ export class Player {
 		Weapon.Rifle,
 		Weapon.Machinegun,
 		Weapon.Shotgun,
-		Weapon.Hammer
+		Weapon.Hammer,
+		Weapon.Granade
 	];
 	private activeWeapon: Weapon = Weapon.Hand;
 	private collisionPoints: CollisionPoints;
@@ -65,7 +66,9 @@ export class Player {
 	mouseControll = {
 		left: false,
 		middle: false,
-		right: false
+		right: false,
+		x: 0,
+		y: 0
 	};
 
 	constructor(
@@ -152,10 +155,12 @@ export class Player {
 		}
 	}
 
-	mouseController(button: string): void {
+	mouseController(button: string, position: Point): void {
 		switch (button) {
 			case 'l':
 				this.mouseControll.left = true;
+				this.mouseControll.x = position.x;
+				this.mouseControll.y = position.y;
 				break;
 			case 'm':
 				break;

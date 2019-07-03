@@ -19,6 +19,7 @@ import Colors from './Colors';
 import BulletLine from './BulletLine';
 import PartBulletLine from './PartBulletLine';
 import CollisionPoints from './CollisionPoints';
+import Point from './Point';
 
 type DrawData = {
 	x: number;
@@ -59,6 +60,7 @@ export default class View {
 	private rifleSVG: HTMLImageElement;
 	private hammerSVG: HTMLImageElement;
 	private cursorSVG: HTMLImageElement;
+	private granadeSVG: HTMLImageElement;
 	private loadingProgresSVG: HTMLImageElement;
 	private loadingCircleSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
@@ -147,6 +149,9 @@ export default class View {
 		this.hammerSVG = new Image();
 		this.hammerSVG.src = 'img/hammer.svg';
 
+		this.granadeSVG = new Image();
+		this.granadeSVG.src = 'img/granade.svg';
+
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
 
@@ -167,6 +172,27 @@ export default class View {
 		this.screenCenterX = window.innerWidth / 2;
 		this.screenCenterY = window.innerHeight / 2;
 		this.changeResolutionAdjustment();
+	}
+
+	calculateServerPositionFromClick(e: MouseEvent): Point {
+		let x, y;
+		if (this.screenCenterX > e.clientX) {
+			x = (this.screenCenterX - e.clientX) * -1;
+		}
+		else {
+			x = e.clientX - this.screenCenterX;
+		}
+		if (this.screenCenterY > e.clientY) {
+			y = (this.screenCenterY - e.clientY) * -1;
+		}
+		else {
+			y = e.clientY - this.screenCenterY;
+		}
+		x /= this.resolutionAdjustment;
+		y /= this.resolutionAdjustment;
+		x += this.myPlayerCenterX;
+		y += this.myPlayerCenterY;
+		return new Point(Math.round(x), Math.round(y));
 	}
 
 	private changeResolutionAdjustment(): void {
@@ -752,7 +778,7 @@ export default class View {
 							}
 
 							//player hands
-							if (newer.w === Weapon.Hand) {
+							if (newer.w === Weapon.Hand || newer.w === Weapon.Granade) {
 								for (let i = 0; i < 2; i++) {
 									xDiference = Math.abs(newer.h[i].x - older.h[i].x);
 									yDiference = Math.abs(newer.h[i].y - older.h[i].y);
@@ -797,6 +823,24 @@ export default class View {
 								ctx.fillRect(x, y, size, size);
 							}
 						}
+					}
+				}
+
+				//granades
+				for (const granade of newerSnapshot.g) {
+					const granadeSize = 30 * granade.b;
+					const { x, y, size, isOnScreen } = this.howToDraw({
+						x: granade.x - granadeSize / 2,
+						y: granade.y - granadeSize / 2,
+						size: granadeSize
+					});
+					if (isOnScreen) {
+						let middleImage = size / 2;
+						ctx.save();
+						ctx.translate(x + middleImage, y + middleImage);
+						ctx.rotate(granade.a * Math.PI / 180);
+						ctx.drawImage(this.granadeSVG, -middleImage, -middleImage, size, size);
+						ctx.restore();
 					}
 				}
 
