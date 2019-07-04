@@ -4,4 +4,6 @@ export default interface GranadeSnapshot {
 	readonly a: number;
 	//obove ground
 	readonly b: number;
+	//type
+	readonly t: string;
 };

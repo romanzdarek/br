@@ -1,5 +1,7 @@
 import Map from './Map';
 import Granade from './Granade';
+import Smoke from './Smoke';
+import SmokeCloud from './SmokeCloud';
 import Bullet from './Bullet';
 import { Player } from './Player';
 import { Weapon } from './Weapon';
@@ -9,12 +11,15 @@ import WaterTerrainData from './WaterTerrainData';
 import CollisionPoints from './CollisionPoints';
 import ThrowingObjectSnapshot from './ThrowingObjectSnapshot';
 import * as SocketIO from 'socket.io';
+import SmokeCloudSnapshot from './SmokeCloudSnapshot';
+import ThrowingObject from './ThrowingObject';
 
 export default class Game {
 	private map: Map;
 	players: Player[] = [];
 	private bullets: Bullet[] = [];
-	private granades: Granade[] = [];
+	private smokeClouds: SmokeCloud[] = [];
+	private granades: ThrowingObject[] = [];
 	private numberOfBullets: number = 0;
 	private collisionPoints: CollisionPoints;
 
@@ -78,16 +83,39 @@ export default class Game {
 				granade.tick();
 			}
 			else {
-				const shiftAngle = 360 / granade.fragmentCount;
-				const fragments = [];
-				for (let i = 0; i < granade.fragmentCount; i++) {
-					const angle = i * shiftAngle;
-					fragments.push(Bullet.makeFragment(++this.numberOfBullets, granade, this.map, this.players, angle));
+				//explode
+				//create fragments
+				if (granade instanceof Granade) {
+					const shiftAngle = 360 / granade.fragmentCount;
+					const fragments = [];
+					for (let i = 0; i < granade.fragmentCount; i++) {
+						const angle = i * shiftAngle;
+						fragments.push(
+							Bullet.makeFragment(++this.numberOfBullets, granade, this.map, this.players, angle)
+						);
+					}
+					this.bullets = [ ...this.bullets, ...this.shuffleFragments(fragments) ];
 				}
-
-				this.bullets = [ ...this.bullets, ...this.shuffleFragments(fragments) ];
-
+				//create smoke clouds
+				if (granade instanceof Smoke) {
+					const shiftAngle = 360 / granade.cloudCount;
+					for (let i = 0; i < granade.cloudCount; i++) {
+						const angle = i * shiftAngle;
+						this.smokeClouds.push(new SmokeCloud(granade, angle));
+					}
+				}
 				this.granades.splice(i, 1);
+			}
+		}
+
+		//move or delete smoke clouds
+		for (let i = this.smokeClouds.length - 1; i >= 0; i--) {
+			const smokeCloud = this.smokeClouds[i];
+			if (smokeCloud.isActive()) {
+				smokeCloud.move();
+			}
+			else {
+				this.smokeClouds.splice(i, 1);
 			}
 		}
 
@@ -177,7 +205,15 @@ export default class Game {
 							this.granades.push(
 								new Granade(player.hands[1], player.mouseControll.x, player.mouseControll.y)
 							);
-							console.log(this.granades);
+							player.mouseControll.left = false;
+						}
+						break;
+
+						case Weapon.Smoke:
+						if (true) {
+							this.granades.push(
+								new Smoke(player.hands[1], player.mouseControll.x, player.mouseControll.y)
+							);
 							player.mouseControll.left = false;
 						}
 						break;
@@ -200,6 +236,13 @@ export default class Game {
 		for (const bullet of this.bullets) {
 			bulletSnapshots.push(new BulletSnapshot(bullet));
 		}
+
+		//smokes
+		const smokeCloudSnapshots: SmokeCloudSnapshot[] = [];
+		for (const smokeCloud of this.smokeClouds) {
+			smokeCloudSnapshots.push(new SmokeCloudSnapshot(smokeCloud));
+		}
+
 		//players
 		for (const player of this.players) {
 			const playerSnapshotArr: PlayerSnapshot[] = [];
@@ -215,7 +258,8 @@ export default class Game {
 				t: dateNow,
 				p: playerSnapshotArr,
 				b: bulletSnapshots,
-				g: granadesSnapshots
+				g: granadesSnapshots,
+				s: smokeCloudSnapshots
 			});
 		}
 		//map objects

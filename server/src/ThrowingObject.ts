@@ -12,7 +12,8 @@ export default class ThrowingObject {
 	//shiftZ == speed
 	private shiftZ: number = 7;
 	private distance: number = 0;
-	private steps: number;
+    private steps: number;
+    private countdown: number = 100;
 
 	constructor(hand: Hand, targetX: number, targetY: number, range: number = 80) {
 		this.x = hand.getCenterX();
@@ -96,5 +97,13 @@ export default class ThrowingObject {
 
 	flying(): boolean {
 		return this.distance < this.steps;
+    }
+    
+    tick(): void {
+		if (this.countdown > 0) this.countdown--;
+	}
+
+	explode(): boolean {
+		return this.countdown === 0;
 	}
 }

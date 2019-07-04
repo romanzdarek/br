@@ -61,6 +61,8 @@ export default class View {
 	private hammerSVG: HTMLImageElement;
 	private cursorSVG: HTMLImageElement;
 	private granadeSVG: HTMLImageElement;
+	private smokeSVG: HTMLImageElement;
+	private smokeCloudSVG: HTMLImageElement;
 	private loadingProgresSVG: HTMLImageElement;
 	private loadingCircleSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
@@ -151,6 +153,12 @@ export default class View {
 
 		this.granadeSVG = new Image();
 		this.granadeSVG.src = 'img/granade.svg';
+
+		this.smokeSVG = new Image();
+		this.smokeSVG.src = 'img/smoke.svg';
+
+		this.smokeCloudSVG = new Image();
+		this.smokeCloudSVG.src = 'img/smokeCloud.svg';
 
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
@@ -778,7 +786,7 @@ export default class View {
 							}
 
 							//player hands
-							if (newer.w === Weapon.Hand || newer.w === Weapon.Granade) {
+							if (newer.w === Weapon.Hand || newer.w === Weapon.Granade || newer.w === Weapon.Smoke) {
 								for (let i = 0; i < 2; i++) {
 									xDiference = Math.abs(newer.h[i].x - older.h[i].x);
 									yDiference = Math.abs(newer.h[i].y - older.h[i].y);
@@ -839,7 +847,12 @@ export default class View {
 						ctx.save();
 						ctx.translate(x + middleImage, y + middleImage);
 						ctx.rotate(granade.a * Math.PI / 180);
-						ctx.drawImage(this.granadeSVG, -middleImage, -middleImage, size, size);
+						if (granade.t === 'g') {
+							ctx.drawImage(this.granadeSVG, -middleImage, -middleImage, size, size);
+						}
+						if (granade.t === 's') {
+							ctx.drawImage(this.smokeSVG, -middleImage, -middleImage, size, size);
+						}
 						ctx.restore();
 					}
 				}
@@ -936,6 +949,21 @@ export default class View {
 					ctx.drawImage(this.treeSVG, x, y, size, size);
 					ctx.restore();
 				}
+			}
+		}
+
+		//smokes
+		for (const smoke of newerSnapshot.s) {
+			const { x, y, size, isOnScreen } = this.howToDraw({
+				x: smoke.x - smoke.s / 2,
+				y: smoke.y - smoke.s / 2,
+				size: smoke.s
+			});
+			if (isOnScreen) {
+				ctx.save();
+				ctx.globalAlpha = smoke.o;
+				ctx.drawImage(this.smokeCloudSVG, x, y, size, size);
+				ctx.restore();
 			}
 		}
 

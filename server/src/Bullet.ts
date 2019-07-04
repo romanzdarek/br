@@ -22,42 +22,6 @@ export default class Bullet {
 	private constructor(id: number, range: number) {
 		this.id = id;
 		this.range = range;
-
-		/*
-		this.id = id;
-		this.map = map;
-		this.players = players;
-		this.x = player.getCenterX();
-		this.y = player.getCenterY();
-		//spray
-		let randomchange = Math.round(Math.random() * gun.spray * 100) / 100;
-		let randomDirection = Math.round(Math.random());
-		if (!randomDirection) randomDirection = -1;
-		this.angle = player.getAngle() + randomchange * randomDirection;
-		this.angle += shiftAngle;
-		if (this.angle < 0) {
-			this.angle = 360 + this.angle;
-		}
-		if (this.angle >= 360) {
-			this.angle = 360 - this.angle;
-		}
-		this.range = gun.range;
-		//triangle
-		const bulletSpeed = gun.bulletSpeed;
-		this.shiftX = Math.sin(this.angle * Math.PI / 180) * bulletSpeed;
-		this.shiftY = Math.cos(this.angle * Math.PI / 180) * bulletSpeed;
-
-		//start shift to edge the of player
-		const bulletStartShift = player.radius / gun.bulletSpeed + 0.1;
-		this.x += this.shiftX * bulletStartShift;
-		this.y -= this.shiftY * bulletStartShift;
-
-		//shift to the edge of gun
-		const bulletShiftToTheGunEdge = Math.ceil(gun.length / gun.bulletSpeed);
-		for (let i = 0; i < bulletShiftToTheGunEdge; i++) {
-			this.move();
-		}
-		*/
 	}
 
 	//constructor

@@ -277,6 +277,9 @@ export class Controller {
 				case 'Digit7':
 					this.socket.emit('i', this.model.getGame(), 7);
 					break;
+				case 'Digit8':
+					this.socket.emit('i', this.model.getGame(), 8);
+					break;
 			}
 		});
 

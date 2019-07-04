@@ -51,7 +51,8 @@ export class Player {
 		Weapon.Machinegun,
 		Weapon.Shotgun,
 		Weapon.Hammer,
-		Weapon.Granade
+		Weapon.Granade,
+		Weapon.Smoke
 	];
 	private activeWeapon: Weapon = Weapon.Hand;
 	private collisionPoints: CollisionPoints;
