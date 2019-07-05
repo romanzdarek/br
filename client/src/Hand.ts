@@ -210,7 +210,6 @@ export default class Hand {
 								) {
 									obstacle.acceptHit();
 									this.inAction = false;
-									console.log('hit');
 									break;
 								}
 							}

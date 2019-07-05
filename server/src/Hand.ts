@@ -10,6 +10,8 @@ export default class Hand {
 	private radius: number = this.size / 2;
 	private shiftAngle: number = 40;
 	private hitTimer: number = 0;
+	private throwTimer: number = 0;
+	private throwTimerReady: number = -5;
 	private inAction: boolean = false;
 	private map: Map;
 	private player: Player;
@@ -23,8 +25,12 @@ export default class Hand {
 		this.collisionPoints = collisionPoints;
 	}
 
-	ready(): boolean {
+	hitReady(): boolean {
 		return this.hitTimer === 0;
+	}
+
+	throwReady(): boolean {
+		return this.throwTimer === this.throwTimerReady;
 	}
 
 	getCenterX(): number {
@@ -133,6 +139,92 @@ export default class Hand {
 			this.collisions();
 			this.hitTimer--;
 		}
+		//throw move
+		if (this.throwTimer > this.throwTimerReady) {
+			switch (this.throwTimer) {
+				case 20:
+					shiftAngle -= 4;
+					playerAndHandDistance += 2;
+					break;
+				case 19:
+					shiftAngle -= 8;
+					playerAndHandDistance += 4;
+					break;
+				case 18:
+					shiftAngle -= 12;
+					playerAndHandDistance += 6;
+					break;
+				case 17:
+					shiftAngle -= 16;
+					playerAndHandDistance += 8;
+					break;
+				case 16:
+					shiftAngle -= 20;
+					playerAndHandDistance += 10;
+					break;
+				case 15:
+					shiftAngle -= 24;
+					playerAndHandDistance += 12;
+					break;
+				case 14:
+					shiftAngle -= 28;
+					playerAndHandDistance += 14;
+					break;
+				case 13:
+					shiftAngle -= 32;
+					playerAndHandDistance += 16;
+					break;
+				case 12:
+					shiftAngle -= 36;
+					playerAndHandDistance += 18;
+					break;
+				case 11:
+					shiftAngle -= 40;
+					playerAndHandDistance += 20;
+					break;
+				case 10:
+					shiftAngle -= 36;
+					playerAndHandDistance += 18;
+					break;
+				case 9:
+					shiftAngle -= 32;
+					playerAndHandDistance += 16;
+					break;
+				case 8:
+					shiftAngle -= 28;
+					playerAndHandDistance += 14;
+					break;
+				case 7:
+					shiftAngle -= 24;
+					playerAndHandDistance += 12;
+					break;
+				case 6:
+					shiftAngle -= 20;
+					playerAndHandDistance += 10;
+					break;
+				case 5:
+					shiftAngle -= 16;
+					playerAndHandDistance += 8;
+					break;
+				case 4:
+					shiftAngle -= 12;
+					playerAndHandDistance += 6;
+					break;
+				case 3:
+					shiftAngle -= 8;
+					playerAndHandDistance += 4;
+					break;
+				case 2:
+					shiftAngle -= 4;
+					playerAndHandDistance += 2;
+					break;
+				case 1:
+					shiftAngle -= 0;
+					playerAndHandDistance += 0;
+					break;
+			}
+			this.throwTimer--;
+		}
 
 		let playerAngleForHand = this.player.getAngle() + shiftAngle * direction;
 		//0 - 359...
@@ -149,6 +241,10 @@ export default class Hand {
 	hit(): void {
 		this.hitTimer = 20;
 		this.inAction = true;
+	}
+
+	throw(): void {
+		this.throwTimer = 20;
 	}
 
 	private collisions(): void {

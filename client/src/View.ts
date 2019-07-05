@@ -812,6 +812,35 @@ export default class View {
 											});
 											ctx.fillRect(x, y, size, size);
 										}
+
+										//granade || smoke
+										if ((newer.w === Weapon.Granade || newer.w === Weapon.Smoke) && i === 1) {
+											const granadeShiftAngle = 30;
+											const playerAngle = newer.a;
+											const shiftZ = this.player.hands[i].size / 2;
+											//triangle
+											const shiftX = Math.sin(playerAngle * Math.PI / 180) * shiftZ;
+											const shiftY = Math.cos(playerAngle * Math.PI / 180) * shiftZ;
+
+											const { x, y, size, isOnScreen } = this.howToDraw({
+												x: handCalculatedX + shiftX,
+												y: handCalculatedY - shiftY,
+												size: this.player.hands[i].size
+											});
+
+											if (isOnScreen) {
+												let middleImage = size / 2;
+												ctx.save();
+												ctx.translate(x + middleImage, y + middleImage);
+												ctx.rotate((playerAngle - granadeShiftAngle) * Math.PI / 180);
+												let SVG;
+												if (newer.w === Weapon.Granade) SVG = this.granadeSVG;
+
+												if (newer.w === Weapon.Smoke) SVG = this.smokeSVG;
+												ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
+												ctx.restore();
+											}
+										}
 									}
 								}
 							}
@@ -953,17 +982,19 @@ export default class View {
 		}
 
 		//smokes
-		for (const smoke of newerSnapshot.s) {
-			const { x, y, size, isOnScreen } = this.howToDraw({
-				x: smoke.x - smoke.s / 2,
-				y: smoke.y - smoke.s / 2,
-				size: smoke.s
-			});
-			if (isOnScreen) {
-				ctx.save();
-				ctx.globalAlpha = smoke.o;
-				ctx.drawImage(this.smokeCloudSVG, x, y, size, size);
-				ctx.restore();
+		if (newerSnapshot) {
+			for (const smoke of newerSnapshot.s) {
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: smoke.x - smoke.s / 2,
+					y: smoke.y - smoke.s / 2,
+					size: smoke.s
+				});
+				if (isOnScreen) {
+					ctx.save();
+					ctx.globalAlpha = smoke.o;
+					ctx.drawImage(this.smokeCloudSVG, x, y, size, size);
+					ctx.restore();
+				}
 			}
 		}
 

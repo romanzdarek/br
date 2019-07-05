@@ -6,6 +6,7 @@ import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
 import CollisionPoints from './CollisionPoints';
 import Point from './Point';
+import { Weapon } from './Weapon';
 
 declare const io: {
 	connect(url: string): Socket;
@@ -190,7 +191,7 @@ export class Controller {
 		this.canvas.addEventListener('mousedown', (e: MouseEvent) => {
 			this.mouse.left = true;
 			const clickPosition = this.model.view.calculateServerPositionFromClick(e);
-			console.log(clickPosition);
+			//TODO optimalization: send click position only if i have granade or smoke...
 			this.socket.emit('m', this.model.getGame(), 'l', clickPosition);
 		});
 		this.canvas.addEventListener('mouseup', (e: MouseEvent) => {

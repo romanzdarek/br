@@ -27,6 +27,13 @@ export default class PlayerSnapshot {
 		this.a = player.getAngle();
 		this.n = player.name;
 		this.w = player.getActiveWeapon();
+		if (
+			(player.getActiveWeapon() === Weapon.Granade || player.getActiveWeapon() === Weapon.Smoke) &&
+			!player.hands[1].throwReady()
+		) {
+			//hide nate in hand
+			this.w = Weapon.Hand;
+		}
 		for (const hand of player.hands) {
 			this.h.push({
 				x: Math.round(hand.getX() * afterComma) / afterComma,

@@ -201,7 +201,8 @@ export default class Game {
 						break;
 
 					case Weapon.Granade:
-						if (true) {
+						if (player.hands[1].throwReady()) {
+							player.throw();
 							this.granades.push(
 								new Granade(player.hands[1], player.mouseControll.x, player.mouseControll.y)
 							);
@@ -209,8 +210,9 @@ export default class Game {
 						}
 						break;
 
-						case Weapon.Smoke:
-						if (true) {
+					case Weapon.Smoke:
+						if (player.hands[1].throwReady()) {
+							player.throw();
 							this.granades.push(
 								new Smoke(player.hands[1], player.mouseControll.x, player.mouseControll.y)
 							);

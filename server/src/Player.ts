@@ -212,9 +212,16 @@ export class Player {
 	}
 
 	hit(): void {
-		if (this.hands[0].ready() && this.hands[1].ready()) {
+		if (this.hands[0].hitReady() && this.hands[1].hitReady()) {
 			let random = Math.round(Math.random());
 			this.hands[random].hit();
+		}
+		this.mouseControll.left = false;
+	}
+
+	throw(): void {
+		if (this.hands[1].throwReady()) {
+			this.hands[1].throw();
 		}
 		this.mouseControll.left = false;
 	}
