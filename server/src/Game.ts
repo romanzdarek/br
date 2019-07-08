@@ -1,4 +1,5 @@
 import Map from './Map';
+import Zone from './Zone';
 import Granade from './Granade';
 import Smoke from './Smoke';
 import SmokeCloud from './SmokeCloud';
@@ -13,9 +14,11 @@ import ThrowingObjectSnapshot from './ThrowingObjectSnapshot';
 import * as SocketIO from 'socket.io';
 import SmokeCloudSnapshot from './SmokeCloudSnapshot';
 import ThrowingObject from './ThrowingObject';
+import ZoneSnapshot from './ZoneSnapshot';
 
 export default class Game {
 	private map: Map;
+	private zone: Zone;
 	players: Player[] = [];
 	private bullets: Bullet[] = [];
 	private smokeClouds: SmokeCloud[] = [];
@@ -26,6 +29,11 @@ export default class Game {
 	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints) {
 		this.collisionPoints = collisionPoints;
 		this.map = new Map(waterTerrainData);
+		this.zone = new Zone(this.map);
+
+		setInterval(() => {
+			this.zone = new Zone(this.map);
+		}, 6000);
 	}
 
 	createPlayer(name: string, socket: SocketIO.Socket): string {
@@ -75,6 +83,9 @@ export default class Game {
 	}
 
 	loop(): void {
+		//zone move
+		this.zone.move();
+
 		//move granades
 		for (let i = this.granades.length - 1; i >= 0; i--) {
 			const granade = this.granades[i];
@@ -245,6 +256,9 @@ export default class Game {
 			smokeCloudSnapshots.push(new SmokeCloudSnapshot(smokeCloud));
 		}
 
+		//zone
+		const zoneSnapshot = new ZoneSnapshot(this.zone);
+
 		//players
 		for (const player of this.players) {
 			const playerSnapshotArr: PlayerSnapshot[] = [];
@@ -261,7 +275,8 @@ export default class Game {
 				p: playerSnapshotArr,
 				b: bulletSnapshots,
 				g: granadesSnapshots,
-				s: smokeCloudSnapshots
+				s: smokeCloudSnapshots,
+				z: zoneSnapshot
 			});
 		}
 		//map objects

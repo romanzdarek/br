@@ -20,6 +20,7 @@ import BulletLine from './BulletLine';
 import PartBulletLine from './PartBulletLine';
 import CollisionPoints from './CollisionPoints';
 import Point from './Point';
+import ZoneSnapshot from './ZoneSnapshot';
 
 type DrawData = {
 	x: number;
@@ -177,30 +178,41 @@ export default class View {
 	screenResize(): void {
 		this.canvas.width = window.innerWidth;
 		this.canvas.height = window.innerHeight;
+		this.myHtmlElements.zoneSVG.setAttribute('width', window.innerWidth.toString());
+		this.myHtmlElements.zoneSVG.setAttribute('height', window.innerHeight.toString());
 		this.screenCenterX = window.innerWidth / 2;
 		this.screenCenterY = window.innerHeight / 2;
 		this.changeResolutionAdjustment();
 	}
 
-	calculateServerPositionFromClick(e: MouseEvent): Point {
+	calculateServerPosition(point: Point): Point {
 		let x, y;
-		if (this.screenCenterX > e.clientX) {
-			x = (this.screenCenterX - e.clientX) * -1;
+		if (this.screenCenterX > point.x) {
+			x = (this.screenCenterX - point.x) * -1;
 		}
 		else {
-			x = e.clientX - this.screenCenterX;
+			x = point.x - this.screenCenterX;
 		}
-		if (this.screenCenterY > e.clientY) {
-			y = (this.screenCenterY - e.clientY) * -1;
+		if (this.screenCenterY > point.y) {
+			y = (this.screenCenterY - point.y) * -1;
 		}
 		else {
-			y = e.clientY - this.screenCenterY;
+			y = point.y - this.screenCenterY;
 		}
 		x /= this.resolutionAdjustment;
 		y /= this.resolutionAdjustment;
 		x += this.myPlayerCenterX;
 		y += this.myPlayerCenterY;
-		return new Point(Math.round(x), Math.round(y));
+		return new Point(x, y);
+	}
+
+	private isPointInZone(serverPoint: Point, zoneSnapshot: ZoneSnapshot): boolean {
+		//triangle
+		const x = zoneSnapshot.oX - serverPoint.x;
+		const y = zoneSnapshot.oY - serverPoint.y;
+		const radius = Math.sqrt(x * x + y * y);
+		if (radius <= zoneSnapshot.oR) return true;
+		return false;
 	}
 
 	private changeResolutionAdjustment(): void {
@@ -998,6 +1010,43 @@ export default class View {
 			}
 		}
 
+		//zone
+		if (newerSnapshot) {
+			//outer circle
+			const { x, y } = this.howToDraw({
+				x: newerSnapshot.z.oX,
+				y: newerSnapshot.z.oY,
+				size: 1
+			});
+			const outerRadius = newerSnapshot.z.oR * this.resolutionAdjustment;
+
+			/*
+			ctx.beginPath();
+			ctx.arc(x, y, outerRadius, 0, 2 * Math.PI);
+			ctx.strokeStyle = 'red';
+			ctx.stroke();
+			*/
+
+			//SVG change
+			this.myHtmlElements.zoneCircle.setAttribute('r', outerRadius.toString());
+			this.myHtmlElements.zoneCircle.setAttribute('cx', x.toString());
+			this.myHtmlElements.zoneCircle.setAttribute('cy', y.toString());
+
+			{
+				//inner circle
+				const { x, y } = this.howToDraw({
+					x: newerSnapshot.z.iX,
+					y: newerSnapshot.z.iY,
+					size: 1
+				});
+				const innerRadius = newerSnapshot.z.iR * this.resolutionAdjustment;
+				ctx.beginPath();
+				ctx.arc(x, y, innerRadius, 0, 2 * Math.PI);
+				ctx.strokeStyle = 'green';
+				ctx.stroke();
+			}
+		}
+
 		//loading
 		const { time, max } = this.player.loading();
 		if (time < max) {
@@ -1046,13 +1095,13 @@ export default class View {
 		}
 
 		//cursor
-		const mouseSize = 25;
+		const size = 35;
 		ctx.drawImage(
 			this.cursorSVG,
-			this.mouse.x - mouseSize * this.resolutionAdjustment / 2,
-			this.mouse.y - mouseSize * this.resolutionAdjustment / 2,
-			mouseSize * this.resolutionAdjustment,
-			mouseSize * this.resolutionAdjustment
+			this.mouse.x - size * this.resolutionAdjustment / 2,
+			this.mouse.y - size * this.resolutionAdjustment / 2,
+			size * this.resolutionAdjustment,
+			size * this.resolutionAdjustment
 		);
 	}
 

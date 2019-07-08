@@ -1,5 +1,8 @@
 export default class MyHtmlElements {
 	readonly gameScreen: HTMLElement;
+	readonly zoneSVG: HTMLElement;
+	readonly maskSVG: HTMLElement;
+	readonly zoneCircle: HTMLElement;
 
 	readonly editor = {
 		mapSizeMenu: document.getElementById('mapSizeMenu'),
@@ -24,6 +27,9 @@ export default class MyHtmlElements {
 
 	constructor() {
 		this.gameScreen = document.getElementById('gameScreen');
+		this.zoneSVG = document.getElementById('zoneSVG');
+		this.zoneCircle = document.getElementById('zoneCircle');
+		this.maskSVG = document.getElementById('maskSVG');
 	}
 
 	close(...elements: HTMLElement[]): void {
