@@ -16,7 +16,7 @@ export default interface Socket {
 	): void;
 	emit(
 		event: string,
-		data0: any,
+		data0?: any,
 		data1?: any,
 		data2?: any,
 		data3?: any,

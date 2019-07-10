@@ -62,6 +62,15 @@ export default class ZoneCircle {
 		}
 	}
 
+	done(): boolean {
+		return this.step >= this.steps;
+	}
+
+	resetMove(): void {
+		this.changeReady = false;
+		this.step = 0;
+	}
+
 	getCenterX(): number {
 		return this.centerX;
 	}

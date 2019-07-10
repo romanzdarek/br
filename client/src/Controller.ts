@@ -7,6 +7,7 @@ import Editor from './Editor';
 import CollisionPoints from './CollisionPoints';
 import Point from './Point';
 import { Weapon } from './Weapon';
+import OpenGame from './OpenGame';
 
 declare const io: {
 	connect(url: string): Socket;
@@ -70,9 +71,16 @@ export class Controller {
 			const event = new Event('mousemove');
 			this.canvas.dispatchEvent(event);
 		});
+		window.addEventListener('beforeunload', (e) => {
+			// Cancel the event as stated by the standard.
+			e.preventDefault();
+			// Chrome requires returnValue to be set.
+			e.returnValue = '';
+		});
 		this.keysController();
 		this.mouseController();
 		this.socketController();
+		this.menuController();
 	}
 
 	static run(): void {
@@ -85,8 +93,63 @@ export class Controller {
 	}
 
 	private socketController(): void {
-		this.socket.emit('createPlayer', 'playerName', this.model.getGame());
+		const el = this.myHtmlElements;
+		//this.socket.emit('createPlayer', 'playerName', this.model.getGame());
 		this.socket.emit('sendMap', 0);
+
+		//startGame
+		this.socket.on('startGame', () => {
+			el.close(el.lobbyMenu.main);
+		});
+
+		//createGame
+		this.socket.on('createGame', (gameId: number, playerName: string) => {
+			this.model.setGameId(gameId);
+			el.close(el.mainMenu.main, el.lobbyMenu.forJoinPlayers);
+			el.open(el.lobbyMenu.main, el.lobbyMenu.forCreatePlayer);
+		});
+
+		//joinGame
+		this.socket.on('joinGame', (gameId: number, playerName: string) => {
+			this.model.setGameId(gameId);
+			el.close(el.mainMenu.main, el.lobbyMenu.forCreatePlayer);
+			el.open(el.lobbyMenu.main, el.lobbyMenu.forJoinPlayers);
+		});
+
+		//leave lobby
+		this.socket.on('leaveLobby', () => {
+			this.model.setGameId(-1);
+			el.close(el.lobbyMenu.main);
+			el.open(el.mainMenu.main);
+		});
+
+		//updateListOpenGames
+		this.socket.on('updateListOpenGames', (openGames: OpenGame[]) => {
+			console.log(openGames);
+			el.mainMenu.games.innerHTML = '';
+			for (const openGame of openGames) {
+				const option = document.createElement('option');
+				option.textContent = openGame.name + "'s game";
+				option.setAttribute('value', openGame.index.toString());
+				el.mainMenu.games.appendChild(option);
+			}
+			let noGame = true;
+			if (openGames.length) noGame = false;
+			(<HTMLInputElement>el.mainMenu.games).disabled = noGame;
+		});
+
+		//update listOfPlayers in lobby
+		this.socket.on('listOfPlayers', (playerNames: string[]) => {
+			//title
+			el.lobbyMenu.gameName.textContent = playerNames[0] + "'s game";
+			//list
+			el.lobbyMenu.players.innerHTML = '';
+			for (const playerName of playerNames) {
+				const li = document.createElement('li');
+				li.textContent = playerName;
+				el.lobbyMenu.players.appendChild(li);
+			}
+		});
 
 		this.socket.on('collisionPoints', (body: Point[], hand: Point[], hammer: Point[][]) => {
 			this.model.collisionPoints.setData(body, hand, hammer);
@@ -97,16 +160,12 @@ export class Controller {
 			this.model.map.openMap(map);
 		});
 
-		this.socket.on('createPlayer', (id: string, name: string) => {
-			if (id && name) {
-				this.model.setID(id);
+		this.socket.on('createPlayer', (name: string) => {
+			if (name) {
 				this.model.setName(name);
-
-				//this.model.players.push(new PlayerFromServer(id, name));
-				console.log('player created', id);
 			}
 			else {
-				console.log('error created player', id, name);
+				console.log('error created player');
 			}
 		});
 
@@ -185,7 +244,7 @@ export class Controller {
 			this.rotatePlayer(this.mouse.x, this.mouse.y);
 			//change
 			if (this.playerAngle !== previousPlayerAngle) {
-				this.socket.emit('a', this.model.getGame(), this.playerAngle);
+				this.socket.emit('a', this.model.getGameId(), this.playerAngle);
 			}
 		});
 		this.myHtmlElements.zoneSVG.addEventListener('mousedown', (e: MouseEvent) => {
@@ -193,11 +252,11 @@ export class Controller {
 			const clickPoint = new Point(e.clientX, e.clientY);
 			const serverPosition = this.model.view.calculateServerPosition(clickPoint);
 			//TODO optimalization: send click position only if i have granade or smoke...
-			this.socket.emit('m', this.model.getGame(), 'l', serverPosition);
+			this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
 		});
 		this.myHtmlElements.zoneSVG.addEventListener('mouseup', (e: MouseEvent) => {
 			this.mouse.left = false;
-			this.socket.emit('m', this.model.getGame(), '-l');
+			this.socket.emit('m', this.model.getGameId(), '-l');
 		});
 	}
 
@@ -236,51 +295,51 @@ export class Controller {
 		document.addEventListener('keydown', (e: KeyboardEvent) => {
 			switch (e.code) {
 				case 'KeyW':
-					if (!this.keys.w) this.socket.emit('c', this.model.getGame(), 'u');
+					if (!this.keys.w) this.socket.emit('c', this.model.getGameId(), 'u');
 					this.keys.w = true;
 					break;
 				case 'KeyA':
-					if (!this.keys.a) this.socket.emit('c', this.model.getGame(), 'l');
+					if (!this.keys.a) this.socket.emit('c', this.model.getGameId(), 'l');
 					this.keys.a = true;
 
 					break;
 				case 'KeyS':
-					if (!this.keys.s) this.socket.emit('c', this.model.getGame(), 'd');
+					if (!this.keys.s) this.socket.emit('c', this.model.getGameId(), 'd');
 					this.keys.s = true;
 
 					break;
 				case 'KeyD':
-					if (!this.keys.d) this.socket.emit('c', this.model.getGame(), 'r');
+					if (!this.keys.d) this.socket.emit('c', this.model.getGameId(), 'r');
 					this.keys.d = true;
 					break;
 
 				case 'Digit0':
-					this.socket.emit('i', this.model.getGame(), 0);
+					this.socket.emit('i', this.model.getGameId(), 0);
 					break;
 
 				case 'Digit1':
-					this.socket.emit('i', this.model.getGame(), 1);
+					this.socket.emit('i', this.model.getGameId(), 1);
 					break;
 				case 'Digit2':
-					this.socket.emit('i', this.model.getGame(), 2);
+					this.socket.emit('i', this.model.getGameId(), 2);
 					break;
 				case 'Digit3':
-					this.socket.emit('i', this.model.getGame(), 3);
+					this.socket.emit('i', this.model.getGameId(), 3);
 					break;
 				case 'Digit4':
-					this.socket.emit('i', this.model.getGame(), 4);
+					this.socket.emit('i', this.model.getGameId(), 4);
 					break;
 				case 'Digit5':
-					this.socket.emit('i', this.model.getGame(), 5);
+					this.socket.emit('i', this.model.getGameId(), 5);
 					break;
 				case 'Digit6':
-					this.socket.emit('i', this.model.getGame(), 6);
+					this.socket.emit('i', this.model.getGameId(), 6);
 					break;
 				case 'Digit7':
-					this.socket.emit('i', this.model.getGame(), 7);
+					this.socket.emit('i', this.model.getGameId(), 7);
 					break;
 				case 'Digit8':
-					this.socket.emit('i', this.model.getGame(), 8);
+					this.socket.emit('i', this.model.getGameId(), 8);
 					break;
 			}
 		});
@@ -288,22 +347,84 @@ export class Controller {
 		document.addEventListener('keyup', (e: KeyboardEvent) => {
 			switch (e.code) {
 				case 'KeyW':
-					if (this.keys.w) this.socket.emit('c', this.model.getGame(), '-u');
+					if (this.keys.w) this.socket.emit('c', this.model.getGameId(), '-u');
 					this.keys.w = false;
 					break;
 				case 'KeyA':
-					if (this.keys.a) this.socket.emit('c', this.model.getGame(), '-l');
+					if (this.keys.a) this.socket.emit('c', this.model.getGameId(), '-l');
 					this.keys.a = false;
 					break;
 				case 'KeyS':
-					if (this.keys.s) this.socket.emit('c', this.model.getGame(), '-d');
+					if (this.keys.s) this.socket.emit('c', this.model.getGameId(), '-d');
 					this.keys.s = false;
 					break;
 				case 'KeyD':
-					if (this.keys.d) this.socket.emit('c', this.model.getGame(), '-r');
+					if (this.keys.d) this.socket.emit('c', this.model.getGameId(), '-r');
 					this.keys.d = false;
 					break;
 			}
+		});
+	}
+
+	private menuController(): void {
+		const el = this.myHtmlElements;
+
+		//open editor menu and close main menu
+		el.mainMenu.openEditor.addEventListener('click', () => {
+			el.open(el.mapSizeMenu.main);
+			el.close(el.mainMenu.main);
+		});
+
+		//change player name and allow create game
+		el.mainMenu.name.addEventListener('input', () => {
+			let disabled = true;
+			if ((<HTMLInputElement>el.mainMenu.name).value.length) disabled = false;
+			(<HTMLInputElement>el.mainMenu.create).disabled = disabled;
+			let disabled2 = true;
+			if ((<HTMLInputElement>el.mainMenu.games).value) disabled2 = false;
+			if (!disabled && !disabled2) (<HTMLInputElement>el.mainMenu.join).disabled = false;
+		});
+
+		//select game - allow join
+		el.mainMenu.games.addEventListener('change', () => {
+			let disabled = true;
+			if ((<HTMLInputElement>el.mainMenu.name).value.length) disabled = false;
+			let disabled2 = true;
+			if ((<HTMLInputElement>el.mainMenu.games).value) disabled2 = false;
+			if (!disabled && !disabled2) (<HTMLInputElement>el.mainMenu.join).disabled = false;
+		});
+
+		//create a new game
+		el.mainMenu.create.addEventListener('click', () => {
+			if ((<HTMLInputElement>el.mainMenu.name).value.length) {
+				const playerName = (<HTMLInputElement>el.mainMenu.name).value;
+				this.socket.emit('createGame', playerName);
+			}
+		});
+
+		//join
+		el.mainMenu.join.addEventListener('click', () => {
+			if ((<HTMLInputElement>el.mainMenu.name).value.length && (<HTMLInputElement>el.mainMenu.games).value) {
+				const playerName = (<HTMLInputElement>el.mainMenu.name).value;
+				const gameIndex = parseInt((<HTMLInputElement>el.mainMenu.games).value);
+				this.socket.emit('joinGame', playerName, gameIndex);
+			}
+		});
+
+		//leave join in lobby
+		el.lobbyMenu.leave.addEventListener('click', () => {
+			this.socket.emit('leaveLobby', this.model.getGameId());
+		});
+
+		//cancel game in lobby
+		el.lobbyMenu.cancel.addEventListener('click', () => {
+			this.socket.emit('cancelLobby', this.model.getGameId());
+		});
+
+		//start game
+		el.lobbyMenu.start.addEventListener('click', () => {
+			el.close(el.lobbyMenu.main);
+			this.socket.emit('startGame', this.model.getGameId());
 		});
 	}
 }

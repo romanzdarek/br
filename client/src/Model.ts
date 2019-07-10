@@ -12,9 +12,8 @@ import Editor from './Editor';
 import CollisionPoints from './CollisionPoints';
 
 export default class Model {
-	private game: number = 0;
+	private gameId: number = -1;
 	private name: string;
-	private id: string;
 	view: View;
 	private player: Player;
 	snapshots: Snapshot[] = [];
@@ -63,24 +62,20 @@ export default class Model {
 		}, 200);
 	}
 
-	setID(id: string): void {
-		this.id = id;
-	}
-
 	setName(name: string): void {
 		this.name = name;
-	}
-
-	getID(): string {
-		return this.id;
 	}
 
 	getName(): string {
 		return this.name;
 	}
 
-	getGame(): number {
-		return this.game;
+	getGameId(): number {
+		return this.gameId;
+	}
+
+	setGameId(gameId: number): void {
+		this.gameId = gameId;
 	}
 
 	private gameLoop(): void {

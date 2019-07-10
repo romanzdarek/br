@@ -34,6 +34,7 @@
 			margin-left: -125px;
 			margin-top: -125px;
 			padding: 0 20px;
+			display: none;
 		}
 		#editorContainer{
 			display: none;
@@ -78,6 +79,10 @@
 			position: absolute;
 			top:0;
 			left:0;
+			cursor: none;
+		}
+		#mainMenu{
+			display: block;
 		}
 	</style>
 </head>
@@ -87,14 +92,39 @@
 		<mask id="maskSVG">
 			<rect fill="white" width="100%" height="100%"/>
 			<circle id="zoneCircle" cx="0" cy="0" r="0" fill="black" />
-			
 		</mask>
 		<rect id="zoneRect" mask="url(#maskSVG)" fill="red" width="100%" height="100%" opacity="0.6" />
 	</svg>
+
+	<div class="menu" id="mainMenu">
+		<h1>Mini battle royale</h1>
+		<p id="mainMenuIp">+</p>
+		<input id="mainMenuName" type="text" maxlength="20" placeholder="Your name" value="" autocomplete="off" autofocus>
+		<h2>Created games</h2>
+		<select id="mainMenuGames" disabled></select>
+		<button id="mainMenuJoin" disabled>Join the game</button>
+		<button id="mainMenuCreate" disabled>Create a new game</button>
+		<button id="mainMenuOpenEditor">Map editor</button>
+		<button id="mainMenuControls">Game controls</button>
+	</div>
+
+	<div class="menu" id="lobbyMenu">
+		<h1 id="lobbyMenuGameName"></h1>
+		<ul id="lobbyMenuPlayers"></ul>
+		<div id="lobbyMenuForJoinPlayer">
+			<p>Waiting for players...</p>
+			<button id="lobbyMenuLeave">Leave the game</button>
+		</div>
+		<div id="lobbyMenuForCreatePlayer">
+			<button id="lobbyMenuStart">Launch the game</button>
+			<button id="lobbyMenuCancel">Cancel the game</button>
+		</div>
+	</div>		
+
 	<div class="menu" id="mapSizeMenu">
 			<h1>Map size</h1>
-			<p>Width [blocks]</p>
-			<select id="mapSizeWidth">
+			<p>Size [blocks]</p>
+			<select id="mapSizeValue">
 				<option value="1">1</option>
 				<option value="2">2</option>
 				<option value="3">3</option>
@@ -106,23 +136,10 @@
 				<option value="9">9</option>
 				<option value="10">10</option>
 			</select>
-			<p>Height [blocks]</p>
-			<select id="mapSizeHeight">
-					<option value="1">1</option>
-					<option value="2">2</option>
-					<option value="3">3</option>
-					<option value="4">4</option>
-					<option value="5" selected>5</option>
-					<option value="6">6</option>
-					<option value="7">7</option>
-					<option value="8">8</option>
-					<option value="9">9</option>
-					<option value="10">10</option>
-			</select>
 			<p>
-			<button id="mapSizeOk">OK</button>
-			<button id="mapSizeBack">Back</button>
-		</p>
+				<button id="mapSizeOk">OK</button>
+				<button id="mapSizeBack">Back</button>
+			</p>
 	</div>
 
 	<div id="editorContainer">

@@ -18,8 +18,7 @@ export default class Editor {
 	private y: number;
 	private active: boolean = false;
 	private name: string;
-	private width: number;
-	private height: number;
+	private size: number;
 	readonly blockSize: number = 300;
 	terrains: Terrain[] = [];
 	bushes: Bush[] = [];
@@ -53,12 +52,8 @@ export default class Editor {
 		return this.objectType;
 	}
 
-	getWidth(): number {
-		return this.width;
-	}
-
-	getHeight(): number {
-		return this.height;
+	getSize(): number {
+		return this.size;
 	}
 
 	getX(): number {
@@ -69,19 +64,18 @@ export default class Editor {
 		return this.y;
 	}
 
-	create(width: number, height: number): void {
+	create(size: number): void {
 		const el = this.myHtmlElements;
 		this.active = true;
-		this.width = width;
-		this.height = height;
-		(<HTMLCanvasElement>el.editor.screen).width = width * this.blockSize;
-		(<HTMLCanvasElement>el.editor.screen).height = height * this.blockSize;
-		const widthString = (width * this.blockSize).toString();
+		this.size = size;
+		(<HTMLCanvasElement>el.editor.screen).width = size * this.blockSize;
+		(<HTMLCanvasElement>el.editor.screen).height = size * this.blockSize;
+		const widthString = (size * this.blockSize).toString();
 		el.editor.screen.style.width = widthString;
-		const heightString = (height * this.blockSize).toString();
+		const heightString = (size * this.blockSize).toString();
 		el.editor.screen.style.width = heightString;
 		el.open(el.editor.screen);
-		el.close(el.gameScreen, el.editor.mapSizeMenu);
+		el.close(el.gameScreen, el.mapSizeMenu.main);
 		document.body.style.overflow = 'auto';
 	}
 
@@ -89,17 +83,14 @@ export default class Editor {
 		const el = this.myHtmlElements;
 		//mapSize ok button
 		document.getElementById('mapSizeOk').addEventListener('click', () => {
-			this.create(
-				parseInt((<HTMLInputElement>document.getElementById('mapSizeWidth')).value),
-				parseInt((<HTMLInputElement>document.getElementById('mapSizeHeight')).value)
-			);
-			el.close(el.gameScreen, el.editor.mapSizeMenu);
+			this.create(parseInt((<HTMLInputElement>document.getElementById('mapSizeValue')).value));
+			el.close(el.gameScreen, el.mapSizeMenu.main);
 			el.open(el.editor.container);
 			this.active = true;
 		});
 		//mapSize back button
 		document.getElementById('mapSizeBack').addEventListener('click', () => {
-			el.close(el.editor.mapSizeMenu);
+			el.close(el.mapSizeMenu.main);
 		});
 		//editorScreen mouse move
 		el.editor.screen.addEventListener('mousemove', (e: MouseEvent) => {
@@ -311,8 +302,8 @@ export default class Editor {
 		el.editor.save.addEventListener('click', () => {
 			const map = {
 				blockSize: this.blockSize,
-				width: this.getWidth(),
-				height: this.getHeight(),
+				width: this.size,
+				height: this.size,
 				terrains: this.terrains,
 				rects: this.walls,
 				bushes: this.bushes,

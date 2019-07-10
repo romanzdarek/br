@@ -21,7 +21,6 @@ type Loading = {
 
 export class Player {
 	socket: SocketIO.Socket;
-	readonly id: string;
 	readonly name: string;
 	readonly size: number = 80;
 	readonly radius: number = this.size / 2;
@@ -73,7 +72,6 @@ export class Player {
 	};
 
 	constructor(
-		id: string,
 		name: string,
 		socket: SocketIO.Socket,
 		map: Map,
@@ -82,7 +80,6 @@ export class Player {
 	) {
 		this.activeWeapon = Weapon.Hand;
 		this.socket = socket;
-		this.id = id;
 		this.name = name;
 		this.players = players;
 		this.x = 550;

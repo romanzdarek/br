@@ -14,7 +14,7 @@ export default class ZoneSnapshot {
 		//1 = zero digit after the comma
 		//10 = one digit after the comma
 		//100 = two digits after the comma
-		const afterComma = 10;
+        const afterComma = 10;
 		this.iX = Math.round(zone.innerCircle.getCenterX() * afterComma) / afterComma;
 		this.iY = Math.round(zone.innerCircle.getCenterY() * afterComma) / afterComma;
 		this.iR = Math.round(zone.innerCircle.getRadius() * afterComma) / afterComma;

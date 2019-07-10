@@ -25,24 +25,66 @@ export default class Game {
 	private granades: ThrowingObject[] = [];
 	private numberOfBullets: number = 0;
 	private collisionPoints: CollisionPoints;
+	private active: boolean = false;
 
 	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints) {
 		this.collisionPoints = collisionPoints;
 		this.map = new Map(waterTerrainData);
 		this.zone = new Zone(this.map);
+	}
 
-		setInterval(() => {
-			this.zone = new Zone(this.map);
-		}, 6000);
+	private updateListOfPlayers(): void {
+		const list = [];
+		for (const player of this.players) {
+			list.push(player.name);
+		}
+		for (const player of this.players) {
+			player.socket.emit('listOfPlayers', list);
+		}
+	}
+
+	isActive(): boolean {
+		return this.active;
+	}
+
+	//player who created this game
+	amIGameOwner(socket: SocketIO.Socket): boolean {
+		return this.players[0].socket === socket;
+	}
+
+	cancelGame(): void {
+		for (const player of this.players) {
+			player.socket.emit('leaveLobby');
+		}
+	}
+
+	start(socket: SocketIO.Socket): void {
+		if (this.players.length) {
+			//only first player can start game
+			if (this.players[0].socket === socket) {
+				this.active = true;
+				//start clients
+				for (const player of this.players) {
+					player.socket.emit('startGame');
+				}
+			}
+		}
+	}
+
+	leaveLobby(socket: SocketIO.Socket): void {
+		for (let i = this.players.length - 1; i >= 0; i--) {
+			const player = this.players[i];
+			if (player.socket === socket) {
+				this.players.splice(i, 1);
+				this.updateListOfPlayers();
+				socket.emit('leaveLobby');
+				break;
+			}
+		}
 	}
 
 	createPlayer(name: string, socket: SocketIO.Socket): string {
-		const id = this.makeID();
 		for (const player of this.players) {
-			//unique ID!
-			if (player.id === id) {
-				return this.createPlayer(name, socket);
-			}
 			//unique name
 			if (player.name === name) {
 				const uniqueName = (num: number): string => {
@@ -54,13 +96,16 @@ export default class Game {
 					}
 					return name + num;
 				};
-				name = uniqueName(0);
+				name = uniqueName(2);
 			}
 		}
-		this.players.push(new Player(id, name, socket, this.map, this.collisionPoints, this.players));
-		return id;
+		this.players.push(new Player(name, socket, this.map, this.collisionPoints, this.players));
+		//send it to the client
+		this.updateListOfPlayers();
+		return name;
 	}
 
+	/*
 	makeID(): string {
 		const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 		const length = 6;
@@ -71,6 +116,7 @@ export default class Game {
 		}
 		return id;
 	}
+	*/
 
 	private shuffleFragments(fragments: Bullet[]): Bullet[] {
 		const shuffleFragments = [];

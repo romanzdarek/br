@@ -206,6 +206,8 @@ export default class View {
 		return new Point(x, y);
 	}
 
+	//
+	/*
 	private isPointInZone(serverPoint: Point, zoneSnapshot: ZoneSnapshot): boolean {
 		//triangle
 		const x = zoneSnapshot.oX - serverPoint.x;
@@ -214,6 +216,7 @@ export default class View {
 		if (radius <= zoneSnapshot.oR) return true;
 		return false;
 	}
+	*/
 
 	private changeResolutionAdjustment(): void {
 		const defaultWidth = 1920;
@@ -353,11 +356,11 @@ export default class View {
 
 		//mapGrid
 		ctx.fillStyle = this.colors.blockFrame;
-		for (let i = 0; i < editor.getWidth(); i++) {
-			ctx.fillRect(i * editor.blockSize, 0, 1, editor.getHeight() * editor.blockSize);
+		for (let i = 0; i < editor.getSize(); i++) {
+			ctx.fillRect(i * editor.blockSize, 0, 1, editor.getSize() * editor.blockSize);
 		}
-		for (let i = 0; i < editor.getHeight(); i++) {
-			ctx.fillRect(0, i * editor.blockSize, editor.getWidth() * editor.blockSize, 1);
+		for (let i = 0; i < editor.getSize(); i++) {
+			ctx.fillRect(0, i * editor.blockSize, editor.getSize() * editor.blockSize, 1);
 		}
 
 		if (editor.getTerrainType() != null) {
@@ -531,16 +534,12 @@ export default class View {
 				if (timeDistance) {
 					percentShift = distanceOlderFromWantedTime / timeDistance;
 				}
-				const xDiference = Math.abs(newerSnapshot.p[0].x - olderSnapshot.p[0].x);
-				const yDiference = Math.abs(newerSnapshot.p[0].y - olderSnapshot.p[0].y);
-				let directionX = 1;
-				let directionY = 1;
-				if (newerSnapshot.p[0].x < olderSnapshot.p[0].x) directionX = -1;
-				if (newerSnapshot.p[0].y < olderSnapshot.p[0].y) directionY = -1;
-				let calculatedX = olderSnapshot.p[0].x + xDiference * percentShift * directionX;
-				let calculatedY = olderSnapshot.p[0].y + yDiference * percentShift * directionY;
-				this.myPlayerCenterX = calculatedX + this.player.size / 2;
-				this.myPlayerCenterY = calculatedY + this.player.size / 2;
+				this.myPlayerCenterX =
+					this.positionBetweenSnapshots(olderSnapshot.p[0].x, newerSnapshot.p[0].x, percentShift) +
+					this.player.size / 2;
+				this.myPlayerCenterY =
+					this.positionBetweenSnapshots(olderSnapshot.p[0].y, newerSnapshot.p[0].y, percentShift) +
+					this.player.size / 2;
 			}
 		}
 		//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -668,14 +667,9 @@ export default class View {
 					if (newerSnapshot.p[i] && olderSnapshot.p[i]) {
 						const newer = newerSnapshot.p[i];
 						const older = olderSnapshot.p[i];
-						let xDiference = Math.abs(newer.x - older.x);
-						let yDiference = Math.abs(newer.y - older.y);
-						let directionX = 1;
-						let directionY = 1;
-						if (newer.x < older.x) directionX = -1;
-						if (newer.y < older.y) directionY = -1;
-						const calculatedX = older.x + xDiference * percentShift * directionX;
-						const calculatedY = older.y + yDiference * percentShift * directionY;
+
+						const calculatedX = this.positionBetweenSnapshots(older.x, newer.x, percentShift);
+						const calculatedY = this.positionBetweenSnapshots(older.y, newer.y, percentShift);
 
 						const { x, y, size, isOnScreen } = this.howToDraw({
 							x: calculatedX,
@@ -800,14 +794,16 @@ export default class View {
 							//player hands
 							if (newer.w === Weapon.Hand || newer.w === Weapon.Granade || newer.w === Weapon.Smoke) {
 								for (let i = 0; i < 2; i++) {
-									xDiference = Math.abs(newer.h[i].x - older.h[i].x);
-									yDiference = Math.abs(newer.h[i].y - older.h[i].y);
-									(directionX = 1), (directionY = 1);
-									if (newer.h[i].x < older.h[i].x) directionX = -1;
-									if (newer.h[i].y < older.h[i].y) directionY = -1;
-									const handCalculatedX = older.h[i].x + xDiference * percentShift * directionX;
-									const handCalculatedY = older.h[i].y + yDiference * percentShift * directionY;
-
+									const handCalculatedX = this.positionBetweenSnapshots(
+										older.h[i].x,
+										newer.h[i].x,
+										percentShift
+									);
+									const handCalculatedY = this.positionBetweenSnapshots(
+										older.h[i].y,
+										newer.h[i].y,
+										percentShift
+									);
 									const { x, y, size, isOnScreen } = this.howToDraw({
 										x: handCalculatedX,
 										y: handCalculatedY,
@@ -1011,14 +1007,16 @@ export default class View {
 		}
 
 		//zone
-		if (newerSnapshot) {
+		if (olderSnapshot && newerSnapshot) {
 			//outer circle
 			const { x, y } = this.howToDraw({
-				x: newerSnapshot.z.oX,
-				y: newerSnapshot.z.oY,
+				x: this.positionBetweenSnapshots(olderSnapshot.z.oX, newerSnapshot.z.oX, percentShift),
+				y: this.positionBetweenSnapshots(olderSnapshot.z.oY, newerSnapshot.z.oY, percentShift),
 				size: 1
 			});
-			const outerRadius = newerSnapshot.z.oR * this.resolutionAdjustment;
+			const outerRadius =
+				this.positionBetweenSnapshots(olderSnapshot.z.oR, newerSnapshot.z.oR, percentShift) *
+				this.resolutionAdjustment;
 
 			/*
 			ctx.beginPath();
@@ -1103,6 +1101,13 @@ export default class View {
 			size * this.resolutionAdjustment,
 			size * this.resolutionAdjustment
 		);
+	}
+
+	private positionBetweenSnapshots(olderPosition: number, newerPosition: number, percentShift: number): number {
+		const diference = Math.abs(newerPosition - olderPosition);
+		let direction = 1;
+		if (newerPosition < olderPosition) direction = -1;
+		return olderPosition + diference * direction * percentShift;
 	}
 
 	private howToDraw(gameObject: RoundObject | RectObject | RectangleObstacle | RoundObstacle): DrawData {

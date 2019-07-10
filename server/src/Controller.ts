@@ -18,6 +18,7 @@ export default class Controller {
 	private controll(): void {
 		this.io.on('connection', (socket: SocketIO.Socket) => {
 			console.log(socket.id, 'connect');
+			this.model.updateListOpenGames();
 
 			socket.emit(
 				'collisionPoints',
@@ -25,6 +26,68 @@ export default class Controller {
 				this.model.collisionPoints.hand,
 				this.model.collisionPoints.hammer.getAllPoints()
 			);
+
+			//create a new game
+			socket.on('createGame', (playerName: string) => {
+				if (playerName) {
+					this.model.createGame(playerName, socket);
+					console.log('create a new game by', playerName);
+				}
+				else {
+					console.log('Err: createGame');
+				}
+			});
+
+			//join
+			socket.on('joinGame', (playerName: string, gameIndex: number) => {
+				if (playerName && gameIndex >= 0 && this.model.games[gameIndex]) {
+					if (!this.model.games[gameIndex].isActive()) {
+						let samePlayerInGame = false;
+						for (const player of this.model.games[gameIndex].players) {
+							if (player.socket === socket) samePlayerInGame = true;
+						}
+						if (!samePlayerInGame) {
+							const playerUniqueName = this.model.games[gameIndex].createPlayer(playerName, socket);
+							socket.emit('createPlayer', playerUniqueName);
+							socket.emit('joinGame', gameIndex, playerUniqueName);
+						}
+					}
+				}
+				else {
+					console.log('Err: joinGame');
+				}
+			});
+
+			//leave lobby (join player)
+			socket.on('leaveLobby', (gameId: number) => {
+				if (this.model.games[gameId]) {
+					this.model.games[gameId].leaveLobby(socket);
+				}
+				else {
+					console.log('Err: leaveLobby');
+				}
+			});
+
+			//cancel lobby (create player)
+			socket.on('cancelLobby', (gameId: number) => {
+				if (this.model.games[gameId]) {
+					this.model.cancelGame(gameId, socket);
+				}
+				else {
+					console.log('Err: cancelLobby');
+				}
+			});
+
+			//start a new game
+			socket.on('startGame', (gameIndex: number) => {
+				if (gameIndex >= 0 && this.model.games[gameIndex]) {
+					this.model.games[gameIndex].start(socket);
+					this.model.updateListOpenGames();
+				}
+				else {
+					console.log('Err: startGame');
+				}
+			});
 
 			socket.on('sendMap', () => {
 				const fullPath = path.resolve('./dist/maps/mainMap.json');
@@ -40,9 +103,11 @@ export default class Controller {
 				console.log(socket.id, 'disconnect');
 				//delete player
 				for (const game of this.model.games) {
-					for (let i = 0; i < game.players.length; i++) {
-						if (game.players[i].socket == socket) {
-							game.players.splice(i, 1);
+					if (game) {
+						for (let i = 0; i < game.players.length; i++) {
+							if (game.players[i].socket == socket) {
+								game.players.splice(i, 1);
+							}
 						}
 					}
 				}
@@ -54,6 +119,7 @@ export default class Controller {
 			});
 
 			//create player
+			/*
 			socket.on('createPlayer', (name: string, game: number) => {
 				if (name && this.model.games[game]) {
 					const id = this.model.games[game].createPlayer(name, socket);
@@ -63,6 +129,7 @@ export default class Controller {
 					console.log('Error: createPlayer');
 				}
 			});
+			*/
 
 			//'c' === controll player
 			socket.on('c', (game: number, key: string) => {
