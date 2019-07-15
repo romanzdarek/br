@@ -15,9 +15,14 @@ import * as SocketIO from 'socket.io';
 import SmokeCloudSnapshot from './SmokeCloudSnapshot';
 import ThrowingObject from './ThrowingObject';
 import ZoneSnapshot from './ZoneSnapshot';
+import RoundObstacle from './RoundObstacle';
+import RectangleObstacle from './RectangleObstacle';
+import Point from './Point';
+import MapData from './Mapdata';
 
 export default class Game {
 	private map: Map;
+	private mapData: MapData;
 	private zone: Zone;
 	players: Player[] = [];
 	private bullets: Bullet[] = [];
@@ -26,10 +31,13 @@ export default class Game {
 	private numberOfBullets: number = 0;
 	private collisionPoints: CollisionPoints;
 	private active: boolean = false;
+	private randomPositionAttempts: number = 0;
+	private maxRandomPositionAttempts: number = 1000;
 
-	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints) {
+	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints, mapData: MapData) {
 		this.collisionPoints = collisionPoints;
-		this.map = new Map(waterTerrainData);
+		this.mapData = mapData;
+		this.map = new Map(waterTerrainData, mapData);
 		this.zone = new Zone(this.map);
 	}
 
@@ -63,9 +71,10 @@ export default class Game {
 			//only first player can start game
 			if (this.players[0].socket === socket) {
 				this.active = true;
+				this.zone.start();
 				//start clients
 				for (const player of this.players) {
-					player.socket.emit('startGame');
+					player.socket.emit('startGame', this.mapData);
 				}
 			}
 		}
@@ -99,7 +108,10 @@ export default class Game {
 				name = uniqueName(2);
 			}
 		}
-		this.players.push(new Player(name, socket, this.map, this.collisionPoints, this.players));
+		const newPlayer = new Player(name, socket, this.map, this.collisionPoints, this.players);
+		this.setRandomPosition(newPlayer);
+		this.players.push(newPlayer);
+
 		//send it to the client
 		this.updateListOfPlayers();
 		return name;
@@ -126,6 +138,94 @@ export default class Game {
 			fragments.splice(randomIndex, 1);
 		}
 		return shuffleFragments;
+	}
+
+	private setRandomPosition(gameObject: Player): void {
+		const randomX = Math.floor(Math.random() * (this.map.getSize() - gameObject.size));
+		const randomY = Math.floor(Math.random() * (this.map.getSize() - gameObject.size));
+		gameObject.setX(randomX);
+		gameObject.setY(randomY);
+		if (this.randomPositionCollision(gameObject)) {
+			this.randomPositionAttempts++;
+			if (this.randomPositionAttempts < this.maxRandomPositionAttempts) this.setRandomPosition(gameObject);
+		}
+	}
+
+	private randomPositionCollision(gameObject: Player): boolean {
+		//walls
+		for (const wall of this.map.rectangleObstacles) {
+			if (this.isObjectInObject(gameObject, wall)) return true;
+		}
+
+		//rounds
+		for (const round of this.map.impassableRoundObstacles) {
+			if (this.isObjectInObject(gameObject, round)) return true;
+		}
+
+		//players
+		for (const player of this.players) {
+			if (this.isObjectInObject(gameObject, player)) return true;
+		}
+		return false;
+	}
+
+	private isObjectInObject(
+		object1: Player | RoundObstacle | RectangleObstacle,
+		object2: Player | RoundObstacle | RectangleObstacle
+	): boolean {
+		let x1 = 0,
+			y1 = 0,
+			width1 = 0,
+			height1 = 0,
+			x2 = 0,
+			y2 = 0,
+			width2 = 0,
+			height2 = 0;
+		//1
+		if (object1 instanceof RectangleObstacle) {
+			width1 = object1.width;
+			height1 = object1.height;
+			x1 = object1.x;
+			y1 = object1.y;
+		}
+		if (object1 instanceof RoundObstacle) {
+			width1 = object1.size;
+			height1 = object1.size;
+			x1 = object1.x;
+			y1 = object1.y;
+		}
+		if (object1 instanceof Player) {
+			width1 = object1.size;
+			height1 = object1.size;
+			x1 = object1.getX();
+			y1 = object1.getY();
+		}
+		//2
+		if (object2 instanceof RectangleObstacle) {
+			width2 = object2.width;
+			height2 = object2.height;
+			x2 = object2.x;
+			y2 = object2.y;
+		}
+		if (object2 instanceof RoundObstacle) {
+			width2 = object2.size;
+			height2 = object2.size;
+			x2 = object2.x;
+			y2 = object2.y;
+		}
+		if (object2 instanceof Player) {
+			width2 = object2.size;
+			height2 = object2.size;
+			x2 = object2.getX();
+			y2 = object2.getY();
+		}
+		//object in object
+		if (x1 + width1 >= x2 && x1 <= x2 + width2 && y1 + height1 >= y2 && y1 <= y2 + height2) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
 	loop(): void {
@@ -190,7 +290,12 @@ export default class Game {
 
 		//player move
 		for (const player of this.players) {
-			player.move(this.players);
+			player.move();
+			//zone damage
+			if (!this.zone.isPointIn(new Point(player.getCenterX(), player.getCenterY()))) {
+				player.acceptHit(this.zone.getDamage());
+			}
+
 			//hit
 			if (player.mouseControll.left) {
 				switch (player.getActiveWeapon()) {

@@ -560,8 +560,7 @@ export default class View {
 			const { x, y, width, height, isOnScreen } = this.howToDraw({
 				x: terrain.x,
 				y: terrain.y,
-				width: terrain.width,
-				height: terrain.height
+				size: terrain.size
 			});
 			if (isOnScreen) {
 				if (terrain.type === TerrainType.Water) {
@@ -1093,6 +1092,7 @@ export default class View {
 		}
 
 		//cursor
+		/*
 		const size = 35;
 		ctx.drawImage(
 			this.cursorSVG,
@@ -1101,6 +1101,7 @@ export default class View {
 			size * this.resolutionAdjustment,
 			size * this.resolutionAdjustment
 		);
+		*/
 	}
 
 	private positionBetweenSnapshots(olderPosition: number, newerPosition: number, percentShift: number): number {

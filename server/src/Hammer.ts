@@ -7,13 +7,13 @@ export default class Hammer {
 	private angle: number = 0;
 	readonly size: number = 200;
 	private active: boolean = false;
-	private inAction: boolean = false;
 	private hitTimer: number = 0;
 	private hitTimerMax: number = 20;
 	private collisionPoints: CollisionPoints;
 	private player: Player;
 	private players: Player[];
 	private map: Map;
+	private hitObjects: any[] = [];
 
 	constructor(myPlayer: Player, players: Player[], map: Map, collisionPoints: CollisionPoints) {
 		this.player = myPlayer;
@@ -24,7 +24,6 @@ export default class Hammer {
 
 	hit(): void {
 		this.active = true;
-		this.inAction = true;
 	}
 
 	getAngle(): number {
@@ -58,31 +57,40 @@ export default class Hammer {
 			else {
 				this.active = false;
 				this.hitTimer = 0;
+				this.hitObjects = [];
 			}
 		}
 	}
 
 	private collisions(): void {
-		if (this.inAction) {
-			const hammerX = this.player.getCenterX() - this.size / 2;
-			const hammerY = this.player.getCenterY() - this.size / 2;
-			for (const point of this.collisionPoints.hammer.getPointsForAngle(this.getAngle())) {
-				const pointX = hammerX + point.x;
-				const pointY = hammerY + point.y;
-				const collisionPoint = new Point(pointX, pointY);
-				for (const round of this.map.impassableRoundObstacles) {
-					if (round.isActive() && round.isPointIn(collisionPoint)) {
-						round.acceptHit(collisionPoint);
-						this.inAction = false;
-						break;
-					}
+		const hammerX = this.player.getCenterX() - this.size / 2;
+		const hammerY = this.player.getCenterY() - this.size / 2;
+		for (const point of this.collisionPoints.hammer.getPointsForAngle(this.getAngle())) {
+			const pointX = hammerX + point.x;
+			const pointY = hammerY + point.y;
+			const collisionPoint = new Point(pointX, pointY);
+			for (const round of this.map.impassableRoundObstacles) {
+				if (!this.hitObjects.includes(round) && round.isActive() && round.isPointIn(collisionPoint)) {
+					round.acceptHit(collisionPoint);
+					this.hitObjects.push(round);
 				}
-				for (const rect of this.map.rectangleObstacles) {
-					if (rect.isActive() && rect.isPointIn(collisionPoint)) {
-						rect.acceptHit();
-						this.inAction = false;
-						break;
-					}
+			}
+			for (const round of this.map.bushes) {
+				if (!this.hitObjects.includes(round) && round.isActive() && round.isPointIn(collisionPoint)) {
+					round.acceptHit(collisionPoint);
+					this.hitObjects.push(round);
+				}
+			}
+			for (const rect of this.map.rectangleObstacles) {
+				if (!this.hitObjects.includes(rect) && rect.isActive() && rect.isPointIn(collisionPoint)) {
+					rect.acceptHit();
+					this.hitObjects.push(rect);
+				}
+			}
+			for (const player of this.players) {
+				if (!this.hitObjects.includes(player) && player.isActive() && player.isPointIn(collisionPoint)) {
+					player.acceptHit(3);
+					this.hitObjects.push(player);
 				}
 			}
 		}

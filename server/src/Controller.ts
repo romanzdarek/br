@@ -1,17 +1,17 @@
 import * as SocketIO from 'socket.io';
 import Model from './Model';
 import Point from './Point';
-//node modules
-import * as fs from 'fs';
-import * as path from 'path';
+import Editor from './Editor';
 
 export default class Controller {
 	private io: SocketIO.Server;
 	private model: Model;
+	private editor: Editor;
 
 	constructor(http: any) {
 		this.io = SocketIO(http);
 		this.model = new Model(this.io);
+		this.editor = new Editor();
 		this.controll();
 	}
 
@@ -19,6 +19,7 @@ export default class Controller {
 		this.io.on('connection', (socket: SocketIO.Socket) => {
 			console.log(socket.id, 'connect');
 			this.model.updateListOpenGames();
+			socket.emit('listOfMaps', this.model.getMapNames());
 
 			socket.emit(
 				'collisionPoints',
@@ -28,10 +29,9 @@ export default class Controller {
 			);
 
 			//create a new game
-			socket.on('createGame', (playerName: string) => {
-				if (playerName) {
-					this.model.createGame(playerName, socket);
-					console.log('create a new game by', playerName);
+			socket.on('createGame', (playerName: string, mapName: string) => {
+				if (playerName && mapName && this.model.isNameOk(playerName) && this.model.isNameOk(mapName)) {
+					this.model.createGame(playerName, mapName, socket);
 				}
 				else {
 					console.log('Err: createGame');
@@ -40,7 +40,7 @@ export default class Controller {
 
 			//join
 			socket.on('joinGame', (playerName: string, gameIndex: number) => {
-				if (playerName && gameIndex >= 0 && this.model.games[gameIndex]) {
+				if (playerName && this.model.isNameOk(playerName) && gameIndex >= 0 && this.model.games[gameIndex]) {
 					if (!this.model.games[gameIndex].isActive()) {
 						let samePlayerInGame = false;
 						for (const player of this.model.games[gameIndex].players) {
@@ -89,15 +89,14 @@ export default class Controller {
 				}
 			});
 
+			/*
 			socket.on('sendMap', () => {
-				const fullPath = path.resolve('./dist/maps/mainMap.json');
-				if (fs.existsSync(fullPath)) {
-					//je třeba smazat keš jinak by se vracela první verze souboru z doby spuštění aplikace pokud aplikace soubor již jednou načetla
-					delete require.cache[fullPath];
-					const map = require(fullPath);
+				const map = this.model.loadMap('mainMap');
+				if (map) {
 					socket.emit('sendMap', map);
 				}
 			});
+			*/
 
 			socket.on('disconnect', () => {
 				console.log(socket.id, 'disconnect');
@@ -170,6 +169,7 @@ export default class Controller {
 				console.log('Error: m (controll player)');
 			});
 
+			//change
 			socket.on('i', (game: number, inventoryIndex: number) => {
 				if (this.model.games[game] && inventoryIndex > -1) {
 					for (const player of this.model.games[game].players) {
@@ -183,17 +183,26 @@ export default class Controller {
 			});
 
 			//save level from editor
-			socket.on('editorSaveMap', (data: any) => {
-				console.log(data);
-				let map = JSON.stringify(data);
-				fs.writeFile('./dist/maps/' + 'mainMap' + '.json', map, (err) => {
-					if (!err) {
-						console.log('level saved');
+			socket.on('editorSaveMap', async (mapName: string, mapData: any) => {
+				if (this.model.isNameOk(mapName)) {
+					const saveDone = await this.editor.saveMap(mapName, mapData);
+					if (saveDone) {
+						this.io.emit('listOfMaps', this.model.getMapNames());
 					}
 					else {
-						console.log('err: sendLevel:  fs.writeFile', err);
+						console.log('err: save level');
 					}
-				});
+				}
+			});
+
+			//openMapInEditor
+			socket.on('openMapInEditor', (mapName: string) => {
+				if (typeof mapName == 'string' && mapName.length) {
+					const mapData = this.model.loadMap(mapName);
+					if (mapData) {
+						socket.emit('openMapInEditor', mapData);
+					}
+				}
 			});
 		});
 	}

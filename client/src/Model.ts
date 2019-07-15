@@ -58,8 +58,31 @@ export default class Model {
 			this.collisionPoints
 		);
 		setTimeout(() => {
-			this.gameLoop();
+			this.loop();
 		}, 200);
+	}
+
+	isNameOk(name: string): boolean {
+		let state = false;
+		const allowedCharacters: string = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ';
+		const nameMaxLength: number = 20;
+		if (typeof name === 'string') {
+			if (name.length > 0 && name.length <= nameMaxLength) {
+				//nepovolené znaky v jménu?
+				let notAllowedCharacter = false;
+				for (let i = 0; i < name.length; i++) {
+					if (allowedCharacters.lastIndexOf(name[i]) === -1) {
+						notAllowedCharacter = true;
+						break;
+					}
+				}
+				//v jmenu nejsou nepovolene znaky
+				if (!notAllowedCharacter) {
+					state = true;
+				}
+			}
+		}
+		return state;
 	}
 
 	setName(name: string): void {
@@ -78,10 +101,10 @@ export default class Model {
 		this.gameId = gameId;
 	}
 
-	private gameLoop(): void {
+	private loop(): void {
 		//repeat
 		requestAnimationFrame(() => {
-			this.gameLoop();
+			this.loop();
 		});
 
 		//sync

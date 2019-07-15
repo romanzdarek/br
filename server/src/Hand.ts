@@ -17,6 +17,7 @@ export default class Hand {
 	private player: Player;
 	private players: Player[];
 	private collisionPoints: CollisionPoints;
+	private hitObjects: any[] = [];
 
 	constructor(myPlayer: Player, players: Player[], map: Map, collisionPoints: CollisionPoints) {
 		this.player = myPlayer;
@@ -241,6 +242,7 @@ export default class Hand {
 	hit(): void {
 		this.hitTimer = 20;
 		this.inAction = true;
+		this.hitObjects = [];
 	}
 
 	throw(): void {
@@ -250,91 +252,77 @@ export default class Hand {
 	private collisions(): void {
 		//hit?
 		//hit players
-		if (this.inAction) {
-			for (const player of this.players) {
-				if (player.isActive() && player != this.player) {
-					const playerAndHandRadius = player.radius + this.radius;
-					const x = this.getCenterX() - player.getCenterX();
-					const y = this.getCenterY() - player.getCenterY();
-					const distance = Math.sqrt(x * x + y * y);
-					if (distance < playerAndHandRadius) {
-						player.acceptHit(1);
-						if (!player.isActive()) player.die();
-						this.inAction = false;
-						break;
-					}
+
+		for (const player of this.players) {
+			if (!this.hitObjects.includes(player) && player.isActive() && player != this.player) {
+				const playerAndHandRadius = player.radius + this.radius;
+				const x = this.getCenterX() - player.getCenterX();
+				const y = this.getCenterY() - player.getCenterY();
+				const distance = Math.sqrt(x * x + y * y);
+				if (distance < playerAndHandRadius) {
+					player.acceptHit(1);
+					this.hitObjects.push(player);
 				}
 			}
 		}
-		if (this.inAction) {
-			for (let i = 0; i < this.map.bushes.length; i++) {
-				const obstacle = this.map.bushes[i];
-				if (obstacle.isActive()) {
-					const obstacleAndHandRadius = obstacle.radius + this.radius;
-					const x = this.getCenterX() - obstacle.getCenterX();
-					const y = this.getCenterY() - obstacle.getCenterY();
-					const distance = Math.sqrt(x * x + y * y);
-					if (distance < obstacleAndHandRadius) {
-						obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
-						this.inAction = false;
-						break;
-					}
+
+		for (let i = 0; i < this.map.bushes.length; i++) {
+			const obstacle = this.map.bushes[i];
+			if (!this.hitObjects.includes(obstacle) && obstacle.isActive()) {
+				const obstacleAndHandRadius = obstacle.radius + this.radius;
+				const x = this.getCenterX() - obstacle.getCenterX();
+				const y = this.getCenterY() - obstacle.getCenterY();
+				const distance = Math.sqrt(x * x + y * y);
+				if (distance < obstacleAndHandRadius) {
+					obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
+					this.hitObjects.push(obstacle);
 				}
 			}
 		}
-		if (this.inAction) {
-			for (let i = 0; i < this.map.rocks.length; i++) {
-				const obstacle = this.map.rocks[i];
-				if (obstacle.isActive()) {
-					const obstacleAndHandRadius = obstacle.radius + this.radius;
-					const x = this.getCenterX() - obstacle.getCenterX();
-					const y = this.getCenterY() - obstacle.getCenterY();
-					const distance = Math.sqrt(x * x + y * y);
-					if (distance < obstacleAndHandRadius) {
-						obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
-						this.inAction = false;
-						break;
-					}
+
+		for (let i = 0; i < this.map.rocks.length; i++) {
+			const obstacle = this.map.rocks[i];
+			if (!this.hitObjects.includes(obstacle) && obstacle.isActive()) {
+				const obstacleAndHandRadius = obstacle.radius + this.radius;
+				const x = this.getCenterX() - obstacle.getCenterX();
+				const y = this.getCenterY() - obstacle.getCenterY();
+				const distance = Math.sqrt(x * x + y * y);
+				if (distance < obstacleAndHandRadius) {
+					obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
+					this.hitObjects.push(obstacle);
 				}
 			}
 		}
-		if (this.inAction) {
-			for (let i = 0; i < this.map.trees.length; i++) {
-				const obstacle = this.map.trees[i];
-				if (obstacle.isActive()) {
-					const obstacleAndHandRadius = obstacle.treeTrankRadius + this.radius;
-					const x = this.getCenterX() - obstacle.getCenterX();
-					const y = this.getCenterY() - obstacle.getCenterY();
-					const distance = Math.sqrt(x * x + y * y);
-					if (distance < obstacleAndHandRadius) {
-						obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
-						this.inAction = false;
-						break;
-					}
+
+		for (let i = 0; i < this.map.trees.length; i++) {
+			const obstacle = this.map.trees[i];
+			if (!this.hitObjects.includes(obstacle) && obstacle.isActive()) {
+				const obstacleAndHandRadius = obstacle.treeTrankRadius + this.radius;
+				const x = this.getCenterX() - obstacle.getCenterX();
+				const y = this.getCenterY() - obstacle.getCenterY();
+				const distance = Math.sqrt(x * x + y * y);
+				if (distance < obstacleAndHandRadius) {
+					obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
+					this.hitObjects.push(obstacle);
 				}
 			}
 		}
+
 		//walls
-		if (this.inAction) {
-			for (let i = 0; i < this.map.rectangleObstacles.length; i++) {
-				const obstacle = this.map.rectangleObstacles[i];
-				if (obstacle.isActive()) {
-					if (
-						this.x <= obstacle.x + obstacle.width &&
-						this.x + this.size >= obstacle.x &&
-						this.y <= obstacle.y + obstacle.height &&
-						this.y + this.size >= obstacle.y
-					) {
-						for (let j = 0; j < this.collisionPoints.hand.length; j++) {
-							const point = this.collisionPoints.hand[j];
-							if (
-								obstacle.isPointIn(new Point(this.getCenterX() + point.x, this.getCenterY() + point.y))
-							) {
-								obstacle.acceptHit();
-								this.inAction = false;
-								console.log('hit');
-								break;
-							}
+		for (let i = 0; i < this.map.rectangleObstacles.length; i++) {
+			const obstacle = this.map.rectangleObstacles[i];
+			if (!this.hitObjects.includes(obstacle) && obstacle.isActive()) {
+				if (
+					this.x <= obstacle.x + obstacle.width &&
+					this.x + this.size >= obstacle.x &&
+					this.y <= obstacle.y + obstacle.height &&
+					this.y + this.size >= obstacle.y
+				) {
+					for (let j = 0; j < this.collisionPoints.hand.length; j++) {
+						const point = this.collisionPoints.hand[j];
+						if (obstacle.isPointIn(new Point(this.getCenterX() + point.x, this.getCenterY() + point.y))) {
+							obstacle.acceptHit();
+							this.hitObjects.push(obstacle);
 						}
 					}
 				}

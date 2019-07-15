@@ -2,7 +2,7 @@ import Point from './Point';
 
 export default abstract class RoundObstacle {
 	readonly id: number;
-	protected  changed: boolean = false;
+	protected changed: boolean = false;
 	readonly x: number;
 	readonly y: number;
 	protected opacity: number = 1;

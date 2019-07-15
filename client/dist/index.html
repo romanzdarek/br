@@ -35,6 +35,7 @@
 			margin-top: -125px;
 			padding: 0 20px;
 			display: none;
+			z-index: 10;
 		}
 		#editorContainer{
 			display: none;
@@ -46,8 +47,8 @@
 			top: 0;
 			left: 0;
 			background: silver;
+			overflow: scroll;
 		}
-
 		#editorScreenContainer{
 			width: 85%;
 			height: 100%;
@@ -55,6 +56,7 @@
 			top: 0;
 			left: 15%;
 			overflow: scroll;
+			background: white;
 		}
 		#editorMenuContainer img{
 			width: 100px;
@@ -79,10 +81,13 @@
 			position: absolute;
 			top:0;
 			left:0;
-			cursor: none;
+			cursor:url(img/cursor.png) 12 12, auto;
 		}
 		#mainMenu{
 			display: block;
+		}
+		#alertMenu{
+			background: pink;
 		}
 	</style>
 </head>
@@ -100,10 +105,13 @@
 		<h1>Mini battle royale</h1>
 		<p id="mainMenuIp">+</p>
 		<input id="mainMenuName" type="text" maxlength="20" placeholder="Your name" value="" autocomplete="off" autofocus>
-		<h2>Created games</h2>
+		<h2>Join</h2>
 		<select id="mainMenuGames" disabled></select>
 		<button id="mainMenuJoin" disabled>Join the game</button>
+		<h2>Create</h2>
+		<select id="mainMenuMaps"></select>
 		<button id="mainMenuCreate" disabled>Create a new game</button>
+		
 		<button id="mainMenuOpenEditor">Map editor</button>
 		<button id="mainMenuControls">Game controls</button>
 	</div>
@@ -142,8 +150,47 @@
 			</p>
 	</div>
 
+	<div class="menu" id="mapMenu">
+        <h1>Map editor</h1>
+        <button id="mapMenuCreate">Create a new map</button>
+        <button id="mapMenuOpenMap">Open the created maps</button>
+        <button id="mapMenuBack">Back</button>
+	</div>
+
+	<div class="menu" id="mapEditorMenu">
+		<h1>Map editor</h1>
+		<input id="mapEditorMenuName" type="text" maxlength="20" placeholder="Map name" value="" autocomplete="off">
+		<button id="mapEditorMenuSave">Save</button>
+		<button id="mapEditorMenuChangeSize">Change map size</button>
+		<button id="mapEditorMenuBack">Back</button>
+		<button id="mapEditorMenuClose">Close editor</button>
+	</div>
+
+	<div class="menu" id="openMapMenu">
+        <h1>Open map</h1>
+        <select id="openMapMenuMaps"></select>
+        <button id="openMapMenuOk">OK</button>
+        <button id="openMapMenuBack">Back</button>
+	</div>
+	
+	<div class="menu" id="controlsMenu">
+        <h1>Game controls</h1>
+        <p>Move: <b>A, W, S, D</b>.</p>
+        <p>Hit / Shoot: <b>Mouse</b>.</p>
+        <button id="controlsMenuBack">Back</button>
+	</div>
+	
+	<div class="menu" id="alertMenu">
+		<h1>Not allowed character!</h1>
+		<p>Please change that name.</p>
+		<p>Allowed characters:</p>
+		<p><b>abcdefghijklmnopqrstuvwxyz</b><br /><b>ABCDEFGHIJKLMNOPQRSTUVWXYZ</b><br /><b>0123456789</b><br /> and <b>space</b></p>
+		<button id="alertMenuOk">OK</button>
+	</div>
+
 	<div id="editorContainer">
 		<div id="editorMenuContainer">
+			<button id="editorOpenMenu">Editor menu</button>
 			<div id="editorCoordinates"></div>
 			<div id="editorTerrainImgs">
 				<img id="terrainWater" src="img/water.png">
@@ -160,7 +207,6 @@
 				<img id="editorObjectRect" src="img/rect.png">
 				<img id="editorObjectDelete" src="img/delete.png">
 			</div>
-			<button id="editorSave">Save</button>
 		</div>
 		<div id="editorScreenContainer">
 			<canvas id="editorScreen" width="1" height="1"></canvas>

@@ -11,16 +11,14 @@ export class Terrain {
 	readonly type: TerrainType;
 	readonly x: number;
 	readonly y: number;
-	readonly width: number;
-	readonly height: number;
+	readonly size: number;
 	readonly angle: number = 0;
 
-	constructor(type: TerrainType, x: number, y: number, width: number, height: number) {
+	constructor(type: TerrainType, x: number, y: number, size: number) {
 		this.type = type;
 		this.x = x;
 		this.y = y;
-		this.width = width;
-		this.height = height;
+		this.size = size;
 
 		switch (type) {
 			case TerrainType.WaterTriangle2:

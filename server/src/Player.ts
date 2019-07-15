@@ -25,8 +25,8 @@ export class Player {
 	readonly size: number = 80;
 	readonly radius: number = this.size / 2;
 	readonly speed: number = 6;
-	private x: number;
-	private y: number;
+	private x: number = 0;
+	private y: number = 0;
 	private angle: number = 0;
 	private map: Map;
 	private players: Player[];
@@ -71,19 +71,11 @@ export class Player {
 		y: 0
 	};
 
-	constructor(
-		name: string,
-		socket: SocketIO.Socket,
-		map: Map,
-		collisionPoints: CollisionPoints,
-		players: Player[]
-	) {
+	constructor(name: string, socket: SocketIO.Socket, map: Map, collisionPoints: CollisionPoints, players: Player[]) {
 		this.activeWeapon = Weapon.Hand;
 		this.socket = socket;
 		this.name = name;
 		this.players = players;
-		this.x = 550;
-		this.y = 700;
 		this.map = map;
 		this.collisionPoints = collisionPoints;
 		this.hands.push(new Hand(this, players, map, collisionPoints));
@@ -112,13 +104,14 @@ export class Player {
 
 	acceptHit(power: number): void {
 		this.lives -= power;
+		if (!this.isActive()) this.die();
 	}
 
 	isActive(): boolean {
 		return this.lives > 0;
 	}
 
-	die(): void {
+	private die(): void {
 		this.x = 0;
 		this.y = 0;
 		this.lives = 3;
@@ -200,6 +193,14 @@ export class Player {
 		return this.y;
 	}
 
+	setX(x: number): void {
+		this.x = x;
+	}
+
+	setY(y: number): void {
+		this.y = y;
+	}
+
 	getAngle(): number {
 		return this.angle;
 	}
@@ -223,12 +224,9 @@ export class Player {
 		this.mouseControll.left = false;
 	}
 
-	move(players: Player[]): void {
+	move(): void {
 		this.goAroundObstacleCalls = 0;
 
-		/*
-		up: boolean, left: boolean, down: boolean, right: boolean, mouseX: number, mouseY: number
-		*/
 		const { up, down, left, right } = this.controll;
 
 		if (up || down || left || right) {
@@ -245,9 +243,9 @@ export class Player {
 			for (let i = 0; i < this.map.terrain.length; i++) {
 				//terrain block is under my center
 				if (
-					this.getCenterX() < this.map.terrain[i].x + this.map.terrain[i].width &&
+					this.getCenterX() < this.map.terrain[i].x + this.map.terrain[i].size &&
 					this.getCenterX() >= this.map.terrain[i].x &&
-					this.getCenterY() < this.map.terrain[i].y + this.map.terrain[i].height &&
+					this.getCenterY() < this.map.terrain[i].y + this.map.terrain[i].size &&
 					this.getCenterY() >= this.map.terrain[i].y
 				) {
 					if (this.map.terrain[i].type === TerrainType.Water) {
@@ -322,9 +320,9 @@ export class Player {
 		}
 
 		//move only on map area
-		if (this.x + this.size > this.map.width) this.x = this.map.width - this.size;
+		if (this.x + this.size > this.map.getSize()) this.x = this.map.getSize() - this.size;
 		if (this.x < 0) this.x = 0;
-		if (this.y + this.size > this.map.height) this.y = this.map.height - this.size;
+		if (this.y + this.size > this.map.getSize()) this.y = this.map.getSize() - this.size;
 		if (this.y < 0) this.y = 0;
 	}
 

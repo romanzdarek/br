@@ -3,6 +3,7 @@ import Point from './Point';
 import { Player } from './Player';
 import Gun from './Gun';
 import Granade from './Granade';
+import Bush from './Bush';
 
 export default class Bullet {
 	readonly id: number;
@@ -18,6 +19,7 @@ export default class Bullet {
 	//@ts-ignore
 	private map: Map;
 	private players: Player[] = [];
+	private hitBushes: Bush[] = [];
 
 	private constructor(id: number, range: number) {
 		this.id = id;
@@ -115,6 +117,15 @@ export default class Bullet {
 				}
 			}
 		}
+		//bushes
+		if (this.active) {
+			for (const obstacle of this.map.bushes) {
+				if (!this.hitBushes.includes(obstacle) && obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
+					obstacle.acceptHit(bulletPoint);
+					this.hitBushes.push(obstacle);
+				}
+			}
+		}
 		//rects
 		if (this.active) {
 			for (const obstacle of this.map.rectangleObstacles) {
@@ -130,7 +141,6 @@ export default class Bullet {
 			for (const player of this.players) {
 				if (player.isActive() && player.isPointIn(bulletPoint)) {
 					player.acceptHit(1);
-					if (!player.isActive()) player.die();
 					this.active = false;
 					return true;
 				}

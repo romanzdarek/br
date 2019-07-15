@@ -7,6 +7,7 @@ import Tree from './Tree';
 import Wall from './Wall';
 import Socket from './Socket';
 import Colors from './Colors';
+import MapData from './MapData';
 
 export default class Editor {
 	private terrainType: TerrainType | null;
@@ -44,6 +45,10 @@ export default class Editor {
 		return this.active;
 	}
 
+	close(): void {
+		this.active = false;
+	}
+
 	getTerrainType(): TerrainType | null {
 		return this.terrainType;
 	}
@@ -64,9 +69,26 @@ export default class Editor {
 		return this.y;
 	}
 
-	create(size: number): void {
-		const el = this.myHtmlElements;
+	getMapData(): MapData {
+		const mapData: MapData = {
+			size: this.size,
+			blockSize: this.blockSize,
+			terrains: this.terrains,
+			rects: this.walls,
+			bushes: this.bushes,
+			rocks: this.rocks,
+			trees: this.trees
+		};
+		return mapData;
+	}
+
+	create(): void {
+		this.cleanMap();
+	}
+
+	changeSize(size: number): void {
 		this.active = true;
+		const el = this.myHtmlElements;
 		this.size = size;
 		(<HTMLCanvasElement>el.editor.screen).width = size * this.blockSize;
 		(<HTMLCanvasElement>el.editor.screen).height = size * this.blockSize;
@@ -74,24 +96,80 @@ export default class Editor {
 		el.editor.screen.style.width = widthString;
 		const heightString = (size * this.blockSize).toString();
 		el.editor.screen.style.width = heightString;
-		el.open(el.editor.screen);
-		el.close(el.gameScreen, el.mapSizeMenu.main);
-		document.body.style.overflow = 'auto';
+		this.cleanMapAfterChangeSize();
+	}
+
+	private cleanMap(): void {
+		this.terrains = [];
+		this.bushes = [];
+		this.rocks = [];
+		this.trees = [];
+		this.walls = [];
+	}
+
+	private cleanMapAfterChangeSize(): void {
+		const mapSize = this.size * this.blockSize;
+		let arr: any = this.terrains;
+		for (let i = arr.length - 1; i >= 0; i--) {
+			const item = arr[i];
+			if (item.x >= mapSize || item.y >= mapSize) {
+				arr.splice(i, 1);
+			}
+		}
+		arr = this.trees;
+		for (let i = arr.length - 1; i >= 0; i--) {
+			const item = arr[i];
+			if (item.x >= mapSize || item.y >= mapSize) {
+				arr.splice(i, 1);
+			}
+		}
+		arr = this.rocks;
+		for (let i = arr.length - 1; i >= 0; i--) {
+			const item = arr[i];
+			if (item.x >= mapSize || item.y >= mapSize) {
+				arr.splice(i, 1);
+			}
+		}
+		arr = this.bushes;
+		for (let i = arr.length - 1; i >= 0; i--) {
+			const item = arr[i];
+			if (item.x >= mapSize || item.y >= mapSize) {
+				arr.splice(i, 1);
+			}
+		}
+		arr = this.walls;
+		for (let i = arr.length - 1; i >= 0; i--) {
+			const item = arr[i];
+			if (item.x >= mapSize || item.y >= mapSize) {
+				arr.splice(i, 1);
+			}
+		}
+	}
+
+	private openMap(mapData: MapData): void {
+		this.create();
+		this.changeSize(mapData.size);
+		let id = 0;
+		for (const item of mapData.rocks) {
+			this.rocks.push(new Rock(id++, item.x, item.y));
+		}
+		for (const item of mapData.trees) {
+			this.trees.push(new Tree(id++, item.x, item.y));
+		}
+		for (const item of mapData.bushes) {
+			this.bushes.push(new Bush(id++, item.x, item.y));
+		}
+		for (const item of mapData.rects) {
+			this.walls.push(new Wall(id++, item.x, item.y, item.width, item.height));
+		}
+		for (const item of mapData.terrains) {
+			this.terrains.push(new Terrain(item.type, item.x, item.y, item.size));
+		}
+		this.cleanMapAfterChangeSize();
 	}
 
 	controller(): void {
 		const el = this.myHtmlElements;
-		//mapSize ok button
-		document.getElementById('mapSizeOk').addEventListener('click', () => {
-			this.create(parseInt((<HTMLInputElement>document.getElementById('mapSizeValue')).value));
-			el.close(el.gameScreen, el.mapSizeMenu.main);
-			el.open(el.editor.container);
-			this.active = true;
-		});
-		//mapSize back button
-		document.getElementById('mapSizeBack').addEventListener('click', () => {
-			el.close(el.mapSizeMenu.main);
-		});
 		//editorScreen mouse move
 		el.editor.screen.addEventListener('mousemove', (e: MouseEvent) => {
 			const canvasRect = el.editor.screen.getBoundingClientRect();
@@ -183,9 +261,7 @@ export default class Editor {
 					this.terrains.splice(deletePosition, 1);
 				}
 				if (this.getTerrainType() !== TerrainType.Grass) {
-					this.terrains.push(
-						new Terrain(this.getTerrainType(), blockX, blockY, this.blockSize, this.blockSize)
-					);
+					this.terrains.push(new Terrain(this.getTerrainType(), blockX, blockY, this.blockSize));
 				}
 			}
 
@@ -298,19 +374,11 @@ export default class Editor {
 			}
 		});
 
-		//save
-		el.editor.save.addEventListener('click', () => {
-			const map = {
-				blockSize: this.blockSize,
-				width: this.size,
-				height: this.size,
-				terrains: this.terrains,
-				rects: this.walls,
-				bushes: this.bushes,
-				rocks: this.rocks,
-				trees: this.trees
-			};
-			this.socket.emit('editorSaveMap', map);
+		//socket openMapInEditor
+		this.socket.on('openMapInEditor', (mapData: MapData) => {
+			this.openMap(mapData);
+			el.close(el.openMapMenu.main);
+			el.open(el.editor.container);
 		});
 	}
 }

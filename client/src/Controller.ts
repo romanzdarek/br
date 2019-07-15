@@ -8,6 +8,7 @@ import CollisionPoints from './CollisionPoints';
 import Point from './Point';
 import { Weapon } from './Weapon';
 import OpenGame from './OpenGame';
+import MapData from './MapData';
 
 declare const io: {
 	connect(url: string): Socket;
@@ -71,12 +72,14 @@ export class Controller {
 			const event = new Event('mousemove');
 			this.canvas.dispatchEvent(event);
 		});
+		/*
 		window.addEventListener('beforeunload', (e) => {
 			// Cancel the event as stated by the standard.
 			e.preventDefault();
 			// Chrome requires returnValue to be set.
 			e.returnValue = '';
 		});
+		*/
 		this.keysController();
 		this.mouseController();
 		this.socketController();
@@ -94,11 +97,10 @@ export class Controller {
 
 	private socketController(): void {
 		const el = this.myHtmlElements;
-		//this.socket.emit('createPlayer', 'playerName', this.model.getGame());
-		this.socket.emit('sendMap', 0);
 
 		//startGame
-		this.socket.on('startGame', () => {
+		this.socket.on('startGame', (mapData: MapData) => {
+			this.model.map.openMap(mapData);
 			el.close(el.lobbyMenu.main);
 		});
 
@@ -125,7 +127,6 @@ export class Controller {
 
 		//updateListOpenGames
 		this.socket.on('updateListOpenGames', (openGames: OpenGame[]) => {
-			console.log(openGames);
 			el.mainMenu.games.innerHTML = '';
 			for (const openGame of openGames) {
 				const option = document.createElement('option');
@@ -158,6 +159,20 @@ export class Controller {
 		//map
 		this.socket.on('sendMap', (map) => {
 			this.model.map.openMap(map);
+		});
+
+		//uodate listOfMaps
+		this.socket.on('listOfMaps', (maps: string[]) => {
+			el.openMapMenu.maps.innerHTML = '';
+			el.mainMenu.maps.innerHTML = '';
+			for (const map of maps) {
+				const option = document.createElement('option');
+				option.setAttribute('value', map);
+				option.textContent = map;
+				el.mainMenu.maps.appendChild(option);
+				const optionCopy = option.cloneNode(true);
+				el.openMapMenu.maps.appendChild(optionCopy);
+			}
 		});
 
 		this.socket.on('createPlayer', (name: string) => {
@@ -368,13 +383,94 @@ export class Controller {
 
 	private menuController(): void {
 		const el = this.myHtmlElements;
-
-		//open editor menu and close main menu
-		el.mainMenu.openEditor.addEventListener('click', () => {
-			el.open(el.mapSizeMenu.main);
-			el.close(el.mainMenu.main);
+		//+++++++++++++ MAP SIZE MENU
+		//mapSize ok button
+		el.mapSizeMenu.ok.addEventListener('click', () => {
+			this.editor.changeSize(parseInt((<HTMLInputElement>document.getElementById('mapSizeValue')).value));
+			el.open(el.editor.container);
+			el.close(el.mapSizeMenu.main);
+		});
+		//mapSize back button
+		el.mapSizeMenu.back.addEventListener('click', () => {
+			el.close(el.mapSizeMenu.main);
+			if (this.editor.isActive()) {
+				el.open(el.mapEditorMenu.main);
+			}
+			else {
+				el.open(el.mapMenu.main);
+			}
 		});
 
+		//+++++++++++++ MAP EDITOR MAIN MENU
+		//create a new map
+		el.mapMenu.create.addEventListener('click', () => {
+			this.editor.create();
+			el.close(el.mapMenu.main);
+			el.open(el.mapSizeMenu.main);
+		});
+		//open maps
+		el.mapMenu.open.addEventListener('click', () => {
+			el.close(el.mapMenu.main);
+			el.open(el.openMapMenu.main);
+		});
+		//close mapMenu
+		el.mapMenu.back.addEventListener('click', () => {
+			el.close(el.mapMenu.main);
+			el.open(el.mainMenu.main);
+		});
+
+		//+++++++++++++ OPEN MAP MENU
+		//back
+		el.openMapMenu.back.addEventListener('click', () => {
+			el.close(el.openMapMenu.main);
+			el.open(el.mapMenu.main);
+		});
+		//open
+		el.openMapMenu.ok.addEventListener('click', () => {
+			const mapName = (<HTMLInputElement>el.openMapMenu.maps).value;
+			this.socket.emit('openMapInEditor', mapName);
+		});
+		//+++++++++++++ EDITOR MENU - from editor...
+		//open menu
+		el.editor.openMenu.addEventListener('click', () => {
+			el.open(el.mapEditorMenu.main);
+		});
+		//back
+		el.mapEditorMenu.back.addEventListener('click', () => {
+			el.close(el.mapEditorMenu.main);
+		});
+		//close editor
+		el.mapEditorMenu.close.addEventListener('click', () => {
+			el.close(el.mapEditorMenu.main, el.editor.container);
+			el.open(el.mainMenu.main);
+			this.editor.close();
+		});
+		//save
+		el.mapEditorMenu.save.addEventListener('click', () => {
+			const mapData = this.editor.getMapData();
+			const mapName = (<HTMLInputElement>el.mapEditorMenu.name).value;
+			if (this.model.isNameOk(mapName)) {
+				this.socket.emit('editorSaveMap', mapName, mapData);
+				el.close(el.mapEditorMenu.main, el.editor.container);
+				el.open(el.mainMenu.main);
+				this.editor.close();
+			}
+			else {
+				el.open(el.alertMenu.main);
+			}
+		});
+		//change size
+		el.mapEditorMenu.changeSize.addEventListener('click', () => {
+			el.close(el.mapEditorMenu.main);
+			el.open(el.mapSizeMenu.main);
+		});
+
+		//+++++++++++++ MAIN MENU
+		//open editor menu and close main menu
+		el.mainMenu.openEditor.addEventListener('click', () => {
+			el.open(el.mapMenu.main);
+			el.close(el.mainMenu.main);
+		});
 		//change player name and allow create game
 		el.mainMenu.name.addEventListener('input', () => {
 			let disabled = true;
@@ -384,7 +480,6 @@ export class Controller {
 			if ((<HTMLInputElement>el.mainMenu.games).value) disabled2 = false;
 			if (!disabled && !disabled2) (<HTMLInputElement>el.mainMenu.join).disabled = false;
 		});
-
 		//select game - allow join
 		el.mainMenu.games.addEventListener('change', () => {
 			let disabled = true;
@@ -393,38 +488,61 @@ export class Controller {
 			if ((<HTMLInputElement>el.mainMenu.games).value) disabled2 = false;
 			if (!disabled && !disabled2) (<HTMLInputElement>el.mainMenu.join).disabled = false;
 		});
-
 		//create a new game
 		el.mainMenu.create.addEventListener('click', () => {
 			if ((<HTMLInputElement>el.mainMenu.name).value.length) {
 				const playerName = (<HTMLInputElement>el.mainMenu.name).value;
-				this.socket.emit('createGame', playerName);
+				const selectedMap = (<HTMLInputElement>el.mainMenu.maps).value;
+				if (this.model.isNameOk(playerName)) {
+					this.socket.emit('createGame', playerName, selectedMap);
+				}
+				else {
+					el.open(el.alertMenu.main);
+				}
 			}
 		});
-
 		//join
 		el.mainMenu.join.addEventListener('click', () => {
 			if ((<HTMLInputElement>el.mainMenu.name).value.length && (<HTMLInputElement>el.mainMenu.games).value) {
 				const playerName = (<HTMLInputElement>el.mainMenu.name).value;
 				const gameIndex = parseInt((<HTMLInputElement>el.mainMenu.games).value);
-				this.socket.emit('joinGame', playerName, gameIndex);
+				if (this.model.isNameOk(playerName)) {
+					this.socket.emit('joinGame', playerName, gameIndex);
+				}
+				else {
+					el.open(el.alertMenu.main);
+				}
 			}
 		});
+		//controls
+		el.mainMenu.controls.addEventListener('click', () => {
+			el.open(el.controlsMenu.main);
+			el.close(el.mainMenu.main);
+		});
+		//+++++++++++++ ALERT MENU
+		el.alertMenu.ok.addEventListener('click', () => {
+			el.close(el.alertMenu.main);
+		});
 
+		//+++++++++++++ LOBBY MENU
 		//leave join in lobby
 		el.lobbyMenu.leave.addEventListener('click', () => {
 			this.socket.emit('leaveLobby', this.model.getGameId());
 		});
-
 		//cancel game in lobby
 		el.lobbyMenu.cancel.addEventListener('click', () => {
 			this.socket.emit('cancelLobby', this.model.getGameId());
 		});
-
 		//start game
 		el.lobbyMenu.start.addEventListener('click', () => {
 			el.close(el.lobbyMenu.main);
 			this.socket.emit('startGame', this.model.getGameId());
+		});
+
+		//+++++++++++++ CONTROLS MENU
+		el.controlsMenu.back.addEventListener('click', () => {
+			el.open(el.mainMenu.main);
+			el.close(el.controlsMenu.main);
 		});
 	}
 }
