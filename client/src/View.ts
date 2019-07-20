@@ -1,4 +1,4 @@
-import { Player } from './Player';
+import Player from './Player';
 import { Weapon } from './Weapon';
 import Map from './Map';
 import { Mouse } from './Controller';
@@ -21,6 +21,8 @@ import PartBulletLine from './PartBulletLine';
 import CollisionPoints from './CollisionPoints';
 import Point from './Point';
 import ZoneSnapshot from './ZoneSnapshot';
+import SnapshotManager from './SnapshotManager';
+import { PlayerOld } from './PlayerOld';
 
 type DrawData = {
 	x: number;
@@ -45,10 +47,12 @@ interface RectObject {
 }
 
 export default class View {
-	private canvas: HTMLCanvasElement;
-	private editorCanvas: HTMLCanvasElement;
-	private helperCanvas: HTMLCanvasElement;
-	private ctx: CanvasRenderingContext2D;
+	private gameScreen: HTMLCanvasElement;
+	private editorScreen: HTMLCanvasElement;
+	private mapScreen: HTMLCanvasElement;
+	private helperScreen: HTMLCanvasElement;
+	private ctxGame: CanvasRenderingContext2D;
+	private ctxMap: CanvasRenderingContext2D;
 	private ctxEditor: CanvasRenderingContext2D;
 	private playerSVG: HTMLImageElement;
 	private playerHandSVG: HTMLImageElement;
@@ -67,30 +71,42 @@ export default class View {
 	private loadingProgresSVG: HTMLImageElement;
 	private loadingCircleSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
+
+	private rifleLootSVG: HTMLImageElement;
+
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
 	private screenCenterX: number;
 	private screenCenterY: number;
 	private map: Map;
-	private player: Player;
+	//private player: Player;
 	private bullets: Bullet[];
 	private mouse: Mouse;
-
 	private myPlayerCenterX: number = 0;
 	private myPlayerCenterY: number = 0;
 
 	private serverClientSync: ServerClientSync;
-	private snapshots: Snapshot[] = [];
 	private myHtmlElements: MyHtmlElements;
 
 	private colors: Colors;
 	private bulletLines: BulletLine[] = [];
 	private collisionPoints: CollisionPoints;
 
+	private outerCircle = {
+		x: 0,
+		y: 0,
+		radius: 0,
+		opacity: 0.4,
+		opacityDirection: 1
+	};
+	private innerCircle = {
+		x: 0,
+		y: 0,
+		radius: 0
+	};
+
 	constructor(
 		map: Map,
-		player: Player,
-		gameSnapshots: Snapshot[],
 		bullets: Bullet[],
 		mouse: Mouse,
 		waterTerrainData: WaterTerrainData,
@@ -102,16 +118,17 @@ export default class View {
 		this.serverClientSync = serverClientSync;
 		this.myHtmlElements = myHtmlElements;
 		this.map = map;
-		this.player = player;
+		//this.player = player;
 		this.collisionPoints = collisionPoints;
-		this.snapshots = gameSnapshots;
 		this.bullets = bullets;
 		this.mouse = mouse;
-		this.canvas = <HTMLCanvasElement>this.myHtmlElements.gameScreen;
-		this.editorCanvas = <HTMLCanvasElement>this.myHtmlElements.editor.screen;
-		this.helperCanvas = <HTMLCanvasElement>document.getElementById('helper');
-		this.ctx = this.canvas.getContext('2d');
-		this.ctxEditor = this.editorCanvas.getContext('2d');
+		this.gameScreen = <HTMLCanvasElement>this.myHtmlElements.gameScreen;
+		this.editorScreen = <HTMLCanvasElement>this.myHtmlElements.editor.screen;
+		this.mapScreen = <HTMLCanvasElement>this.myHtmlElements.mapScreen;
+		this.helperScreen = <HTMLCanvasElement>this.myHtmlElements.helperScreen;
+		this.ctxGame = this.gameScreen.getContext('2d');
+		this.ctxMap = this.mapScreen.getContext('2d');
+		this.ctxEditor = this.editorScreen.getContext('2d');
 
 		this.playerSVG = new Image();
 		this.playerSVG.src = 'img/player.svg';
@@ -161,6 +178,9 @@ export default class View {
 		this.smokeCloudSVG = new Image();
 		this.smokeCloudSVG.src = 'img/smokeCloud.svg';
 
+		this.rifleLootSVG = new Image();
+		this.rifleLootSVG.src = 'img/rifleLoot.svg';
+
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
 
@@ -176,10 +196,20 @@ export default class View {
 	}
 
 	screenResize(): void {
-		this.canvas.width = window.innerWidth;
-		this.canvas.height = window.innerHeight;
-		this.myHtmlElements.zoneSVG.setAttribute('width', window.innerWidth.toString());
-		this.myHtmlElements.zoneSVG.setAttribute('height', window.innerHeight.toString());
+		const el = this.myHtmlElements;
+		this.gameScreen.width = window.innerWidth;
+		this.gameScreen.height = window.innerHeight;
+		const mapSize = Math.floor((window.innerWidth / 5 + window.innerHeight / 5) / 2);
+		this.mapScreen.width = mapSize;
+		this.mapScreen.height = mapSize;
+		this.mapScreen.style.right = Math.floor(mapSize / 5).toString() + 'px';
+		this.mapScreen.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
+		el.zoneSVG.setAttribute('width', window.innerWidth.toString());
+		el.zoneSVG.setAttribute('height', window.innerHeight.toString());
+		el.mapZoneSVG.style.right = Math.floor(mapSize / 5).toString() + 'px';
+		el.mapZoneSVG.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
+		el.mapZoneSVG.setAttribute('width', mapSize.toString());
+		el.mapZoneSVG.setAttribute('height', mapSize.toString());
 		this.screenCenterX = window.innerWidth / 2;
 		this.screenCenterY = window.innerHeight / 2;
 		this.changeResolutionAdjustment();
@@ -221,19 +251,19 @@ export default class View {
 	private changeResolutionAdjustment(): void {
 		const defaultWidth = 1920;
 		const defaultHeight = 1050;
-		const width = this.canvas.width / defaultWidth;
-		const height = this.canvas.height / defaultHeight;
+		const width = this.gameScreen.width / defaultWidth;
+		const height = this.gameScreen.height / defaultHeight;
 		const finalAdjustment = (width + height) / 2;
 		this.resolutionAdjustment = finalAdjustment;
 	}
 
 	private saveWaterPixels(waterType: TerrainType): void {
-		const ctx = this.helperCanvas.getContext('2d');
-		this.helperCanvas.width = this.waterTrianglePNG.width;
-		this.helperCanvas.height = this.waterTrianglePNG.height;
+		const ctx = this.helperScreen.getContext('2d');
+		this.helperScreen.width = this.waterTrianglePNG.width;
+		this.helperScreen.height = this.waterTrianglePNG.height;
 		//white background
 		ctx.fillStyle = '#FFFFFF';
-		ctx.fillRect(0, 0, this.helperCanvas.width, this.helperCanvas.height);
+		ctx.fillRect(0, 0, this.helperScreen.width, this.helperScreen.height);
 		let middleImage = this.waterTrianglePNG.width / 2;
 		ctx.save();
 		ctx.translate(middleImage, middleImage);
@@ -274,14 +304,81 @@ export default class View {
 		}
 	}
 
+	private drawMap(): void {
+		const ctx = this.ctxMap;
+		//clear canvas
+		ctx.clearRect(0, 0, this.mapScreen.width, this.mapScreen.height);
+		//background
+		ctx.fillStyle = this.colors.grass;
+		ctx.fillRect(0, 0, this.mapScreen.width, this.mapScreen.height);
+		const blockSize = this.mapScreen.width / (this.map.getSize() / this.map.getBlockSize());
+		const sizeReduction = blockSize / this.map.getBlockSize();
+		const biggerBlockSize = blockSize + blockSize / 50;
+		//terrain
+		for (const terrain of this.map.terrain) {
+			const x = terrain.x * sizeReduction;
+			const y = terrain.y * sizeReduction;
+			if (terrain.type === TerrainType.Water) {
+				ctx.fillStyle = this.colors.water;
+				ctx.fillRect(x, y, biggerBlockSize, biggerBlockSize);
+			}
+			if (terrain.type !== TerrainType.Water) {
+				const middleImage = biggerBlockSize / 2;
+				ctx.save();
+				ctx.translate(x + middleImage, y + middleImage);
+				ctx.rotate(terrain.angle * Math.PI / 180);
+				ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage, blockSize, blockSize);
+				ctx.restore();
+			}
+		}
+		//player
+		{
+			const playerSize = blockSize / 3;
+			const x = this.myPlayerCenterX * sizeReduction - playerSize / 2;
+			const y = this.myPlayerCenterY * sizeReduction - playerSize / 2;
+			ctx.drawImage(this.playerSVG, x, y, playerSize, playerSize);
+		}
+		//zone
+		{
+			if (this.innerCircle.radius && this.outerCircle.radius) {
+				//inner
+				{
+					const x = this.innerCircle.x * sizeReduction;
+					const y = this.innerCircle.y * sizeReduction;
+					const radius = this.innerCircle.radius * sizeReduction;
+					ctx.beginPath();
+					ctx.arc(x, y, radius, 0, 2 * Math.PI);
+					ctx.strokeStyle = 'green';
+					ctx.stroke();
+				}
+				//outer
+				{
+					const x = this.outerCircle.x * sizeReduction;
+					const y = this.outerCircle.y * sizeReduction;
+					const radius = this.outerCircle.radius * sizeReduction;
+					/*
+					ctx.beginPath();
+					ctx.arc(x, y, radius, 0, 2 * Math.PI);
+					ctx.strokeStyle = 'red';
+					ctx.stroke();
+					*/
+					//SVG change
+					this.myHtmlElements.mapZoneCircle.setAttribute('r', radius.toString());
+					this.myHtmlElements.mapZoneCircle.setAttribute('cx', x.toString());
+					this.myHtmlElements.mapZoneCircle.setAttribute('cy', y.toString());
+				}
+			}
+		}
+	}
+
 	drawEditor(editor: Editor): void {
 		const ctx = this.ctxEditor;
 		//clear canvas
-		ctx.clearRect(0, 0, this.editorCanvas.width, this.editorCanvas.height);
+		ctx.clearRect(0, 0, this.editorScreen.width, this.editorScreen.height);
 
 		//grass
 		ctx.fillStyle = this.colors.grass;
-		ctx.fillRect(0, 0, this.editorCanvas.width, this.editorCanvas.height);
+		ctx.fillRect(0, 0, this.editorScreen.width, this.editorScreen.height);
 
 		//terrain blocks
 		ctx.fillStyle = this.colors.water;
@@ -480,16 +577,34 @@ export default class View {
 		}
 	}
 
-	draw(): void {
-		const ctx = this.ctx;
+	drawGame(snapshotManager: SnapshotManager, myPlayerId: number): void {
+		const betweenSnapshots = snapshotManager.betweenSnapshots;
+		const players = snapshotManager.players;
+		if (!betweenSnapshots) return;
+
+		this.drawMap();
+		const ctx = this.ctxGame;
 		//clear canvas
-		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		ctx.clearRect(0, 0, this.gameScreen.width, this.gameScreen.height);
 
 		//water
 		ctx.fillStyle = this.colors.water;
-		ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		ctx.fillRect(0, 0, this.gameScreen.width, this.gameScreen.height);
+
+		//center of my player
+		if (betweenSnapshots) {
+			for (const player of players) {
+				if (player.id === myPlayerId) {
+					this.myPlayerCenterX = player.getCenterX();
+					this.myPlayerCenterY = player.getCenterY();
+				}
+			}
+			//this.myPlayerCenterX = players[0].getCenterX();
+			//this.myPlayerCenterY = players[0].getCenterY();
+		}
 
 		//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+		/*
 		let percentShift = 0;
 		let sumaNewerSnapshots = 0;
 		let newerSnapshotMissing = false;
@@ -541,12 +656,14 @@ export default class View {
 					this.positionBetweenSnapshots(olderSnapshot.p[0].y, newerSnapshot.p[0].y, percentShift) +
 					this.player.size / 2;
 			}
+			
 		}
+		*/
 		//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 		//grass blocks
 		ctx.fillStyle = this.colors.grass;
-		const blockSize = this.map.blocks[1].x;
+		const blockSize = 300;
 		for (const block of this.map.blocks) {
 			const { x, y, size, isOnScreen } = this.howToDraw({ x: block.x, y: block.y, size: blockSize });
 			if (isOnScreen) {
@@ -660,218 +777,212 @@ export default class View {
 			//4. vykreslime
 
 			//count positions
-			if (olderSnapshot && newerSnapshot) {
+			if (betweenSnapshots) {
 				//all players from server
-				for (let i = 0; i < newerSnapshot.p.length; i++) {
-					if (newerSnapshot.p[i] && olderSnapshot.p[i]) {
-						const newer = newerSnapshot.p[i];
-						const older = olderSnapshot.p[i];
+				for (const player of players) {
+					const { x, y, size, isOnScreen } = this.howToDraw({
+						x: player.getX(),
+						y: player.getY(),
+						size: player.size
+					});
 
-						const calculatedX = this.positionBetweenSnapshots(older.x, newer.x, percentShift);
-						const calculatedY = this.positionBetweenSnapshots(older.y, newer.y, percentShift);
-
-						const { x, y, size, isOnScreen } = this.howToDraw({
-							x: calculatedX,
-							y: calculatedY,
-							size: this.player.size
-						});
-
-						//weapons block
-						{
-							//pistol
-							if (newer.w === Weapon.Pistol) {
-								//draw pistol
-								const gunSize = 200;
-								const gunX = calculatedX + this.player.radius - gunSize / 2;
-								const gunY = calculatedY + this.player.radius - gunSize / 2;
-								const { x, y, size, isOnScreen } = this.howToDraw({
-									x: gunX,
-									y: gunY,
-									size: gunSize
-								});
-								if (isOnScreen) {
-									let middleImage = size / 2;
-									ctx.save();
-									ctx.translate(x + middleImage, y + middleImage);
-									ctx.rotate(newer.a * Math.PI / 180);
-									ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
-									ctx.restore();
-								}
+					//weapons block
+					{
+						//pistol
+						if (player.getWeapon() === Weapon.Pistol) {
+							//draw pistol
+							const gunSize = 200;
+							const gunX = player.getCenterX() - gunSize / 2;
+							const gunY = player.getCenterY() - gunSize / 2;
+							const { x, y, size, isOnScreen } = this.howToDraw({
+								x: gunX,
+								y: gunY,
+								size: gunSize
+							});
+							if (isOnScreen) {
+								let middleImage = size / 2;
+								ctx.save();
+								ctx.translate(x + middleImage, y + middleImage);
+								ctx.rotate(player.getAngle() * Math.PI / 180);
+								ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
+								ctx.restore();
 							}
-							//machineGun
-							if (newer.w === Weapon.Machinegun) {
-								const gunSize = 200;
-								const gunX = calculatedX + this.player.radius - gunSize / 2;
-								const gunY = calculatedY + this.player.radius - gunSize / 2;
-								const { x, y, size, isOnScreen } = this.howToDraw({
-									x: gunX,
-									y: gunY,
-									size: gunSize
-								});
-								if (isOnScreen) {
-									let middleImage = size / 2;
-									ctx.save();
-									ctx.translate(x + middleImage, y + middleImage);
-									ctx.rotate(newer.a * Math.PI / 180);
-									ctx.drawImage(this.machinegunSVG, -middleImage, -middleImage, size, size);
-									ctx.restore();
-								}
+						}
+						//machineGun
+						if (player.getWeapon() === Weapon.Machinegun) {
+							const gunSize = 200;
+							const gunX = player.getCenterX() - gunSize / 2;
+							const gunY = player.getCenterY() - gunSize / 2;
+							const { x, y, size, isOnScreen } = this.howToDraw({
+								x: gunX,
+								y: gunY,
+								size: gunSize
+							});
+							if (isOnScreen) {
+								let middleImage = size / 2;
+								ctx.save();
+								ctx.translate(x + middleImage, y + middleImage);
+								ctx.rotate(player.getAngle() * Math.PI / 180);
+								ctx.drawImage(this.machinegunSVG, -middleImage, -middleImage, size, size);
+								ctx.restore();
 							}
+						}
 
-							//shotgun
-							if (newer.w === Weapon.Shotgun) {
-								const gunSize = 200;
-								const gunX = calculatedX + this.player.radius - gunSize / 2;
-								const gunY = calculatedY + this.player.radius - gunSize / 2;
-								const { x, y, size, isOnScreen } = this.howToDraw({
-									x: gunX,
-									y: gunY,
-									size: gunSize
-								});
-								if (isOnScreen) {
-									let middleImage = size / 2;
-									ctx.save();
-									ctx.translate(x + middleImage, y + middleImage);
-									ctx.rotate(newer.a * Math.PI / 180);
-									ctx.drawImage(this.shotgunSVG, -middleImage, -middleImage, size, size);
-									ctx.restore();
-								}
+						//shotgun
+						if (player.getWeapon() === Weapon.Shotgun) {
+							const gunSize = 200;
+							const gunX = player.getCenterX() - gunSize / 2;
+							const gunY = player.getCenterY() - gunSize / 2;
+							const { x, y, size, isOnScreen } = this.howToDraw({
+								x: gunX,
+								y: gunY,
+								size: gunSize
+							});
+							if (isOnScreen) {
+								let middleImage = size / 2;
+								ctx.save();
+								ctx.translate(x + middleImage, y + middleImage);
+								ctx.rotate(player.getAngle() * Math.PI / 180);
+								ctx.drawImage(this.shotgunSVG, -middleImage, -middleImage, size, size);
+								ctx.restore();
 							}
+						}
 
-							//rifle
-							if (newer.w === Weapon.Rifle) {
-								const gunSize = 200;
-								const gunX = calculatedX + this.player.radius - gunSize / 2;
-								const gunY = calculatedY + this.player.radius - gunSize / 2;
-								const { x, y, size, isOnScreen } = this.howToDraw({
-									x: gunX,
-									y: gunY,
-									size: gunSize
-								});
-								if (isOnScreen) {
-									let middleImage = size / 2;
-									ctx.save();
-									ctx.translate(x + middleImage, y + middleImage);
-									ctx.rotate(newer.a * Math.PI / 180);
-									ctx.drawImage(this.rifleSVG, -middleImage, -middleImage, size, size);
-									ctx.restore();
-								}
+						//rifle
+						if (player.getWeapon() === Weapon.Rifle) {
+							const gunSize = 200;
+							const gunX = player.getCenterX() - gunSize / 2;
+							const gunY = player.getCenterY() - gunSize / 2;
+							const { x, y, size, isOnScreen } = this.howToDraw({
+								x: gunX,
+								y: gunY,
+								size: gunSize
+							});
+							if (isOnScreen) {
+								let middleImage = size / 2;
+								ctx.save();
+								ctx.translate(x + middleImage, y + middleImage);
+								ctx.rotate(player.getAngle() * Math.PI / 180);
+								ctx.drawImage(this.rifleSVG, -middleImage, -middleImage, size, size);
+								ctx.restore();
 							}
-							//hammer
-							if (newer.w === Weapon.Hammer) {
-								const gunSize = 200;
-								const gunX = calculatedX + this.player.radius - gunSize / 2;
-								const gunY = calculatedY + this.player.radius - gunSize / 2;
-								const { x, y, size, isOnScreen } = this.howToDraw({
-									x: gunX,
-									y: gunY,
-									size: gunSize
-								});
-								if (isOnScreen) {
-									let middleImage = size / 2;
-									ctx.save();
-									ctx.translate(x + middleImage, y + middleImage);
-									ctx.rotate(newer.m * Math.PI / 180);
-									ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
-									ctx.restore();
+						}
+						//hammer
+						if (player.getWeapon() === Weapon.Hammer) {
+							const gunSize = 200;
+							const gunX = player.getCenterX() - gunSize / 2;
+							const gunY = player.getCenterY() - gunSize / 2;
+							const { x, y, size, isOnScreen } = this.howToDraw({
+								x: gunX,
+								y: gunY,
+								size: gunSize
+							});
+							if (isOnScreen) {
+								let middleImage = size / 2;
+								ctx.save();
+								ctx.translate(x + middleImage, y + middleImage);
+								ctx.rotate(player.getHammerAngle() * Math.PI / 180);
+								ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
+								ctx.restore();
 
-									if (this.collisionPoints.isReady()) {
-										//hammer collisionPoints
-										ctx.fillStyle = this.colors.collisionPoint;
-										for (const point of this.collisionPoints.hammer[newer.m]) {
-											const { x, y, size } = this.howToDraw({
-												x: calculatedX + this.player.size / 2 - 100 + point.x,
-												y: calculatedY + this.player.size / 2 - 100 + point.y,
-												size: 1
-											});
-											ctx.fillRect(x, y, size, size);
-										}
-									}
-								}
-							}
-
-							//player hands
-							if (newer.w === Weapon.Hand || newer.w === Weapon.Granade || newer.w === Weapon.Smoke) {
-								for (let i = 0; i < 2; i++) {
-									const handCalculatedX = this.positionBetweenSnapshots(
-										older.h[i].x,
-										newer.h[i].x,
-										percentShift
-									);
-									const handCalculatedY = this.positionBetweenSnapshots(
-										older.h[i].y,
-										newer.h[i].y,
-										percentShift
-									);
-									const { x, y, size, isOnScreen } = this.howToDraw({
-										x: handCalculatedX,
-										y: handCalculatedY,
-										size: this.player.hands[i].size
-									});
-									if (isOnScreen) {
-										ctx.drawImage(this.playerHandSVG, x, y, size, size);
-										//hand collisionPoints
-										for (const point of this.player.hands[0].collisionPoints) {
-											const { x, y, size } = this.howToDraw({
-												x: handCalculatedX + this.player.hands[0].size / 2 + point.x,
-												y: handCalculatedY + this.player.hands[0].size / 2 + point.y,
-												size: 1
-											});
-											ctx.fillRect(x, y, size, size);
-										}
-
-										//granade || smoke
-										if ((newer.w === Weapon.Granade || newer.w === Weapon.Smoke) && i === 1) {
-											const granadeShiftAngle = 30;
-											const playerAngle = newer.a;
-											const shiftZ = this.player.hands[i].size / 2;
-											//triangle
-											const shiftX = Math.sin(playerAngle * Math.PI / 180) * shiftZ;
-											const shiftY = Math.cos(playerAngle * Math.PI / 180) * shiftZ;
-
-											const { x, y, size, isOnScreen } = this.howToDraw({
-												x: handCalculatedX + shiftX,
-												y: handCalculatedY - shiftY,
-												size: this.player.hands[i].size
-											});
-
-											if (isOnScreen) {
-												let middleImage = size / 2;
-												ctx.save();
-												ctx.translate(x + middleImage, y + middleImage);
-												ctx.rotate((playerAngle - granadeShiftAngle) * Math.PI / 180);
-												let SVG;
-												if (newer.w === Weapon.Granade) SVG = this.granadeSVG;
-
-												if (newer.w === Weapon.Smoke) SVG = this.smokeSVG;
-												ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
-												ctx.restore();
-											}
-										}
+								if (this.collisionPoints.isReady()) {
+									//hammer collisionPoints
+									ctx.fillStyle = this.colors.collisionPoint;
+									for (const point of this.collisionPoints.hammer[
+										Math.round(player.getHammerAngle())
+									]) {
+										const { x, y, size } = this.howToDraw({
+											x: player.getCenterX() - 100 + point.x,
+											y: player.getCenterY() - 100 + point.y,
+											size: 1
+										});
+										ctx.fillRect(x, y, size, size);
 									}
 								}
 							}
 						}
 
-						if (isOnScreen) {
-							//player body
-							ctx.drawImage(this.playerSVG, x, y, size, size);
-							//player collision points
-							ctx.fillStyle = 'blue';
-							for (const point of this.player.collisionPoints) {
-								const { x, y, size } = this.howToDraw({
-									x: calculatedX + this.player.size / 2 + point.x,
-									y: calculatedY + this.player.size / 2 + point.y,
-									size: 1
+						//player hands
+						if (
+							player.getWeapon() === Weapon.Hand ||
+							player.getWeapon() === Weapon.Granade ||
+							player.getWeapon() === Weapon.Smoke
+						) {
+							for (let i = 0; i < 2; i++) {
+								const { x, y, size, isOnScreen } = this.howToDraw({
+									x: player.hands[i].getX(),
+									y: player.hands[i].getY(),
+									size: player.hands[i].size
 								});
-								ctx.fillRect(x, y, size, size);
+								if (isOnScreen) {
+									ctx.drawImage(this.playerHandSVG, x, y, size, size);
+									//hand collisionPoints
+									ctx.fillStyle = this.colors.collisionPoint;
+									for (const point of this.collisionPoints.hand) {
+										const { x, y, size } = this.howToDraw({
+											x: player.hands[i].getCenterX() + point.x,
+											y: player.hands[i].getCenterY() + point.y,
+											size: 1
+										});
+										ctx.fillRect(x, y, size, size);
+									}
+
+									//granade || smoke
+									if (
+										(player.getWeapon() === Weapon.Granade ||
+											player.getWeapon() === Weapon.Smoke) &&
+										i === 1
+									) {
+										const granadeShiftAngle = 30;
+										const playerAngle = player.getAngle();
+										const shiftZ = player.hands[1].radius;
+										//triangle
+										const shiftX = Math.sin(playerAngle * Math.PI / 180) * shiftZ;
+										const shiftY = Math.cos(playerAngle * Math.PI / 180) * shiftZ;
+
+										const { x, y, size, isOnScreen } = this.howToDraw({
+											x: player.hands[i].getX() + shiftX,
+											y: player.hands[i].getY() - shiftY,
+											size: player.hands[i].size
+										});
+
+										if (isOnScreen) {
+											let middleImage = size / 2;
+											ctx.save();
+											ctx.translate(x + middleImage, y + middleImage);
+											ctx.rotate((playerAngle - granadeShiftAngle) * Math.PI / 180);
+											let SVG;
+											if (player.getWeapon() === Weapon.Granade) SVG = this.granadeSVG;
+
+											if (player.getWeapon() === Weapon.Smoke) SVG = this.smokeSVG;
+											ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
+											ctx.restore();
+										}
+									}
+								}
 							}
+						}
+					}
+
+					if (isOnScreen) {
+						//player body
+						ctx.drawImage(this.playerSVG, x, y, size, size);
+						//player collision points
+
+						ctx.fillStyle = this.colors.collisionPoint;
+						for (const point of this.collisionPoints.body) {
+							const { x, y, size } = this.howToDraw({
+								x: player.getCenterX() + point.x,
+								y: player.getCenterY() + point.y,
+								size: 1
+							});
+							ctx.fillRect(x, y, size, size);
 						}
 					}
 				}
 
 				//granades
-				for (const granade of newerSnapshot.g) {
+				for (const granade of betweenSnapshots.g) {
 					const granadeSize = 30 * granade.b;
 					const { x, y, size, isOnScreen } = this.howToDraw({
 						x: granade.x - granadeSize / 2,
@@ -895,7 +1006,7 @@ export default class View {
 
 				//bullets
 				ctx.fillStyle = this.colors.bullet;
-				for (const bullet of newerSnapshot.b) {
+				for (const bullet of betweenSnapshots.b) {
 					const { x, y, size, isOnScreen } = this.howToDraw({
 						x: bullet.x,
 						y: bullet.y,
@@ -962,6 +1073,15 @@ export default class View {
 			}
 		}
 
+		//loot
+		if (betweenSnapshots) {
+			for (let i = 0; i < betweenSnapshots.l.length; i++) {
+				const loot = betweenSnapshots.l[i];
+				const { x, y, size, isOnScreen } = this.howToDraw({ x: loot.x, y: loot.y, size: loot.size });
+				ctx.drawImage(this.rifleLootSVG, x, y, size, size);
+			}
+		}
+
 		//bushes
 		for (const bush of this.map.bushes) {
 			if (bush.isActive()) {
@@ -989,8 +1109,8 @@ export default class View {
 		}
 
 		//smokes
-		if (newerSnapshot) {
-			for (const smoke of newerSnapshot.s) {
+		if (betweenSnapshots) {
+			for (const smoke of betweenSnapshots.s) {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: smoke.x - smoke.s / 2,
 					y: smoke.y - smoke.s / 2,
@@ -1006,16 +1126,19 @@ export default class View {
 		}
 
 		//zone
-		if (olderSnapshot && newerSnapshot) {
+		if (betweenSnapshots) {
 			//outer circle
+			this.outerCircle.x = betweenSnapshots.z.oX;
+			this.outerCircle.y = betweenSnapshots.z.oY;
+			this.outerCircle.radius = betweenSnapshots.z.oR;
+
 			const { x, y } = this.howToDraw({
-				x: this.positionBetweenSnapshots(olderSnapshot.z.oX, newerSnapshot.z.oX, percentShift),
-				y: this.positionBetweenSnapshots(olderSnapshot.z.oY, newerSnapshot.z.oY, percentShift),
+				x: this.outerCircle.x,
+				y: this.outerCircle.y,
 				size: 1
 			});
-			const outerRadius =
-				this.positionBetweenSnapshots(olderSnapshot.z.oR, newerSnapshot.z.oR, percentShift) *
-				this.resolutionAdjustment;
+
+			const outerRadius = this.outerCircle.radius * this.resolutionAdjustment;
 
 			/*
 			ctx.beginPath();
@@ -1025,12 +1148,22 @@ export default class View {
 			*/
 
 			//SVG change
+			let change = 0.003;
+			if (this.outerCircle.opacity > 0.6) this.outerCircle.opacityDirection = -1;
+			if (this.outerCircle.opacity < 0.2) this.outerCircle.opacityDirection = 1;
+			this.outerCircle.opacity += change * this.outerCircle.opacityDirection;
+
 			this.myHtmlElements.zoneCircle.setAttribute('r', outerRadius.toString());
 			this.myHtmlElements.zoneCircle.setAttribute('cx', x.toString());
 			this.myHtmlElements.zoneCircle.setAttribute('cy', y.toString());
+			document.getElementById('zoneRect').setAttribute('opacity', this.outerCircle.opacity.toString());
 
 			{
 				//inner circle
+				this.innerCircle.x = betweenSnapshots.z.iX;
+				this.innerCircle.y = betweenSnapshots.z.iY;
+				this.innerCircle.radius = betweenSnapshots.z.iR;
+				/*
 				const { x, y } = this.howToDraw({
 					x: newerSnapshot.z.iX,
 					y: newerSnapshot.z.iY,
@@ -1041,10 +1174,12 @@ export default class View {
 				ctx.arc(x, y, innerRadius, 0, 2 * Math.PI);
 				ctx.strokeStyle = 'green';
 				ctx.stroke();
+				*/
 			}
 		}
 
 		//loading
+		/*
 		const { time, max } = this.player.loading();
 		if (time < max) {
 			const maxViewLoadingSteps = 360;
@@ -1061,17 +1196,18 @@ export default class View {
 
 			ctx.restore();
 			for (let i = 0; i < passedViewLoadingSteps; i += 10) {
-				this.ctx.save();
-				this.ctx.translate(x + middleImage, y + middleImage);
-				this.ctx.rotate(i * Math.PI / 180);
+				ctx.save();
+				ctx.translate(x + middleImage, y + middleImage);
+				ctx.rotate(i * Math.PI / 180);
 				ctx.drawImage(this.loadingProgresSVG, -middleImage, -middleImage, loadingSVGSize, loadingSVGSize);
-				this.ctx.restore();
+				ctx.restore();
 			}
 			const fontSize = Math.floor(31 * this.resolutionAdjustment);
 			ctx.font = fontSize + 'px Arial';
 			ctx.fillStyle = this.colors.text;
 			ctx.fillText(timeToEnd.toString(), x + 28 * this.resolutionAdjustment, y + 59 * this.resolutionAdjustment);
 		}
+		*/
 
 		//info
 		ctx.font = '20px Arial';
@@ -1079,15 +1215,15 @@ export default class View {
 		const x = 15;
 		let row = 30;
 		let rowMultiple = 0;
-		ctx.fillText('snapshots: ' + this.snapshots.length, x, row * ++rowMultiple);
-		ctx.fillText('newerSnapshots: ' + sumaNewerSnapshots, x, row * ++rowMultiple);
+		//ctx.fillText('snapshots: ' + this.snapshots.length, x, row * ++rowMultiple);
+		ctx.fillText('newerSnapshots: ' + snapshotManager.sumaNewer, x, row * ++rowMultiple);
 		ctx.fillText('ping: ' + this.serverClientSync.getPing(), x, row * ++rowMultiple);
 		ctx.fillText('timeDiference: ' + this.serverClientSync.getTimeDiference(), x, row * ++rowMultiple);
 		ctx.fillText('drawDelay: ' + this.serverClientSync.getDrawDelay(), x, row * ++rowMultiple);
-		if (!olderSnapshot) {
+		if (!snapshotManager.olderExists) {
 			ctx.fillText('olderSnapshot missing', x, row * ++rowMultiple);
 		}
-		if (newerSnapshotMissing) {
+		if (!snapshotManager.newerExists) {
 			ctx.fillText('newerSnapshot missing', x, row * ++rowMultiple);
 		}
 
@@ -1102,13 +1238,6 @@ export default class View {
 			size * this.resolutionAdjustment
 		);
 		*/
-	}
-
-	private positionBetweenSnapshots(olderPosition: number, newerPosition: number, percentShift: number): number {
-		const diference = Math.abs(newerPosition - olderPosition);
-		let direction = 1;
-		if (newerPosition < olderPosition) direction = -1;
-		return olderPosition + diference * direction * percentShift;
 	}
 
 	private howToDraw(gameObject: RoundObject | RectObject | RectangleObstacle | RoundObstacle): DrawData {
@@ -1142,7 +1271,7 @@ export default class View {
 			this.screenCenterY + (gameObject.y + animateShiftY - this.myPlayerCenterY) * this.resolutionAdjustment;
 		//Is is on the screen?
 		let isOnScreen = true;
-		if (x > this.canvas.width || x < -width || y > this.canvas.height || y < -height) {
+		if (x > this.gameScreen.width || x < -width || y > this.gameScreen.height || y < -height) {
 			isOnScreen = false;
 		}
 		return {

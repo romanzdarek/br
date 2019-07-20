@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
+
+ <g class="layer" transform="rotate(45 150 150)">
+  <title>Layer 1</title>
+  <ellipse cx="150.707107" cy="150" fill="#3f3f3f" fill-opacity="0.2" id="circle" rx="146" ry="146" stroke="#ffbb00" stroke-linecap="round" stroke-width="7"/>
+  <rect fill="#333333" height="124" id="svg_6" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="round" stroke-width="0" width="0" x="104.846591" y="39.526978"/>
+  <rect fill="#000000" height="168.715726" id="svg_7" rx="20" ry="20" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="34.874369" x="136.139486" y="62.240188"/>
+  <rect fill="#333333" height="0.5" id="svg_9" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="0" x="84.346591" y="117.526983"/>
+ </g>
+</svg>

@@ -16,7 +16,6 @@ export default class Bullet {
 	private shiftY: number = 0;
 	private distance: number = 0;
 	private active: boolean = true;
-	//@ts-ignore
 	private map: Map;
 	private players: Player[] = [];
 	private hitBushes: Bush[] = [];
@@ -59,7 +58,7 @@ export default class Bullet {
 		instance.shiftY = Math.cos(instance.angle * Math.PI / 180) * bulletSpeed;
 
 		//start shift to edge the of player
-		const bulletStartShift = player.radius / gun.bulletSpeed + 0.1;
+		const bulletStartShift = Player.radius / gun.bulletSpeed + 0.1;
 		instance.x += instance.shiftX * bulletStartShift;
 		instance.y -= instance.shiftY * bulletStartShift;
 

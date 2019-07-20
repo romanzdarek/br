@@ -1,54 +1,50 @@
 import Hand from './Hand';
-import Gun from './Gun';
-import Map from './Map';
-import Point from './Point';
-import Tree from './Tree';
-import RoundObstacle from './RoundObstacle';
-import RectangleObstacle from './RectangleObstacle';
-import { TerrainType } from './Terrain';
+import HandSnapshot from './HandSnapshot';
 import { Weapon } from './Weapon';
 
-type Loading = {
-	time: number;
-	max: number;
-};
-
-export class Player {
-	readonly size: number = 80;
-	readonly radius: number = this.size / 2;
-	readonly speed: number = 6;
+export default class Player {
+	readonly id: number;
+	readonly size: number;
+	private radius: number;
 	private x: number;
 	private y: number;
-	private angle: number = 0;
-	private map: Map;
-	hands: Hand[] = [];
-	gun: Gun;
-	private canvas: HTMLCanvasElement;
-	readonly collisionPoints: Point[] = [];
-	private slowAroundObstacle: boolean = false;
-	private loadingTime: number = 0;
-	private loadingMaxTime: number = 3 * 60;
+	private angle: number;
+	private hammerAngle: number;
+	readonly hands: Hand[] = [];
+	private weapon: Weapon;
 
-	constructor(map: Map) {
-		this.x = 550;
-		this.y = 700;
-		this.canvas = <HTMLCanvasElement>document.getElementById('gameScreen');
-		this.hands.push(new Hand(this.size));
-		this.hands.push(new Hand(this.size));
-		this.gun = new Gun(this.size, 20);
-		this.map = map;
-	}
-	loading(): Loading {
-		if (this.loadingTime < this.loadingMaxTime) this.loadingTime++;
-		return { time: this.loadingTime, max: this.loadingMaxTime };
+	constructor(id: number, x: number, y: number, angle: number, hammerAngle: number, size: number, hands: HandSnapshot[], weapon: Weapon) {
+		this.id = id;
+		this.x = x;
+		this.y = y;
+		this.angle = angle;
+		this.hammerAngle = hammerAngle;
+		this.weapon = weapon;
+		this.size = size;
+		this.radius = size / 2;
+		for (const hand of hands) {
+			this.hands.push(new Hand(hand.x, hand.y, hand.size));
+		}
 	}
 
-	getCenterX(): number {
-		return this.x + this.radius;
+	setX(x: number): void {
+		this.x = x;
 	}
 
-	getCenterY(): number {
-		return this.y + this.radius;
+	setY(y: number): void {
+		this.y = y;
+	}
+
+	setAngle(angle: number): void {
+		this.angle = angle;
+	}
+
+	setHammerAngle(hammerAngle: number): void {
+		this.hammerAngle = hammerAngle;
+	}
+
+	setWeapon(weapon: Weapon): void {
+		this.weapon = weapon;
 	}
 
 	getX(): number {
@@ -63,7 +59,19 @@ export class Player {
 		return this.angle;
 	}
 
-	setAngle(angle: number): void {
-		this.angle = angle;
+	getHammerAngle(): number {
+		return this.hammerAngle;
+	}
+
+	getWeapon(): Weapon {
+		return this.weapon;
+	}
+
+	getCenterX(): number {
+		return this.x + this.radius;
+	}
+
+	getCenterY(): number {
+		return this.y + this.radius;
 	}
 }

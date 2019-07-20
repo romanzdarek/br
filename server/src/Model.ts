@@ -7,6 +7,7 @@ import MapData from './Mapdata';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Socket } from 'dgram';
+import { Player } from './Player';
 
 export default class Model {
 	private io: SocketIO.Server;
@@ -57,7 +58,7 @@ export default class Model {
 		return levelNames;
 	}
 
-	createGame(playerName: string, mapName: string, socket: SocketIO.Socket,): void {
+	createGame(playerName: string, mapName: string, socket: SocketIO.Socket): void {
 		if (playerName && mapName) {
 			const mapData = this.loadMap(mapName);
 			if (mapData) {
@@ -110,7 +111,6 @@ export default class Model {
 			return null;
 		}
 	}
-
 
 	private loop(): void {
 		for (const game of this.games) {

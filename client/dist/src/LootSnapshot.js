@@ -1,0 +1,2 @@
+;
+//# sourceMappingURL=LootSnapshot.js.map

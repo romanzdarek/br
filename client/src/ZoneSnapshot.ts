@@ -4,7 +4,7 @@ export default interface ZoneSnapshot {
 	readonly iY: number;
 	readonly iR: number;
 	//out
-	readonly oX: number;
-	readonly oY: number;
-	readonly oR: number;
+	oX: number;
+	oY: number;
+	oR: number;
 };

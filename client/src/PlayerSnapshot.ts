@@ -1,18 +1,22 @@
 import { Weapon } from './Weapon';
+import HandSnapshot from './HandSnapshot';
 
 export default interface PlayerSnapshot {
-	readonly x: number;
-	readonly y: number;
+	//id
+	readonly i: number;
+	x?: number;
+	y?: number;
 	//angle
-	readonly a: number;
+	a?: number;
 	//hands
-	readonly h: HandPackage[];
+	h?: HandSnapshot[];
 	//name
-	readonly n: string;
+	//readonly n: string;
 	//active weapon
-	readonly w: Weapon;
+	w?: Weapon;
 	//hammer angle
-	readonly m: number;
+	m?: number;
+	size?: number;
 };
 
-type HandPackage = { x: number; y: number };
+

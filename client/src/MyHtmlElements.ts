@@ -1,8 +1,11 @@
 export default class MyHtmlElements {
 	readonly gameScreen: HTMLElement;
+	readonly mapScreen: HTMLElement;
+	readonly helperScreen: HTMLElement;
 	readonly zoneSVG: HTMLElement;
-	readonly maskSVG: HTMLElement;
 	readonly zoneCircle: HTMLElement;
+	readonly mapZoneSVG: HTMLElement;
+	readonly mapZoneCircle: HTMLElement;
 
 	readonly editor = {
 		coordinates: document.getElementById('editorCoordinates'),
@@ -34,8 +37,6 @@ export default class MyHtmlElements {
 	</div>
 	*/
 
-
-
 	readonly mapEditorMenu = {
 		main: document.getElementById('mapEditorMenu'),
 		name: document.getElementById('mapEditorMenuName'),
@@ -57,7 +58,7 @@ export default class MyHtmlElements {
 
 	readonly alertMenu = {
 		main: document.getElementById('alertMenu'),
-		ok: document.getElementById('alertMenuOk'),
+		ok: document.getElementById('alertMenuOk')
 	};
 
 	/*<div class="menu" id="openMapMenu">
@@ -185,9 +186,12 @@ export default class MyHtmlElements {
 
 	constructor() {
 		this.gameScreen = document.getElementById('gameScreen');
+		this.mapScreen = document.getElementById('mapScreen');
+		this.helperScreen = document.getElementById('helperScreen');
 		this.zoneSVG = document.getElementById('zoneSVG');
 		this.zoneCircle = document.getElementById('zoneCircle');
-		this.maskSVG = document.getElementById('maskSVG');
+		this.mapZoneSVG = document.getElementById('mapZoneSVG');
+		this.mapZoneCircle = document.getElementById('mapZoneCircle');
 	}
 
 	close(...elements: HTMLElement[]): void {

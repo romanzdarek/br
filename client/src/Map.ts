@@ -15,6 +15,7 @@ type Block = {
 
 export default class Map {
 	private size: number;
+	private blockSize: number;
 	readonly blocks: Block[] = [];
 	readonly terrain: Terrain[] = [];
 	readonly impassableRoundObstacles: RoundObstacle[] = [];
@@ -32,8 +33,13 @@ export default class Map {
 		return this.size;
 	}
 
+	getBlockSize(): number {
+		return this.blockSize;
+	}
+
 	openMap(map: MapData): void {
 		this.size = map.size * map.blockSize;
+		this.blockSize = map.blockSize;
 		//Create blocks
 		for (let yy = 0; yy < map.size; yy++) {
 			for (let xx = 0; xx < map.size; xx++) {

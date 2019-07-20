@@ -15,6 +15,7 @@ type Block = {
 
 export default class Map {
 	private size: number = 0;
+	private blockSize: number;
 	readonly blocks: Block[] = [];
 	readonly terrain: Terrain[] = [];
 	readonly impassableRoundObstacles: RoundObstacle[] = [];
@@ -26,11 +27,16 @@ export default class Map {
 
 	constructor(waterTerrainData: WaterTerrainData, mapData: MapData) {
 		this.waterTerrainData = waterTerrainData;
+		this.blockSize = mapData.blockSize;
 		this.openMap(mapData);
 	}
 
 	getSize(): number {
 		return this.size;
+	}
+
+	getBlockSize(): number {
+		return this.blockSize;
 	}
 
 	private openMap(mapData: any): void {

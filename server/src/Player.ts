@@ -21,9 +21,10 @@ type Loading = {
 
 export class Player {
 	socket: SocketIO.Socket;
+	readonly id: number;
 	readonly name: string;
-	readonly size: number = 80;
-	readonly radius: number = this.size / 2;
+	static readonly size: number = 80;
+	static readonly radius: number = Player.size / 2;
 	readonly speed: number = 6;
 	private x: number = 0;
 	private y: number = 0;
@@ -71,7 +72,15 @@ export class Player {
 		y: 0
 	};
 
-	constructor(name: string, socket: SocketIO.Socket, map: Map, collisionPoints: CollisionPoints, players: Player[]) {
+	constructor(
+		id: number,
+		name: string,
+		socket: SocketIO.Socket,
+		map: Map,
+		collisionPoints: CollisionPoints,
+		players: Player[]
+	) {
+		this.id = id;
 		this.activeWeapon = Weapon.Hand;
 		this.socket = socket;
 		this.name = name;
@@ -80,10 +89,10 @@ export class Player {
 		this.collisionPoints = collisionPoints;
 		this.hands.push(new Hand(this, players, map, collisionPoints));
 		this.hands.push(new Hand(this, players, map, collisionPoints));
-		this.pistol = new Pistol(this.radius);
-		this.machinegun = new Machinegun(this.radius);
-		this.shotgun = new Shotgun(this.radius);
-		this.rifle = new Rifle(this.radius);
+		this.pistol = new Pistol(Player.radius);
+		this.machinegun = new Machinegun(Player.radius);
+		this.shotgun = new Shotgun(Player.radius);
+		this.rifle = new Rifle(Player.radius);
 		this.hammer = new Hammer(this, players, map, collisionPoints);
 	}
 
@@ -95,10 +104,10 @@ export class Player {
 
 	isPointIn(point: Point): boolean {
 		//triangle
-		const x = this.x + this.radius - point.x;
-		const y = this.y + this.radius - point.y;
+		const x = this.x + Player.radius - point.x;
+		const y = this.y + Player.radius - point.y;
 		const radius = Math.sqrt(x * x + y * y);
-		if (radius <= this.radius) return true;
+		if (radius <= Player.radius) return true;
 		return false;
 	}
 
@@ -178,11 +187,11 @@ export class Player {
 	}
 
 	getCenterX(): number {
-		return this.x + this.radius;
+		return this.x + Player.radius;
 	}
 
 	getCenterY(): number {
-		return this.y + this.radius;
+		return this.y + Player.radius;
 	}
 
 	getX(): number {
@@ -320,9 +329,9 @@ export class Player {
 		}
 
 		//move only on map area
-		if (this.x + this.size > this.map.getSize()) this.x = this.map.getSize() - this.size;
+		if (this.x + Player.size > this.map.getSize()) this.x = this.map.getSize() - Player.size;
 		if (this.x < 0) this.x = 0;
-		if (this.y + this.size > this.map.getSize()) this.y = this.map.getSize() - this.size;
+		if (this.y + Player.size > this.map.getSize()) this.y = this.map.getSize() - Player.size;
 		if (this.y < 0) this.y = 0;
 	}
 
@@ -333,10 +342,10 @@ export class Player {
 			if (rectangleObstacle.isActive()) {
 				//collision rectangle - rectangle
 				if (
-					this.x + shiftX + this.size >= rectangleObstacle.x &&
+					this.x + shiftX + Player.size >= rectangleObstacle.x &&
 					this.x + shiftX <= rectangleObstacle.x + rectangleObstacle.width &&
 					this.y + shiftY <= rectangleObstacle.y + rectangleObstacle.height &&
-					this.y + shiftY + this.size >= rectangleObstacle.y
+					this.y + shiftY + Player.size >= rectangleObstacle.y
 				) {
 					for (let j = 0; j < this.collisionPoints.body.length; j++) {
 						const point = this.collisionPoints.body[j];
@@ -363,7 +372,7 @@ export class Player {
 			if (roundObstacle.isActive()) {
 				let obstacleRadius = roundObstacle.radius;
 				if (roundObstacle instanceof Tree) obstacleRadius = roundObstacle.treeTrankRadius;
-				const obstacleAndPlayerRadius = obstacleRadius + this.radius;
+				const obstacleAndPlayerRadius = obstacleRadius + Player.radius;
 				const x = this.getCenterX() + shiftX - roundObstacle.getCenterX();
 				const y = this.getCenterY() + shiftY - roundObstacle.getCenterY();
 				const distance = Math.sqrt(x * x + y * y);
@@ -386,13 +395,13 @@ export class Player {
 		rectangleObstacle: RectangleObstacle
 	): void {
 		this.slowAroundObstacle = true;
-		const maxObstacleOverlap = this.size * 0.75;
+		const maxObstacleOverlap = Player.size * 0.75;
 		if (countShifts === 1) {
 			if (shiftX !== 0) {
 				//up or down?
 				//go up
 				if (this.getCenterY() <= rectangleObstacle.y + rectangleObstacle.height / 2) {
-					if (this.y + this.size - rectangleObstacle.y < maxObstacleOverlap) this.shiftOnPosition(0, -1);
+					if (this.y + Player.size - rectangleObstacle.y < maxObstacleOverlap) this.shiftOnPosition(0, -1);
 				}
 				else {
 					//go down
@@ -404,7 +413,7 @@ export class Player {
 				//left or right?
 				//go left
 				if (this.getCenterX() <= rectangleObstacle.x + rectangleObstacle.width / 2) {
-					if (this.x + this.size - rectangleObstacle.x < maxObstacleOverlap) this.shiftOnPosition(-1, 0);
+					if (this.x + Player.size - rectangleObstacle.x < maxObstacleOverlap) this.shiftOnPosition(-1, 0);
 				}
 				else {
 					//go right

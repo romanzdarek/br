@@ -19,13 +19,19 @@ import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
 import Point from './Point';
 import MapData from './Mapdata';
+import Loot from './Loot';
+import { LootType } from './LootType';
+import LootSnapshot from './LootSnapshot';
 
 export default class Game {
 	private map: Map;
 	private mapData: MapData;
 	private zone: Zone;
+	private playerId: number = 0;
 	players: Player[] = [];
+	private lastPlayerSnapshots: PlayerSnapshot[] = [];
 	private bullets: Bullet[] = [];
+	private loots: Loot[] = [];
 	private smokeClouds: SmokeCloud[] = [];
 	private granades: ThrowingObject[] = [];
 	private numberOfBullets: number = 0;
@@ -39,6 +45,14 @@ export default class Game {
 		this.mapData = mapData;
 		this.map = new Map(waterTerrainData, mapData);
 		this.zone = new Zone(this.map);
+		this.createLoot();
+	}
+
+	private createLoot(): void {
+		let id = 0;
+		for (let i = 0; i < 10; i++) {
+			this.loots.push(new Loot(id++, 300 * i, 300 * i, LootType.Rifle));
+		}
 	}
 
 	private updateListOfPlayers(): void {
@@ -108,12 +122,13 @@ export default class Game {
 				name = uniqueName(2);
 			}
 		}
-		const newPlayer = new Player(name, socket, this.map, this.collisionPoints, this.players);
+		const newPlayer = new Player(this.playerId++, name, socket, this.map, this.collisionPoints, this.players);
 		this.setRandomPosition(newPlayer);
 		this.players.push(newPlayer);
-
 		//send it to the client
 		this.updateListOfPlayers();
+		//player ID for client
+		newPlayer.socket.emit('playerId', newPlayer.id);
 		return name;
 	}
 
@@ -141,8 +156,8 @@ export default class Game {
 	}
 
 	private setRandomPosition(gameObject: Player): void {
-		const randomX = Math.floor(Math.random() * (this.map.getSize() - gameObject.size));
-		const randomY = Math.floor(Math.random() * (this.map.getSize() - gameObject.size));
+		const randomX = Math.floor(Math.random() * (this.map.getSize() - Player.size));
+		const randomY = Math.floor(Math.random() * (this.map.getSize() - Player.size));
 		gameObject.setX(randomX);
 		gameObject.setY(randomY);
 		if (this.randomPositionCollision(gameObject)) {
@@ -195,8 +210,8 @@ export default class Game {
 			y1 = object1.y;
 		}
 		if (object1 instanceof Player) {
-			width1 = object1.size;
-			height1 = object1.size;
+			width1 = Player.size;
+			height1 = Player.size;
 			x1 = object1.getX();
 			y1 = object1.getY();
 		}
@@ -214,8 +229,8 @@ export default class Game {
 			y2 = object2.y;
 		}
 		if (object2 instanceof Player) {
-			width2 = object2.size;
-			height2 = object2.size;
+			width2 = Player.size;
+			height2 = Player.size;
 			x2 = object2.getX();
 			y2 = object2.getY();
 		}
@@ -389,10 +404,16 @@ export default class Game {
 
 	private clientsUpdate(): void {
 		const dateNow = Date.now();
+		//loots
+		const lootSnapshots: LootSnapshot[] = [];
+		for (const loot of this.loots) {
+			lootSnapshots.push(new LootSnapshot(loot));
+		}
+
 		//granades
-		const granadesSnapshots: ThrowingObjectSnapshot[] = [];
+		const granadeSnapshots: ThrowingObjectSnapshot[] = [];
 		for (const granade of this.granades) {
-			granadesSnapshots.push(new ThrowingObjectSnapshot(granade));
+			granadeSnapshots.push(new ThrowingObjectSnapshot(granade));
 		}
 
 		//bullets
@@ -410,26 +431,76 @@ export default class Game {
 		//zone
 		const zoneSnapshot = new ZoneSnapshot(this.zone);
 
-		//players
+		//players snapshots
+		const playerSnapshots: PlayerSnapshot[] = [];
 		for (const player of this.players) {
-			const playerSnapshotArr: PlayerSnapshot[] = [];
-			//add me
-			playerSnapshotArr.push(new PlayerSnapshot(player));
-			//add others
-			for (const otherPlayer of this.players) {
-				if (otherPlayer != player) {
-					playerSnapshotArr.push(new PlayerSnapshot(otherPlayer));
+			playerSnapshots.push(new PlayerSnapshot(player));
+		}
+		//players snapshots copy for optimalization
+		let playerSnapshotsOptimalization: PlayerSnapshot[] = [];
+		for (const player of this.players) {
+			playerSnapshotsOptimalization.push(new PlayerSnapshot(player));
+		}
+
+		//find same values and delete them
+		for (const playerNow of playerSnapshotsOptimalization) {
+			for (const playerBefore of this.lastPlayerSnapshots) {
+				if (playerNow.i === playerBefore.i) {
+					if (playerNow.x === playerBefore.x) delete playerNow.x;
+					if (playerNow.y === playerBefore.y) delete playerNow.y;
+					if (playerNow.a === playerBefore.a) delete playerNow.a;
+					if (playerNow.m === playerBefore.m) delete playerNow.m;
+					if (playerNow.w === playerBefore.w) delete playerNow.w;
+					if (playerNow.size === playerBefore.size) delete playerNow.size;
+					if (playerNow.h[0].size === playerBefore.h[0].size) {
+						delete playerNow.h[0].size;
+						delete playerNow.h[1].size;
+					}
+					if (
+						playerNow.h[0].x === playerBefore.h[0].x &&
+						playerNow.h[0].y === playerBefore.h[0].y &&
+						playerNow.h[1].x === playerBefore.h[1].x &&
+						playerNow.h[1].y === playerBefore.h[1].y
+					) {
+						delete playerNow.h;
+					}
 				}
 			}
+		}
+		this.lastPlayerSnapshots = playerSnapshots;
+
+		//delete empty players snapshots
+		for (let i = playerSnapshotsOptimalization.length - 1; i >= 0; i--) {
+			const player = playerSnapshotsOptimalization[i];
+			if (
+				!player.hasOwnProperty('x') &&
+				!player.hasOwnProperty('y') &&
+				!player.hasOwnProperty('a') &&
+				!player.hasOwnProperty('m') &&
+				!player.hasOwnProperty('w') &&
+				!player.hasOwnProperty('size') &&
+				!player.hasOwnProperty('h')
+			) {
+				playerSnapshotsOptimalization.splice(i, 1);
+			}
+		}
+
+		console.log('----------');
+		console.log(JSON.stringify(playerSnapshotsOptimalization));
+
+		//emit
+		for (const player of this.players) {
 			player.socket.emit('u', {
 				t: dateNow,
-				p: playerSnapshotArr,
+				p: playerSnapshotsOptimalization,
 				b: bulletSnapshots,
-				g: granadesSnapshots,
+				g: granadeSnapshots,
 				s: smokeCloudSnapshots,
-				z: zoneSnapshot
+				z: zoneSnapshot,
+				l: lootSnapshots
 			});
 		}
+
 		//map objects
 		for (const wall of this.map.rectangleObstacles) {
 			if (wall.getChanged()) {

@@ -1,7 +1,7 @@
 import { Keys, Mouse } from './Controller';
 import Socket from './Socket';
 import View from './View';
-import { Player } from './Player';
+import Player from './Player';
 import Map from './Map';
 import WaterTerrainData from './WaterTerrainData';
 import Bullet from './Bullet';
@@ -10,13 +10,15 @@ import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
 import CollisionPoints from './CollisionPoints';
+import SnapshotManager from './SnapshotManager';
 
 export default class Model {
 	private gameId: number = -1;
+	private playerId: number = -1;
 	private name: string;
 	view: View;
-	private player: Player;
-	snapshots: Snapshot[] = [];
+	//private player: Player;
+
 	private socket: Socket;
 	private waterTerrainData: WaterTerrainData;
 	private keys: Keys;
@@ -24,6 +26,7 @@ export default class Model {
 	map: Map;
 	private bullets: Bullet[] = [];
 	private serverClientSync: ServerClientSync;
+	snapshotManager: SnapshotManager;
 	private myHtmlElements: MyHtmlElements;
 	private editor: Editor;
 	collisionPoints: CollisionPoints;
@@ -38,9 +41,10 @@ export default class Model {
 	) {
 		this.socket = socket;
 		this.serverClientSync = serverClientSync;
+		this.snapshotManager = new SnapshotManager(serverClientSync);
 		this.waterTerrainData = new WaterTerrainData();
 		this.map = new Map(this.waterTerrainData);
-		this.player = new Player(this.map);
+		//this.player = new Player(this.map);
 		this.keys = keys;
 		this.mouse = mouse;
 		this.myHtmlElements = myHtmlElements;
@@ -48,8 +52,6 @@ export default class Model {
 		this.collisionPoints = new CollisionPoints();
 		this.view = new View(
 			this.map,
-			this.player,
-			this.snapshots,
 			this.bullets,
 			this.mouse,
 			this.waterTerrainData,
@@ -101,49 +103,27 @@ export default class Model {
 		this.gameId = gameId;
 	}
 
+	getPlayerId(): number {
+		return this.playerId;
+	}
+
+	setPlayerId(playerId: number): void {
+		this.playerId = playerId;
+	}
+
 	private loop(): void {
 		//repeat
 		requestAnimationFrame(() => {
 			this.loop();
 		});
-
 		//sync
 		if (!this.serverClientSync.ready()) {
 			this.socket.emit('serverClientSync', Date.now());
 		}
-
-		/*
-		this.player.playerMove(this.keys.w, this.keys.a, this.keys.s, this.keys.d, this.mouse.x, this.mouse.y);
-
-		//move and delete bullets
-		for (let i = this.bullets.length - 1; i >= 0; i--) {
-			const bullet = this.bullets[i];
-			if (bullet.flying()) {
-				bullet.move(this.map);
-			}
-			else {
-				this.bullets.splice(i, 1);
-			}
-		}
-		//hit
-		if (this.mouse.left) {
-			this.player.hit();
-			if (this.player.gun.ready()) {
-				this.bullets.push(
-					new Bullet(
-						this.player.getCenterX(),
-						this.player.getCenterY(),
-						this.player.getAngle(),
-						this.player.gun.range
-					)
-				);
-			}
-			this.mouse.left = false;
-		}
-		*/
 		if (this.editor.isActive()) {
 			this.view.drawEditor(this.editor);
 		}
-		this.view.draw();
+		this.snapshotManager.createBetweenSnapshot();
+		this.view.drawGame(this.snapshotManager, this.playerId);
 	}
 }
