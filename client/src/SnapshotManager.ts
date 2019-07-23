@@ -4,6 +4,7 @@ import Player from './Player';
 import PlayerSnapshot from './PlayerSnapshot';
 import Zone from './Zone';
 import ZoneSnapshot from './ZoneSnapshot';
+import LootSnapshot from './LootSnapshot';
 
 export default class SnapshotManager {
 	private serverClientSync: ServerClientSync;
@@ -24,8 +25,6 @@ export default class SnapshotManager {
 
 	addSnapshot(snapshot: Snapshot): void {
 		if (this.snapshots.length === 0) this.numberOfPlayers = snapshot.p.length;
-		console.log(JSON.stringify(snapshot.z));
-		console.log('----------');
 		this.snapshots.push(snapshot);
 		if (this.snapshots.length > 1) {
 			this.completeSnapshot(this.snapshots[this.snapshots.length - 2], snapshot);
@@ -78,34 +77,78 @@ export default class SnapshotManager {
 	}
 
 	private completeSnapshot(previousSnapshot: Snapshot, lastSnapshot: Snapshot): void {
+		this.completePlayerSnapshots(previousSnapshot.p, lastSnapshot.p);
+		console.log('----------');
+		console.log(JSON.stringify(lastSnapshot.l));
+		this.completeLootSnapshots(previousSnapshot.l, lastSnapshot.l);
+		console.log(JSON.stringify(lastSnapshot.l));
+	}
+
+	private completeLootSnapshots(previousSnapshotLoots: LootSnapshot[], lastSnapshotLoots: LootSnapshot[]): void {
 		//copy missing values
-		for (const lastSnapshotPlayer of lastSnapshot.p) {
-			//const previousSnapshotPlayer = previousSnapshot.p[lastSnapshotPlayer.i];
+		for (const lastSnapshotLoot of lastSnapshotLoots) {
+			let previousSnapshotLoot;
+			for (const loot of previousSnapshotLoots) {
+				if (loot.i === lastSnapshotLoot.i) previousSnapshotLoot = loot;
+			}
+			if (previousSnapshotLoot) {
+				if (!lastSnapshotLoot.hasOwnProperty('size')) lastSnapshotLoot.size = previousSnapshotLoot.size;
+				if (!lastSnapshotLoot.hasOwnProperty('type')) lastSnapshotLoot.type = previousSnapshotLoot.type;
+				if (!lastSnapshotLoot.hasOwnProperty('x')) lastSnapshotLoot.x = previousSnapshotLoot.x;
+				if (!lastSnapshotLoot.hasOwnProperty('y')) lastSnapshotLoot.y = previousSnapshotLoot.y;
+			}
+		}
+		//find missing objects and copy previous values
+		const missingLoots = [];
+		for (const previous of previousSnapshotLoots) {
+			let lootExists = false;
+			for (const last of lastSnapshotLoots) {
+				if (previous.i === last.i) {
+					lootExists = true;
+					break;
+				}
+			}
+			if (!lootExists) {
+				missingLoots.push(previous);
+			}
+		}
+		for (const missingLoot of missingLoots) {
+			lastSnapshotLoots.push(missingLoot);
+		}
+	}
+
+	private completePlayerSnapshots(
+		previousSnapshotPlayers: PlayerSnapshot[],
+		lastSnapshotPlayers: PlayerSnapshot[]
+	): void {
+		//copy missing values
+		for (const lastSnapshotPlayer of lastSnapshotPlayers) {
 			let previousSnapshotPlayer;
-			for (const player of previousSnapshot.p) {
+			for (const player of previousSnapshotPlayers) {
 				if (player.i === lastSnapshotPlayer.i) previousSnapshotPlayer = player;
 			}
-
-			if (!lastSnapshotPlayer.hasOwnProperty('a')) lastSnapshotPlayer.a = previousSnapshotPlayer.a;
-			if (!lastSnapshotPlayer.hasOwnProperty('h')) {
-				lastSnapshotPlayer.h = [ { ...previousSnapshotPlayer.h[0] }, { ...previousSnapshotPlayer.h[1] } ];
+			if (previousSnapshotPlayer) {
+				if (!lastSnapshotPlayer.hasOwnProperty('a')) lastSnapshotPlayer.a = previousSnapshotPlayer.a;
+				if (!lastSnapshotPlayer.hasOwnProperty('h')) {
+					lastSnapshotPlayer.h = [ { ...previousSnapshotPlayer.h[0] }, { ...previousSnapshotPlayer.h[1] } ];
+				}
+				else {
+					lastSnapshotPlayer.h[0].size = previousSnapshotPlayer.h[0].size;
+					lastSnapshotPlayer.h[1].size = previousSnapshotPlayer.h[1].size;
+				}
+				if (!lastSnapshotPlayer.hasOwnProperty('m')) lastSnapshotPlayer.m = previousSnapshotPlayer.m;
+				if (!lastSnapshotPlayer.hasOwnProperty('size')) lastSnapshotPlayer.size = previousSnapshotPlayer.size;
+				if (!lastSnapshotPlayer.hasOwnProperty('w')) lastSnapshotPlayer.w = previousSnapshotPlayer.w;
+				if (!lastSnapshotPlayer.hasOwnProperty('x')) lastSnapshotPlayer.x = previousSnapshotPlayer.x;
+				if (!lastSnapshotPlayer.hasOwnProperty('y')) lastSnapshotPlayer.y = previousSnapshotPlayer.y;
 			}
-			else {
-				lastSnapshotPlayer.h[0].size = previousSnapshotPlayer.h[0].size;
-				lastSnapshotPlayer.h[1].size = previousSnapshotPlayer.h[1].size;
-			}
-			if (!lastSnapshotPlayer.hasOwnProperty('m')) lastSnapshotPlayer.m = previousSnapshotPlayer.m;
-			if (!lastSnapshotPlayer.hasOwnProperty('size')) lastSnapshotPlayer.size = previousSnapshotPlayer.size;
-			if (!lastSnapshotPlayer.hasOwnProperty('w')) lastSnapshotPlayer.w = previousSnapshotPlayer.w;
-			if (!lastSnapshotPlayer.hasOwnProperty('x')) lastSnapshotPlayer.x = previousSnapshotPlayer.x;
-			if (!lastSnapshotPlayer.hasOwnProperty('y')) lastSnapshotPlayer.y = previousSnapshotPlayer.y;
 		}
 
 		//find missing players and copy previous values
 		const missingPlayers = [];
 		for (let i = 0; i < this.numberOfPlayers; i++) {
 			let playerExists = false;
-			for (const player of lastSnapshot.p) {
+			for (const player of lastSnapshotPlayers) {
 				if (player.i === i) {
 					playerExists = true;
 					break;
@@ -116,10 +159,10 @@ export default class SnapshotManager {
 			}
 		}
 		for (const missingPlayerIndex of missingPlayers) {
-			lastSnapshot.p.push(previousSnapshot.p[missingPlayerIndex]);
+			lastSnapshotPlayers.push(previousSnapshotPlayers[missingPlayerIndex]);
 		}
 		//sort by id!
-		lastSnapshot.p.sort((a: PlayerSnapshot, b: PlayerSnapshot) => {
+		lastSnapshotPlayers.sort((a: PlayerSnapshot, b: PlayerSnapshot) => {
 			return a.i - b.i;
 		});
 	}
@@ -231,6 +274,27 @@ export default class SnapshotManager {
 							newerSnapshot.p[i].h[j].y,
 							percentShift
 						);
+					}
+				}
+
+				//loot
+				for (const loot of this.betweenSnapshots.l) {
+					let olderLoot, newerLoot;
+					for (const older of olderSnapshot.l) {
+						if (loot.i === older.i) {
+							olderLoot = older;
+							break;
+						}
+					}
+					for (const newer of newerSnapshot.l) {
+						if (loot.i === newer.i) {
+							newerLoot = newer;
+							break;
+						}
+					}
+					if (olderLoot && newerLoot) {
+						loot.x = this.positionBetweenSnapshots(olderLoot.x, newerLoot.x, percentShift);
+						loot.y = this.positionBetweenSnapshots(olderLoot.y, newerLoot.y, percentShift);
 					}
 				}
 

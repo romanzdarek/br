@@ -9,6 +9,7 @@ export default class Loot {
 	private x: number;
 	private y: number;
 	private active: boolean = true;
+	private direction: number = 1;
 
 	constructor(id: number, x: number, y: number, type: LootType) {
 		this.id = id;
@@ -29,17 +30,17 @@ export default class Loot {
 
 	isActive(): boolean {
 		return this.active;
-    }
-    
-    getX():number{
-        return this.x;
-    }
+	}
 
-    getY():number{
-        return this.y;
-    }
+	getX(): number {
+		return this.x;
+	}
 
-    getCenterX(): number {
+	getY(): number {
+		return this.y;
+	}
+
+	getCenterX(): number {
 		return this.x + this.radius;
 	}
 
@@ -47,4 +48,9 @@ export default class Loot {
 		return this.y + this.radius;
 	}
 
+	move(): void {
+		this.x += 5 * this.direction;
+		if (this.x > 1000) this.direction = -1;
+		if (this.x < 0) this.direction = 1;
+	}
 }

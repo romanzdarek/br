@@ -998,12 +998,9 @@ export default class View {
 		}
 
 		//loot
-		if (betweenSnapshots) {
-			for (let i = 0; i < betweenSnapshots.l.length; i++) {
-				const loot = betweenSnapshots.l[i];
-				const { x, y, size, isOnScreen } = this.howToDraw({ x: loot.x, y: loot.y, size: loot.size });
-				ctx.drawImage(this.rifleLootSVG, x, y, size, size);
-			}
+		for (const loot of betweenSnapshots.l) {
+			const { x, y, size, isOnScreen } = this.howToDraw(loot);
+			ctx.drawImage(this.rifleLootSVG, x, y, size, size);
 		}
 
 		//bushes
@@ -1079,8 +1076,6 @@ export default class View {
 		if (this.outerCircle.opacity > 0.6) this.outerCircle.opacityDirection = -1;
 		if (this.outerCircle.opacity < 0.2) this.outerCircle.opacityDirection = 1;
 		this.outerCircle.opacity += change * this.outerCircle.opacityDirection;
-
-		console.log(outerRadius, x, y);
 		el.zoneCircle.setAttribute('r', outerRadius.toString());
 		el.zoneCircle.setAttribute('cx', x.toString());
 		el.zoneCircle.setAttribute('cy', y.toString());

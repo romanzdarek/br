@@ -3,10 +3,10 @@ import Loot from './Loot';
 export default class LootSnapshot {
 	//id
 	readonly i: number;
-	readonly x: number;
-	readonly y: number;
-	readonly size: number;
-	readonly type: number;
+	x: number;
+	y: number;
+	size: number;
+	type: number;
 
 	constructor(loot: Loot) {
 		//1 = zero digit after the comma

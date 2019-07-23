@@ -30,7 +30,7 @@ export default class Game {
 	private zone: Zone;
 	private playerId: number = 0;
 	players: Player[] = [];
-	private lastSnapshot: Snapshot;
+	private previousSnapshot: Snapshot;
 	private bullets: Bullet[] = [];
 	private loots: Loot[] = [];
 	private smokeClouds: SmokeCloud[] = [];
@@ -248,6 +248,11 @@ export default class Game {
 		//zone move
 		this.zone.move();
 
+		//move loot
+		for (const loot of this.loots) {
+			loot.move();
+		}
+
 		//move granades
 		for (let i = this.granades.length - 1; i >= 0; i--) {
 			const granade = this.granades[i];
@@ -410,6 +415,11 @@ export default class Game {
 		for (const loot of this.loots) {
 			lootSnapshots.push(new LootSnapshot(loot));
 		}
+		//loots  snapshots copy for optimalization
+		const lootSnapshotsOptimalization: LootSnapshot[] = [];
+		for (const loot of this.loots) {
+			lootSnapshotsOptimalization.push(new LootSnapshot(loot));
+		}
 
 		//granades
 		const granadeSnapshots: ThrowingObjectSnapshot[] = [];
@@ -447,8 +457,8 @@ export default class Game {
 		//find same values and delete them
 		//players
 		for (const playerNow of playerSnapshotsOptimalization) {
-			if (this.lastSnapshot) {
-				for (const playerBefore of this.lastSnapshot.p) {
+			if (this.previousSnapshot) {
+				for (const playerBefore of this.previousSnapshot.p) {
 					if (playerNow.i === playerBefore.i) {
 						if (playerNow.x === playerBefore.x) delete playerNow.x;
 						if (playerNow.y === playerBefore.y) delete playerNow.y;
@@ -488,23 +498,48 @@ export default class Game {
 			}
 		}
 
-		//zone
-		
-		if (this.lastSnapshot) {
-			if (this.lastSnapshot.z.iR === zoneSnapshot.iR) delete zoneSnapshotOptimalization.iR;
-			if (this.lastSnapshot.z.iX === zoneSnapshot.iX) delete zoneSnapshotOptimalization.iX;
-			if (this.lastSnapshot.z.iY === zoneSnapshot.iY) delete zoneSnapshotOptimalization.iY;
-			if (this.lastSnapshot.z.oR === zoneSnapshot.oR) delete zoneSnapshotOptimalization.oR;
-			if (this.lastSnapshot.z.oX === zoneSnapshot.oX) delete zoneSnapshotOptimalization.oX;
-			if (this.lastSnapshot.z.oY === zoneSnapshot.oY) delete zoneSnapshotOptimalization.oY;
+		//loot optimalization
+		{
+			//find same values and delete them
+			for (const lootNow of lootSnapshotsOptimalization) {
+				if (this.previousSnapshot) {
+					for (const lootPrevious of this.previousSnapshot.l) {
+						if (lootNow.i === lootPrevious.i) {
+							if (lootNow.x === lootPrevious.x) delete lootNow.x;
+							if (lootNow.y === lootPrevious.y) delete lootNow.y;
+							if (lootNow.type === lootPrevious.type) delete lootNow.type;
+							if (lootNow.size === lootPrevious.size) delete lootNow.size;
+						}
+					}
+				}
+			}
+			//delete empty objects snapshots
+			for (let i = lootSnapshotsOptimalization.length - 1; i >= 0; i--) {
+				const loot = lootSnapshotsOptimalization[i];
+				if (
+					!loot.hasOwnProperty('x') &&
+					!loot.hasOwnProperty('y') &&
+					!loot.hasOwnProperty('size') &&
+					!loot.hasOwnProperty('type')
+				) {
+					lootSnapshotsOptimalization.splice(i, 1);
+				}
+			}
 		}
-		
+		//+++++++++++++++++++
 
-		console.log('----------');
-		console.log(JSON.stringify(zoneSnapshotOptimalization));
+		//zone
+		if (this.previousSnapshot) {
+			if (this.previousSnapshot.z.iR === zoneSnapshot.iR) delete zoneSnapshotOptimalization.iR;
+			if (this.previousSnapshot.z.iX === zoneSnapshot.iX) delete zoneSnapshotOptimalization.iX;
+			if (this.previousSnapshot.z.iY === zoneSnapshot.iY) delete zoneSnapshotOptimalization.iY;
+			if (this.previousSnapshot.z.oR === zoneSnapshot.oR) delete zoneSnapshotOptimalization.oR;
+			if (this.previousSnapshot.z.oX === zoneSnapshot.oX) delete zoneSnapshotOptimalization.oX;
+			if (this.previousSnapshot.z.oY === zoneSnapshot.oY) delete zoneSnapshotOptimalization.oY;
+		}
 
 		//save this snapshot
-		this.lastSnapshot = new Snapshot(
+		this.previousSnapshot = new Snapshot(
 			dateNow,
 			playerSnapshots,
 			bulletSnapshots,
@@ -525,7 +560,7 @@ export default class Game {
 					granadeSnapshots,
 					smokeCloudSnapshots,
 					zoneSnapshotOptimalization,
-					lootSnapshots
+					lootSnapshotsOptimalization
 				)
 			);
 		}
