@@ -79,7 +79,6 @@ export default class View {
 	private screenCenterX: number;
 	private screenCenterY: number;
 	private map: Map;
-	//private player: Player;
 	private bullets: Bullet[];
 	private mouse: Mouse;
 	private myPlayerCenterX: number = 0;
@@ -118,7 +117,6 @@ export default class View {
 		this.serverClientSync = serverClientSync;
 		this.myHtmlElements = myHtmlElements;
 		this.map = map;
-		//this.player = player;
 		this.collisionPoints = collisionPoints;
 		this.bullets = bullets;
 		this.mouse = mouse;
@@ -236,7 +234,6 @@ export default class View {
 		return new Point(x, y);
 	}
 
-	//
 	/*
 	private isPointInZone(serverPoint: Point, zoneSnapshot: ZoneSnapshot): boolean {
 		//triangle
@@ -306,6 +303,7 @@ export default class View {
 
 	private drawMap(): void {
 		const ctx = this.ctxMap;
+		const el = this.myHtmlElements;
 		//clear canvas
 		ctx.clearRect(0, 0, this.mapScreen.width, this.mapScreen.height);
 		//background
@@ -363,9 +361,9 @@ export default class View {
 					ctx.stroke();
 					*/
 					//SVG change
-					this.myHtmlElements.mapZoneCircle.setAttribute('r', radius.toString());
-					this.myHtmlElements.mapZoneCircle.setAttribute('cx', x.toString());
-					this.myHtmlElements.mapZoneCircle.setAttribute('cy', y.toString());
+					el.mapZoneCircle.setAttribute('r', radius.toString());
+					el.mapZoneCircle.setAttribute('cx', x.toString());
+					el.mapZoneCircle.setAttribute('cy', y.toString());
 				}
 			}
 		}
@@ -581,9 +579,10 @@ export default class View {
 		const betweenSnapshots = snapshotManager.betweenSnapshots;
 		const players = snapshotManager.players;
 		if (!betweenSnapshots) return;
-
-		this.drawMap();
 		const ctx = this.ctxGame;
+		const el = this.myHtmlElements;
+		this.drawMap();
+
 		//clear canvas
 		ctx.clearRect(0, 0, this.gameScreen.width, this.gameScreen.height);
 
@@ -592,74 +591,12 @@ export default class View {
 		ctx.fillRect(0, 0, this.gameScreen.width, this.gameScreen.height);
 
 		//center of my player
-		if (betweenSnapshots) {
-			for (const player of players) {
-				if (player.id === myPlayerId) {
-					this.myPlayerCenterX = player.getCenterX();
-					this.myPlayerCenterY = player.getCenterY();
-				}
+		for (const player of players) {
+			if (player.id === myPlayerId) {
+				this.myPlayerCenterX = player.getCenterX();
+				this.myPlayerCenterY = player.getCenterY();
 			}
-			//this.myPlayerCenterX = players[0].getCenterX();
-			//this.myPlayerCenterY = players[0].getCenterY();
 		}
-
-		//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-		/*
-		let percentShift = 0;
-		let sumaNewerSnapshots = 0;
-		let newerSnapshotMissing = false;
-		let newerSnapshot: Snapshot;
-		let olderSnapshot: Snapshot;
-
-		//get my player center
-		if (this.snapshots.length > 0 && this.serverClientSync.ready()) {
-			//sort - zatim nutne pro simulaci pingu...
-			this.snapshots.sort((a: Snapshot, b: Snapshot) => {
-				return a.t - b.t;
-			});
-			const wantedSnapshotTime = this.serverClientSync.getServerTime() - this.serverClientSync.getDrawDelay();
-			//find last older (or same <=) snapshot
-
-			for (const snapshot of this.snapshots) {
-				if (snapshot.t <= wantedSnapshotTime) olderSnapshot = snapshot;
-			}
-			//find first newer (or same >=) snapshot
-			for (const snapshot of this.snapshots) {
-				if (snapshot.t >= wantedSnapshotTime) {
-					if (!newerSnapshot) newerSnapshot = snapshot;
-					sumaNewerSnapshots++;
-				}
-			}
-
-			//if newerSnapshot is missing use older...
-			if (!newerSnapshot) {
-				newerSnapshotMissing = true;
-				newerSnapshot = olderSnapshot;
-				this.serverClientSync.reset();
-			}
-
-			//change draw delay
-			if (sumaNewerSnapshots > 3) this.serverClientSync.changeDrawDelay(-0.1);
-			if (sumaNewerSnapshots < 3) this.serverClientSync.changeDrawDelay(0.1);
-
-			//count my player position
-			if (newerSnapshot && olderSnapshot) {
-				const timeDistance = newerSnapshot.t - olderSnapshot.t;
-				const distanceOlderFromWantedTime = wantedSnapshotTime - olderSnapshot.t;
-				if (timeDistance) {
-					percentShift = distanceOlderFromWantedTime / timeDistance;
-				}
-				this.myPlayerCenterX =
-					this.positionBetweenSnapshots(olderSnapshot.p[0].x, newerSnapshot.p[0].x, percentShift) +
-					this.player.size / 2;
-				this.myPlayerCenterY =
-					this.positionBetweenSnapshots(olderSnapshot.p[0].y, newerSnapshot.p[0].y, percentShift) +
-					this.player.size / 2;
-			}
-			
-		}
-		*/
-		//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 		//grass blocks
 		ctx.fillStyle = this.colors.grass;
@@ -769,307 +706,294 @@ export default class View {
 			}
 		}
 
-		//players and bullets
+		//players
 		{
-			//1. urcime si cas pred nejakou dobou a budeme hledat snimky hry pred timto a za timto bodem
-			//2. nemuzeme se spolehnout jen na cas klienta a musime nejperve synchronizovat
-			//3. dopocitame stav mezi snimky
-			//4. vykreslime
-
-			//count positions
-			if (betweenSnapshots) {
-				//all players from server
-				for (const player of players) {
+			for (const player of players) {
+				//pistol
+				if (player.getWeapon() === Weapon.Pistol) {
+					//draw pistol
+					const gunSize = 200;
+					const gunX = player.getCenterX() - gunSize / 2;
+					const gunY = player.getCenterY() - gunSize / 2;
 					const { x, y, size, isOnScreen } = this.howToDraw({
-						x: player.getX(),
-						y: player.getY(),
-						size: player.size
-					});
-
-					//weapons block
-					{
-						//pistol
-						if (player.getWeapon() === Weapon.Pistol) {
-							//draw pistol
-							const gunSize = 200;
-							const gunX = player.getCenterX() - gunSize / 2;
-							const gunY = player.getCenterY() - gunSize / 2;
-							const { x, y, size, isOnScreen } = this.howToDraw({
-								x: gunX,
-								y: gunY,
-								size: gunSize
-							});
-							if (isOnScreen) {
-								let middleImage = size / 2;
-								ctx.save();
-								ctx.translate(x + middleImage, y + middleImage);
-								ctx.rotate(player.getAngle() * Math.PI / 180);
-								ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
-								ctx.restore();
-							}
-						}
-						//machineGun
-						if (player.getWeapon() === Weapon.Machinegun) {
-							const gunSize = 200;
-							const gunX = player.getCenterX() - gunSize / 2;
-							const gunY = player.getCenterY() - gunSize / 2;
-							const { x, y, size, isOnScreen } = this.howToDraw({
-								x: gunX,
-								y: gunY,
-								size: gunSize
-							});
-							if (isOnScreen) {
-								let middleImage = size / 2;
-								ctx.save();
-								ctx.translate(x + middleImage, y + middleImage);
-								ctx.rotate(player.getAngle() * Math.PI / 180);
-								ctx.drawImage(this.machinegunSVG, -middleImage, -middleImage, size, size);
-								ctx.restore();
-							}
-						}
-
-						//shotgun
-						if (player.getWeapon() === Weapon.Shotgun) {
-							const gunSize = 200;
-							const gunX = player.getCenterX() - gunSize / 2;
-							const gunY = player.getCenterY() - gunSize / 2;
-							const { x, y, size, isOnScreen } = this.howToDraw({
-								x: gunX,
-								y: gunY,
-								size: gunSize
-							});
-							if (isOnScreen) {
-								let middleImage = size / 2;
-								ctx.save();
-								ctx.translate(x + middleImage, y + middleImage);
-								ctx.rotate(player.getAngle() * Math.PI / 180);
-								ctx.drawImage(this.shotgunSVG, -middleImage, -middleImage, size, size);
-								ctx.restore();
-							}
-						}
-
-						//rifle
-						if (player.getWeapon() === Weapon.Rifle) {
-							const gunSize = 200;
-							const gunX = player.getCenterX() - gunSize / 2;
-							const gunY = player.getCenterY() - gunSize / 2;
-							const { x, y, size, isOnScreen } = this.howToDraw({
-								x: gunX,
-								y: gunY,
-								size: gunSize
-							});
-							if (isOnScreen) {
-								let middleImage = size / 2;
-								ctx.save();
-								ctx.translate(x + middleImage, y + middleImage);
-								ctx.rotate(player.getAngle() * Math.PI / 180);
-								ctx.drawImage(this.rifleSVG, -middleImage, -middleImage, size, size);
-								ctx.restore();
-							}
-						}
-						//hammer
-						if (player.getWeapon() === Weapon.Hammer) {
-							const gunSize = 200;
-							const gunX = player.getCenterX() - gunSize / 2;
-							const gunY = player.getCenterY() - gunSize / 2;
-							const { x, y, size, isOnScreen } = this.howToDraw({
-								x: gunX,
-								y: gunY,
-								size: gunSize
-							});
-							if (isOnScreen) {
-								let middleImage = size / 2;
-								ctx.save();
-								ctx.translate(x + middleImage, y + middleImage);
-								ctx.rotate(player.getHammerAngle() * Math.PI / 180);
-								ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
-								ctx.restore();
-
-								if (this.collisionPoints.isReady()) {
-									//hammer collisionPoints
-									ctx.fillStyle = this.colors.collisionPoint;
-									for (const point of this.collisionPoints.hammer[
-										Math.round(player.getHammerAngle())
-									]) {
-										const { x, y, size } = this.howToDraw({
-											x: player.getCenterX() - 100 + point.x,
-											y: player.getCenterY() - 100 + point.y,
-											size: 1
-										});
-										ctx.fillRect(x, y, size, size);
-									}
-								}
-							}
-						}
-
-						//player hands
-						if (
-							player.getWeapon() === Weapon.Hand ||
-							player.getWeapon() === Weapon.Granade ||
-							player.getWeapon() === Weapon.Smoke
-						) {
-							for (let i = 0; i < 2; i++) {
-								const { x, y, size, isOnScreen } = this.howToDraw({
-									x: player.hands[i].getX(),
-									y: player.hands[i].getY(),
-									size: player.hands[i].size
-								});
-								if (isOnScreen) {
-									ctx.drawImage(this.playerHandSVG, x, y, size, size);
-									//hand collisionPoints
-									ctx.fillStyle = this.colors.collisionPoint;
-									for (const point of this.collisionPoints.hand) {
-										const { x, y, size } = this.howToDraw({
-											x: player.hands[i].getCenterX() + point.x,
-											y: player.hands[i].getCenterY() + point.y,
-											size: 1
-										});
-										ctx.fillRect(x, y, size, size);
-									}
-
-									//granade || smoke
-									if (
-										(player.getWeapon() === Weapon.Granade ||
-											player.getWeapon() === Weapon.Smoke) &&
-										i === 1
-									) {
-										const granadeShiftAngle = 30;
-										const playerAngle = player.getAngle();
-										const shiftZ = player.hands[1].radius;
-										//triangle
-										const shiftX = Math.sin(playerAngle * Math.PI / 180) * shiftZ;
-										const shiftY = Math.cos(playerAngle * Math.PI / 180) * shiftZ;
-
-										const { x, y, size, isOnScreen } = this.howToDraw({
-											x: player.hands[i].getX() + shiftX,
-											y: player.hands[i].getY() - shiftY,
-											size: player.hands[i].size
-										});
-
-										if (isOnScreen) {
-											let middleImage = size / 2;
-											ctx.save();
-											ctx.translate(x + middleImage, y + middleImage);
-											ctx.rotate((playerAngle - granadeShiftAngle) * Math.PI / 180);
-											let SVG;
-											if (player.getWeapon() === Weapon.Granade) SVG = this.granadeSVG;
-
-											if (player.getWeapon() === Weapon.Smoke) SVG = this.smokeSVG;
-											ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
-											ctx.restore();
-										}
-									}
-								}
-							}
-						}
-					}
-
-					if (isOnScreen) {
-						//player body
-						ctx.drawImage(this.playerSVG, x, y, size, size);
-						//player collision points
-
-						ctx.fillStyle = this.colors.collisionPoint;
-						for (const point of this.collisionPoints.body) {
-							const { x, y, size } = this.howToDraw({
-								x: player.getCenterX() + point.x,
-								y: player.getCenterY() + point.y,
-								size: 1
-							});
-							ctx.fillRect(x, y, size, size);
-						}
-					}
-				}
-
-				//granades
-				for (const granade of betweenSnapshots.g) {
-					const granadeSize = 30 * granade.b;
-					const { x, y, size, isOnScreen } = this.howToDraw({
-						x: granade.x - granadeSize / 2,
-						y: granade.y - granadeSize / 2,
-						size: granadeSize
+						x: gunX,
+						y: gunY,
+						size: gunSize
 					});
 					if (isOnScreen) {
 						let middleImage = size / 2;
 						ctx.save();
 						ctx.translate(x + middleImage, y + middleImage);
-						ctx.rotate(granade.a * Math.PI / 180);
-						if (granade.t === 'g') {
-							ctx.drawImage(this.granadeSVG, -middleImage, -middleImage, size, size);
-						}
-						if (granade.t === 's') {
-							ctx.drawImage(this.smokeSVG, -middleImage, -middleImage, size, size);
-						}
+						ctx.rotate(player.getAngle() * Math.PI / 180);
+						ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
 						ctx.restore();
 					}
 				}
 
-				//bullets
-				ctx.fillStyle = this.colors.bullet;
-				for (const bullet of betweenSnapshots.b) {
+				//machinegun
+				if (player.getWeapon() === Weapon.Machinegun) {
+					const gunSize = 200;
+					const gunX = player.getCenterX() - gunSize / 2;
+					const gunY = player.getCenterY() - gunSize / 2;
 					const { x, y, size, isOnScreen } = this.howToDraw({
-						x: bullet.x,
-						y: bullet.y,
-						size: 1
+						x: gunX,
+						y: gunY,
+						size: gunSize
 					});
 					if (isOnScreen) {
-						ctx.fillRect(x, y, size, size);
+						let middleImage = size / 2;
+						ctx.save();
+						ctx.translate(x + middleImage, y + middleImage);
+						ctx.rotate(player.getAngle() * Math.PI / 180);
+						ctx.drawImage(this.machinegunSVG, -middleImage, -middleImage, size, size);
+						ctx.restore();
 					}
+				}
 
-					//////////////////  bullet lines
-					{
-						let thereIsLine = false;
-						//set end
-						for (const line of this.bulletLines) {
-							if (line.id === bullet.id) {
-								line.setEnd(bullet.x, bullet.y);
-								thereIsLine = true;
-								break;
+				//shotgun
+				if (player.getWeapon() === Weapon.Shotgun) {
+					const gunSize = 200;
+					const gunX = player.getCenterX() - gunSize / 2;
+					const gunY = player.getCenterY() - gunSize / 2;
+					const { x, y, size, isOnScreen } = this.howToDraw({
+						x: gunX,
+						y: gunY,
+						size: gunSize
+					});
+					if (isOnScreen) {
+						let middleImage = size / 2;
+						ctx.save();
+						ctx.translate(x + middleImage, y + middleImage);
+						ctx.rotate(player.getAngle() * Math.PI / 180);
+						ctx.drawImage(this.shotgunSVG, -middleImage, -middleImage, size, size);
+						ctx.restore();
+					}
+				}
+
+				//rifle
+				if (player.getWeapon() === Weapon.Rifle) {
+					const gunSize = 200;
+					const gunX = player.getCenterX() - gunSize / 2;
+					const gunY = player.getCenterY() - gunSize / 2;
+					const { x, y, size, isOnScreen } = this.howToDraw({
+						x: gunX,
+						y: gunY,
+						size: gunSize
+					});
+					if (isOnScreen) {
+						let middleImage = size / 2;
+						ctx.save();
+						ctx.translate(x + middleImage, y + middleImage);
+						ctx.rotate(player.getAngle() * Math.PI / 180);
+						ctx.drawImage(this.rifleSVG, -middleImage, -middleImage, size, size);
+						ctx.restore();
+					}
+				}
+
+				//hammer
+				if (player.getWeapon() === Weapon.Hammer) {
+					const gunSize = 200;
+					const gunX = player.getCenterX() - gunSize / 2;
+					const gunY = player.getCenterY() - gunSize / 2;
+					const { x, y, size, isOnScreen } = this.howToDraw({
+						x: gunX,
+						y: gunY,
+						size: gunSize
+					});
+					if (isOnScreen) {
+						let middleImage = size / 2;
+						ctx.save();
+						ctx.translate(x + middleImage, y + middleImage);
+						ctx.rotate(player.getHammerAngle() * Math.PI / 180);
+						ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
+						ctx.restore();
+
+						if (this.collisionPoints.isReady()) {
+							//collisionPoints
+							ctx.fillStyle = this.colors.collisionPoint;
+							for (const point of this.collisionPoints.hammer[player.getHammerAngle()]) {
+								const { x, y, size } = this.howToDraw({
+									x: player.getCenterX() - 100 + point.x,
+									y: player.getCenterY() - 100 + point.y,
+									size: 1
+								});
+								ctx.fillRect(x, y, size, size);
 							}
 						}
-						//create line
-						if (!thereIsLine) {
-							const newLine = new BulletLine(bullet.id, bullet.x, bullet.y);
-							this.bulletLines.push(newLine);
-						}
 					}
-					//////////////////  bullet lines
 				}
-				//draw bullet lines
-				for (const line of this.bulletLines) {
-					for (const partLine of line.parts) {
-						if (partLine.isActive()) {
-							//draw part
-							ctx.save();
-							ctx.globalAlpha = 0.7 - partLine.getAge() / 14.3;
-							ctx.beginPath();
-							const { x: startX, y: startY } = this.howToDraw({
-								x: partLine.startX,
-								y: partLine.startY,
-								size: 1
-							});
-							ctx.moveTo(startX, startY);
-							const { x: endX, y: endY } = this.howToDraw({
-								x: partLine.endX,
-								y: partLine.endY,
-								size: 1
-							});
-							ctx.lineTo(endX, endY);
-							ctx.lineWidth = 3 - partLine.getAge() / 3.33;
-							ctx.strokeStyle = 'white';
-							ctx.stroke();
-							ctx.restore();
 
-							partLine.increaseAge();
+				//player hands
+				if (
+					player.getWeapon() === Weapon.Hand ||
+					player.getWeapon() === Weapon.Granade ||
+					player.getWeapon() === Weapon.Smoke
+				) {
+					for (let i = 0; i < 2; i++) {
+						const { x, y, size, isOnScreen } = this.howToDraw({
+							x: player.hands[i].getX(),
+							y: player.hands[i].getY(),
+							size: player.hands[i].size
+						});
+						if (isOnScreen) {
+							ctx.drawImage(this.playerHandSVG, x, y, size, size);
+							//hand collisionPoints
+							ctx.fillStyle = this.colors.collisionPoint;
+							for (const point of this.collisionPoints.hand) {
+								const { x, y, size } = this.howToDraw({
+									x: player.hands[i].getCenterX() + point.x,
+									y: player.hands[i].getCenterY() + point.y,
+									size: 1
+								});
+								ctx.fillRect(x, y, size, size);
+							}
+
+							//granade || smoke in hand
+							if (
+								(player.getWeapon() === Weapon.Granade || player.getWeapon() === Weapon.Smoke) &&
+								i === 1
+							) {
+								const granadeShiftAngle = 30;
+								const playerAngle = player.getAngle();
+								const shiftZ = player.hands[1].radius;
+								//triangle
+								const shiftX = Math.sin(playerAngle * Math.PI / 180) * shiftZ;
+								const shiftY = Math.cos(playerAngle * Math.PI / 180) * shiftZ;
+
+								const { x, y, size, isOnScreen } = this.howToDraw({
+									x: player.hands[i].getX() + shiftX,
+									y: player.hands[i].getY() - shiftY,
+									size: player.hands[i].size
+								});
+
+								if (isOnScreen) {
+									let middleImage = size / 2;
+									ctx.save();
+									ctx.translate(x + middleImage, y + middleImage);
+									ctx.rotate((playerAngle - granadeShiftAngle) * Math.PI / 180);
+									let SVG;
+									if (player.getWeapon() === Weapon.Granade) SVG = this.granadeSVG;
+
+									if (player.getWeapon() === Weapon.Smoke) SVG = this.smokeSVG;
+									ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
+									ctx.restore();
+								}
+							}
 						}
 					}
 				}
-				//delete lines
-				for (let i = this.bulletLines.length - 1; i >= 0; i--) {
-					if (!this.bulletLines[i].isActive()) {
-						this.bulletLines.splice(i, 1);
+
+				//player body
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: player.getX(),
+					y: player.getY(),
+					size: player.size
+				});
+				if (isOnScreen) {
+					ctx.drawImage(this.playerSVG, x, y, size, size);
+					//collisionPoints
+					ctx.fillStyle = this.colors.collisionPoint;
+					for (const point of this.collisionPoints.body) {
+						const { x, y, size } = this.howToDraw({
+							x: player.getCenterX() + point.x,
+							y: player.getCenterY() + point.y,
+							size: 1
+						});
+						ctx.fillRect(x, y, size, size);
 					}
 				}
+			}
+		}
+
+		//granades
+		for (const granade of betweenSnapshots.g) {
+			const granadeSize = 30 * granade.b;
+			const { x, y, size, isOnScreen } = this.howToDraw({
+				x: granade.x - granadeSize / 2,
+				y: granade.y - granadeSize / 2,
+				size: granadeSize
+			});
+			if (isOnScreen) {
+				let middleImage = size / 2;
+				ctx.save();
+				ctx.translate(x + middleImage, y + middleImage);
+				ctx.rotate(granade.a * Math.PI / 180);
+				if (granade.t === 'g') {
+					ctx.drawImage(this.granadeSVG, -middleImage, -middleImage, size, size);
+				}
+				if (granade.t === 's') {
+					ctx.drawImage(this.smokeSVG, -middleImage, -middleImage, size, size);
+				}
+				ctx.restore();
+			}
+		}
+
+		//bullets
+		ctx.fillStyle = this.colors.bullet;
+		for (const bullet of betweenSnapshots.b) {
+			/*
+			//bullet point
+			const { x, y, size, isOnScreen } = this.howToDraw({
+				x: bullet.x,
+				y: bullet.y,
+				size: 1
+			});
+			if (isOnScreen) {
+				ctx.fillRect(x, y, size, size);
+			}
+			*/
+
+			//////////////////  bullet lines
+			{
+				let thereIsLine = false;
+				//set end
+				for (const line of this.bulletLines) {
+					if (line.id === bullet.id) {
+						line.setEnd(bullet.x, bullet.y);
+						thereIsLine = true;
+						break;
+					}
+				}
+				//create line
+				if (!thereIsLine) {
+					const newLine = new BulletLine(bullet.id, bullet.x, bullet.y);
+					this.bulletLines.push(newLine);
+				}
+			}
+			//////////////////  bullet lines
+		}
+		//draw bullet lines
+		for (const line of this.bulletLines) {
+			for (const partLine of line.parts) {
+				if (partLine.isActive()) {
+					//draw part
+					ctx.save();
+					ctx.globalAlpha = 0.7 - partLine.getAge() / 14.3;
+					ctx.beginPath();
+					const { x: startX, y: startY } = this.howToDraw({
+						x: partLine.startX,
+						y: partLine.startY,
+						size: 1
+					});
+					ctx.moveTo(startX, startY);
+					const { x: endX, y: endY } = this.howToDraw({
+						x: partLine.endX,
+						y: partLine.endY,
+						size: 1
+					});
+					ctx.lineTo(endX, endY);
+					ctx.lineWidth = 3 - partLine.getAge() / 3.33;
+					ctx.strokeStyle = 'white';
+					ctx.stroke();
+					ctx.restore();
+					partLine.increaseAge();
+				}
+			}
+		}
+		//delete bullet lines
+		for (let i = this.bulletLines.length - 1; i >= 0; i--) {
+			if (!this.bulletLines[i].isActive()) {
+				this.bulletLines.splice(i, 1);
 			}
 		}
 
@@ -1109,122 +1033,102 @@ export default class View {
 		}
 
 		//smokes
-		if (betweenSnapshots) {
-			for (const smoke of betweenSnapshots.s) {
-				const { x, y, size, isOnScreen } = this.howToDraw({
-					x: smoke.x - smoke.s / 2,
-					y: smoke.y - smoke.s / 2,
-					size: smoke.s
-				});
-				if (isOnScreen) {
-					ctx.save();
-					ctx.globalAlpha = smoke.o;
-					ctx.drawImage(this.smokeCloudSVG, x, y, size, size);
-					ctx.restore();
-				}
+		for (const smoke of betweenSnapshots.s) {
+			const { x, y, size, isOnScreen } = this.howToDraw({
+				x: smoke.x - smoke.s / 2,
+				y: smoke.y - smoke.s / 2,
+				size: smoke.s
+			});
+			if (isOnScreen) {
+				ctx.save();
+				ctx.globalAlpha = smoke.o;
+				ctx.drawImage(this.smokeCloudSVG, x, y, size, size);
+				ctx.restore();
 			}
 		}
 
 		//zone
-		if (betweenSnapshots) {
-			//outer circle
-			this.outerCircle.x = betweenSnapshots.z.oX;
-			this.outerCircle.y = betweenSnapshots.z.oY;
-			this.outerCircle.radius = betweenSnapshots.z.oR;
-
-			const { x, y } = this.howToDraw({
-				x: this.outerCircle.x,
-				y: this.outerCircle.y,
-				size: 1
-			});
-
-			const outerRadius = this.outerCircle.radius * this.resolutionAdjustment;
-
-			/*
-			ctx.beginPath();
-			ctx.arc(x, y, outerRadius, 0, 2 * Math.PI);
-			ctx.strokeStyle = 'red';
-			ctx.stroke();
-			*/
-
-			//SVG change
-			let change = 0.003;
-			if (this.outerCircle.opacity > 0.6) this.outerCircle.opacityDirection = -1;
-			if (this.outerCircle.opacity < 0.2) this.outerCircle.opacityDirection = 1;
-			this.outerCircle.opacity += change * this.outerCircle.opacityDirection;
-
-			this.myHtmlElements.zoneCircle.setAttribute('r', outerRadius.toString());
-			this.myHtmlElements.zoneCircle.setAttribute('cx', x.toString());
-			this.myHtmlElements.zoneCircle.setAttribute('cy', y.toString());
-			document.getElementById('zoneRect').setAttribute('opacity', this.outerCircle.opacity.toString());
-
-			{
-				//inner circle
-				this.innerCircle.x = betweenSnapshots.z.iX;
-				this.innerCircle.y = betweenSnapshots.z.iY;
-				this.innerCircle.radius = betweenSnapshots.z.iR;
-				/*
-				const { x, y } = this.howToDraw({
-					x: newerSnapshot.z.iX,
-					y: newerSnapshot.z.iY,
-					size: 1
-				});
-				const innerRadius = newerSnapshot.z.iR * this.resolutionAdjustment;
-				ctx.beginPath();
-				ctx.arc(x, y, innerRadius, 0, 2 * Math.PI);
-				ctx.strokeStyle = 'green';
-				ctx.stroke();
-				*/
-			}
-		}
-
-		//loading
+		//outer circle
 		/*
-		const { time, max } = this.player.loading();
-		if (time < max) {
-			const maxViewLoadingSteps = 360;
-			const passedViewLoadingSteps = maxViewLoadingSteps / (max / time);
-			const loadingSVGSize = 100 * this.resolutionAdjustment;
-			const middleImage = loadingSVGSize / 2;
-			const x = this.screenCenterX - middleImage;
-			const y = this.screenCenterY - middleImage - 150 * this.resolutionAdjustment;
-			const timeToEnd = Math.round((max - time) / 60 * 10) / 10;
-			//background
-			ctx.save();
-			ctx.globalAlpha = 0.2;
-			ctx.drawImage(this.loadingCircleSVG, x, y, loadingSVGSize, loadingSVGSize);
+		this.outerCircle.x = betweenSnapshots.z.oX;
+		this.outerCircle.y = betweenSnapshots.z.oY;
+		this.outerCircle.radius = betweenSnapshots.z.oR;
+		*/
+		this.outerCircle.x = snapshotManager.zone.outerCircle.getCenterX();
+		this.outerCircle.y = snapshotManager.zone.outerCircle.getCenterY();
+		this.outerCircle.radius = snapshotManager.zone.outerCircle.getRadius();
 
-			ctx.restore();
-			for (let i = 0; i < passedViewLoadingSteps; i += 10) {
-				ctx.save();
-				ctx.translate(x + middleImage, y + middleImage);
-				ctx.rotate(i * Math.PI / 180);
-				ctx.drawImage(this.loadingProgresSVG, -middleImage, -middleImage, loadingSVGSize, loadingSVGSize);
-				ctx.restore();
-			}
-			const fontSize = Math.floor(31 * this.resolutionAdjustment);
-			ctx.font = fontSize + 'px Arial';
-			ctx.fillStyle = this.colors.text;
-			ctx.fillText(timeToEnd.toString(), x + 28 * this.resolutionAdjustment, y + 59 * this.resolutionAdjustment);
-		}
+		const { x, y } = this.howToDraw({
+			x: this.outerCircle.x,
+			y: this.outerCircle.y,
+			size: 1
+		});
+
+		const outerRadius = this.outerCircle.radius * this.resolutionAdjustment;
+
+		/*
+		//circle
+		ctx.beginPath();
+		ctx.arc(x, y, outerRadius, 0, 2 * Math.PI);
+		ctx.strokeStyle = 'red';
+		ctx.stroke();
 		*/
 
-		//info
-		ctx.font = '20px Arial';
-		ctx.fillStyle = this.colors.text;
-		const x = 15;
-		let row = 30;
-		let rowMultiple = 0;
-		//ctx.fillText('snapshots: ' + this.snapshots.length, x, row * ++rowMultiple);
-		ctx.fillText('newerSnapshots: ' + snapshotManager.sumaNewer, x, row * ++rowMultiple);
-		ctx.fillText('ping: ' + this.serverClientSync.getPing(), x, row * ++rowMultiple);
-		ctx.fillText('timeDiference: ' + this.serverClientSync.getTimeDiference(), x, row * ++rowMultiple);
-		ctx.fillText('drawDelay: ' + this.serverClientSync.getDrawDelay(), x, row * ++rowMultiple);
-		if (!snapshotManager.olderExists) {
-			ctx.fillText('olderSnapshot missing', x, row * ++rowMultiple);
+		//SVG change opacity
+		let change = 0.003;
+		if (this.outerCircle.opacity > 0.6) this.outerCircle.opacityDirection = -1;
+		if (this.outerCircle.opacity < 0.2) this.outerCircle.opacityDirection = 1;
+		this.outerCircle.opacity += change * this.outerCircle.opacityDirection;
+
+		console.log(outerRadius, x, y);
+		el.zoneCircle.setAttribute('r', outerRadius.toString());
+		el.zoneCircle.setAttribute('cx', x.toString());
+		el.zoneCircle.setAttribute('cy', y.toString());
+		el.zoneRect.setAttribute('opacity', this.outerCircle.opacity.toString());
+
+		{
+			//inner circle
+			/*
+			this.innerCircle.x = betweenSnapshots.z.iX;
+			this.innerCircle.y = betweenSnapshots.z.iY;
+			this.innerCircle.radius = betweenSnapshots.z.iR;
+			*/
+			this.innerCircle.x = snapshotManager.zone.innerCircle.getCenterX();
+			this.innerCircle.y = snapshotManager.zone.innerCircle.getCenterY();
+			this.innerCircle.radius = snapshotManager.zone.innerCircle.getRadius();
+
+			/*
+			const { x, y } = this.howToDraw({
+				x: newerSnapshot.z.iX,
+				y: newerSnapshot.z.iY,
+				size: 1
+			});
+			const innerRadius = newerSnapshot.z.iR * this.resolutionAdjustment;
+			ctx.beginPath();
+			ctx.arc(x, y, innerRadius, 0, 2 * Math.PI);
+			ctx.strokeStyle = 'green';
+			ctx.stroke();
+			*/
 		}
-		if (!snapshotManager.newerExists) {
-			ctx.fillText('newerSnapshot missing', x, row * ++rowMultiple);
+
+		//info
+		{
+			ctx.font = '20px Arial';
+			ctx.fillStyle = this.colors.text;
+			const x = 15;
+			let row = 30;
+			let rowMultiple = 0;
+			//ctx.fillText('snapshots: ' + this.snapshots.length, x, row * ++rowMultiple);
+			ctx.fillText('newerSnapshots: ' + snapshotManager.sumaNewer, x, row * ++rowMultiple);
+			ctx.fillText('ping: ' + this.serverClientSync.getPing(), x, row * ++rowMultiple);
+			ctx.fillText('timeDiference: ' + this.serverClientSync.getTimeDiference(), x, row * ++rowMultiple);
+			ctx.fillText('drawDelay: ' + this.serverClientSync.getDrawDelay(), x, row * ++rowMultiple);
+			if (!snapshotManager.olderExists) {
+				ctx.fillText('olderSnapshot missing', x, row * ++rowMultiple);
+			}
+			if (!snapshotManager.newerExists) {
+				ctx.fillText('newerSnapshot missing', x, row * ++rowMultiple);
+			}
 		}
 
 		//cursor

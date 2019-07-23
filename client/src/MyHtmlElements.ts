@@ -4,6 +4,7 @@ export default class MyHtmlElements {
 	readonly helperScreen: HTMLElement;
 	readonly zoneSVG: HTMLElement;
 	readonly zoneCircle: HTMLElement;
+	readonly zoneRect: HTMLElement;
 	readonly mapZoneSVG: HTMLElement;
 	readonly mapZoneCircle: HTMLElement;
 
@@ -190,6 +191,7 @@ export default class MyHtmlElements {
 		this.helperScreen = document.getElementById('helperScreen');
 		this.zoneSVG = document.getElementById('zoneSVG');
 		this.zoneCircle = document.getElementById('zoneCircle');
+		this.zoneRect = document.getElementById('zoneRect');
 		this.mapZoneSVG = document.getElementById('mapZoneSVG');
 		this.mapZoneCircle = document.getElementById('mapZoneCircle');
 	}

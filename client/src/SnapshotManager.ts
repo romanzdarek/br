@@ -2,12 +2,15 @@ import { Snapshot } from './Snapshot';
 import ServerClientSync from './ServerClientSync';
 import Player from './Player';
 import PlayerSnapshot from './PlayerSnapshot';
+import Zone from './Zone';
+import ZoneSnapshot from './ZoneSnapshot';
 
 export default class SnapshotManager {
 	private serverClientSync: ServerClientSync;
 	private snapshots: Snapshot[] = [];
 	betweenSnapshots: Snapshot | null;
 	players: Player[] = [];
+	zone: Zone;
 	private numberOfPlayers: number;
 
 	newerExists: boolean = false;
@@ -16,20 +19,61 @@ export default class SnapshotManager {
 
 	constructor(serverClientSync: ServerClientSync) {
 		this.serverClientSync = serverClientSync;
+		this.zone = new Zone();
 	}
 
 	addSnapshot(snapshot: Snapshot): void {
 		if (this.snapshots.length === 0) this.numberOfPlayers = snapshot.p.length;
-		console.log(JSON.stringify(snapshot.p));
+		console.log(JSON.stringify(snapshot.z));
 		console.log('----------');
 		this.snapshots.push(snapshot);
 		if (this.snapshots.length > 1) {
 			this.completeSnapshot(this.snapshots[this.snapshots.length - 2], snapshot);
 		}
 
+		//update zone
+		this.updateZone(snapshot);
+
 		//delete old snapshots
 		if (this.snapshots.length > 50) {
 			this.snapshots.splice(0, 1);
+		}
+	}
+
+	private updateZone(snapshot: Snapshot): void {
+		const zoneSnapshot = snapshot.z;
+		const updateTime = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
+		//inner
+		if (zoneSnapshot.hasOwnProperty('iR')) {
+			setTimeout(() => {
+				this.zone.innerCircle.setRadius(zoneSnapshot.iR);
+			}, updateTime);
+		}
+		if (zoneSnapshot.hasOwnProperty('iX')) {
+			setTimeout(() => {
+				this.zone.innerCircle.setCenterX(zoneSnapshot.iX);
+			}, updateTime);
+		}
+		if (zoneSnapshot.hasOwnProperty('iY')) {
+			setTimeout(() => {
+				this.zone.innerCircle.setCenterY(zoneSnapshot.iY);
+			}, updateTime);
+		}
+		//outer
+		if (zoneSnapshot.hasOwnProperty('oR')) {
+			setTimeout(() => {
+				this.zone.outerCircle.setRadius(zoneSnapshot.oR);
+			}, updateTime);
+		}
+		if (zoneSnapshot.hasOwnProperty('oX')) {
+			setTimeout(() => {
+				this.zone.outerCircle.setCenterX(zoneSnapshot.oX);
+			}, updateTime);
+		}
+		if (zoneSnapshot.hasOwnProperty('oY')) {
+			setTimeout(() => {
+				this.zone.outerCircle.setCenterY(zoneSnapshot.oY);
+			}, updateTime);
 		}
 	}
 
@@ -74,7 +118,6 @@ export default class SnapshotManager {
 		for (const missingPlayerIndex of missingPlayers) {
 			lastSnapshot.p.push(previousSnapshot.p[missingPlayerIndex]);
 		}
-
 		//sort by id!
 		lastSnapshot.p.sort((a: PlayerSnapshot, b: PlayerSnapshot) => {
 			return a.i - b.i;
@@ -170,26 +213,9 @@ export default class SnapshotManager {
 				//players
 				for (let i = 0; i < this.betweenSnapshots.p.length; i++) {
 					const player = this.betweenSnapshots.p[i];
-					{
-						{
-							{
-								if (!olderSnapshot.p[i]) {
-									console.log(i, olderSnapshot.p);
-									debugger;
-								}
-								player.x = this.positionBetweenSnapshots(
-									olderSnapshot.p[i].x,
-									newerSnapshot.p[i].x,
-									percentShift
-								);
-								player.y = this.positionBetweenSnapshots(
-									olderSnapshot.p[i].y,
-									newerSnapshot.p[i].y,
-									percentShift
-								);
-							}
-						}
-					}
+
+					player.x = this.positionBetweenSnapshots(olderSnapshot.p[i].x, newerSnapshot.p[i].x, percentShift);
+					player.y = this.positionBetweenSnapshots(olderSnapshot.p[i].y, newerSnapshot.p[i].y, percentShift);
 
 					//hands
 
@@ -207,7 +233,9 @@ export default class SnapshotManager {
 						);
 					}
 				}
+
 				//zone
+				/*
 				this.betweenSnapshots.z.oR = this.positionBetweenSnapshots(
 					olderSnapshot.z.oR,
 					newerSnapshot.z.oR,
@@ -222,7 +250,8 @@ export default class SnapshotManager {
 					olderSnapshot.z.oY,
 					newerSnapshot.z.oY,
 					percentShift
-				);
+                );
+                */
 			}
 		}
 		this.updatePlayers();

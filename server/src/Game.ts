@@ -22,6 +22,7 @@ import MapData from './Mapdata';
 import Loot from './Loot';
 import { LootType } from './LootType';
 import LootSnapshot from './LootSnapshot';
+import Snapshot from './Snapshot';
 
 export default class Game {
 	private map: Map;
@@ -29,7 +30,7 @@ export default class Game {
 	private zone: Zone;
 	private playerId: number = 0;
 	players: Player[] = [];
-	private lastPlayerSnapshots: PlayerSnapshot[] = [];
+	private lastSnapshot: Snapshot;
 	private bullets: Bullet[] = [];
 	private loots: Loot[] = [];
 	private smokeClouds: SmokeCloud[] = [];
@@ -430,6 +431,7 @@ export default class Game {
 
 		//zone
 		const zoneSnapshot = new ZoneSnapshot(this.zone);
+		const zoneSnapshotOptimalization = new ZoneSnapshot(this.zone);
 
 		//players snapshots
 		const playerSnapshots: PlayerSnapshot[] = [];
@@ -443,32 +445,33 @@ export default class Game {
 		}
 
 		//find same values and delete them
+		//players
 		for (const playerNow of playerSnapshotsOptimalization) {
-			for (const playerBefore of this.lastPlayerSnapshots) {
-				if (playerNow.i === playerBefore.i) {
-					if (playerNow.x === playerBefore.x) delete playerNow.x;
-					if (playerNow.y === playerBefore.y) delete playerNow.y;
-					if (playerNow.a === playerBefore.a) delete playerNow.a;
-					if (playerNow.m === playerBefore.m) delete playerNow.m;
-					if (playerNow.w === playerBefore.w) delete playerNow.w;
-					if (playerNow.size === playerBefore.size) delete playerNow.size;
-					if (playerNow.h[0].size === playerBefore.h[0].size) {
-						delete playerNow.h[0].size;
-						delete playerNow.h[1].size;
-					}
-					if (
-						playerNow.h[0].x === playerBefore.h[0].x &&
-						playerNow.h[0].y === playerBefore.h[0].y &&
-						playerNow.h[1].x === playerBefore.h[1].x &&
-						playerNow.h[1].y === playerBefore.h[1].y
-					) {
-						delete playerNow.h;
+			if (this.lastSnapshot) {
+				for (const playerBefore of this.lastSnapshot.p) {
+					if (playerNow.i === playerBefore.i) {
+						if (playerNow.x === playerBefore.x) delete playerNow.x;
+						if (playerNow.y === playerBefore.y) delete playerNow.y;
+						if (playerNow.a === playerBefore.a) delete playerNow.a;
+						if (playerNow.m === playerBefore.m) delete playerNow.m;
+						if (playerNow.w === playerBefore.w) delete playerNow.w;
+						if (playerNow.size === playerBefore.size) delete playerNow.size;
+						if (playerNow.h[0].size === playerBefore.h[0].size) {
+							delete playerNow.h[0].size;
+							delete playerNow.h[1].size;
+						}
+						if (
+							playerNow.h[0].x === playerBefore.h[0].x &&
+							playerNow.h[0].y === playerBefore.h[0].y &&
+							playerNow.h[1].x === playerBefore.h[1].x &&
+							playerNow.h[1].y === playerBefore.h[1].y
+						) {
+							delete playerNow.h;
+						}
 					}
 				}
 			}
 		}
-		this.lastPlayerSnapshots = playerSnapshots;
-
 		//delete empty players snapshots
 		for (let i = playerSnapshotsOptimalization.length - 1; i >= 0; i--) {
 			const player = playerSnapshotsOptimalization[i];
@@ -485,20 +488,46 @@ export default class Game {
 			}
 		}
 
+		//zone
+		
+		if (this.lastSnapshot) {
+			if (this.lastSnapshot.z.iR === zoneSnapshot.iR) delete zoneSnapshotOptimalization.iR;
+			if (this.lastSnapshot.z.iX === zoneSnapshot.iX) delete zoneSnapshotOptimalization.iX;
+			if (this.lastSnapshot.z.iY === zoneSnapshot.iY) delete zoneSnapshotOptimalization.iY;
+			if (this.lastSnapshot.z.oR === zoneSnapshot.oR) delete zoneSnapshotOptimalization.oR;
+			if (this.lastSnapshot.z.oX === zoneSnapshot.oX) delete zoneSnapshotOptimalization.oX;
+			if (this.lastSnapshot.z.oY === zoneSnapshot.oY) delete zoneSnapshotOptimalization.oY;
+		}
+		
+
 		console.log('----------');
-		console.log(JSON.stringify(playerSnapshotsOptimalization));
+		console.log(JSON.stringify(zoneSnapshotOptimalization));
+
+		//save this snapshot
+		this.lastSnapshot = new Snapshot(
+			dateNow,
+			playerSnapshots,
+			bulletSnapshots,
+			granadeSnapshots,
+			smokeCloudSnapshots,
+			zoneSnapshot,
+			lootSnapshots
+		);
 
 		//emit
 		for (const player of this.players) {
-			player.socket.emit('u', {
-				t: dateNow,
-				p: playerSnapshotsOptimalization,
-				b: bulletSnapshots,
-				g: granadeSnapshots,
-				s: smokeCloudSnapshots,
-				z: zoneSnapshot,
-				l: lootSnapshots
-			});
+			player.socket.emit(
+				'u',
+				new Snapshot(
+					dateNow,
+					playerSnapshotsOptimalization,
+					bulletSnapshots,
+					granadeSnapshots,
+					smokeCloudSnapshots,
+					zoneSnapshotOptimalization,
+					lootSnapshots
+				)
+			);
 		}
 
 		//map objects
