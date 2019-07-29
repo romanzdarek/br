@@ -169,12 +169,12 @@ export default class Controller {
 				console.log('Error: m (controll player)');
 			});
 
-			//change
+			//change item
 			socket.on('i', (game: number, inventoryIndex: number) => {
 				if (this.model.games[game] && inventoryIndex > -1) {
 					for (const player of this.model.games[game].players) {
 						if (player.socket === socket) {
-							player.changeWeapon(inventoryIndex);
+							player.inventory.changeActiveItem(inventoryIndex);
 							return;
 						}
 					}

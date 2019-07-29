@@ -13,6 +13,10 @@ import { TerrainType } from './Terrain';
 import { Weapon } from './Weapon';
 import * as SocketIO from 'socket.io';
 import CollisionPoints from './CollisionPoints';
+import LootItem from './LootItem';
+import Inventory from './Inventory';
+import Loot from './Loot';
+import Gun from './Gun';
 
 type Loading = {
 	time: number;
@@ -30,13 +34,15 @@ export class Player {
 	private y: number = 0;
 	private angle: number = 0;
 	private map: Map;
+	private loot: Loot;
 	private players: Player[];
 	hands: Hand[] = [];
+	inventory: Inventory;
 	pistol: Pistol;
 	machinegun: Machinegun;
 	shotgun: Shotgun;
 	rifle: Rifle;
-	hammer: Hammer;
+
 	private slowAroundObstacle: boolean = false;
 	private goAroundObstacleCalls: number = 0;
 	private goAroundObstacleMaxCalls: number = 10;
@@ -61,7 +67,9 @@ export class Player {
 		up: false,
 		down: false,
 		left: false,
-		right: false
+		right: false,
+		action: false,
+		reload: false
 	};
 
 	mouseControll = {
@@ -78,7 +86,8 @@ export class Player {
 		socket: SocketIO.Socket,
 		map: Map,
 		collisionPoints: CollisionPoints,
-		players: Player[]
+		players: Player[],
+		loot: Loot
 	) {
 		this.id = id;
 		this.activeWeapon = Weapon.Hand;
@@ -86,21 +95,22 @@ export class Player {
 		this.name = name;
 		this.players = players;
 		this.map = map;
+		this.loot = loot;
 		this.collisionPoints = collisionPoints;
 		this.hands.push(new Hand(this, players, map, collisionPoints));
 		this.hands.push(new Hand(this, players, map, collisionPoints));
-		this.pistol = new Pistol(Player.radius);
-		this.machinegun = new Machinegun(Player.radius);
-		this.shotgun = new Shotgun(Player.radius);
-		this.rifle = new Rifle(Player.radius);
-		this.hammer = new Hammer(this, players, map, collisionPoints);
+
+		const hammer = new Hammer(this, players, map, collisionPoints);
+		this.inventory = new Inventory(this, loot, hammer);
 	}
 
+	/*
 	changeWeapon(inventoryIndex: number): void {
 		if (inventoryIndex >= 0 && inventoryIndex < this.weaponInventory.length) {
 			this.activeWeapon = this.weaponInventory[inventoryIndex];
 		}
 	}
+	*/
 
 	isPointIn(point: Point): boolean {
 		//triangle
@@ -139,6 +149,12 @@ export class Player {
 				break;
 			case 'r':
 				this.controll.right = true;
+				break;
+			case 'e':
+				this.controll.action = true;
+				break;
+			case 're':
+				this.controll.reload = true;
 				break;
 			case '-u':
 				this.controll.up = false;
@@ -229,8 +245,27 @@ export class Player {
 	throw(): void {
 		if (this.hands[1].throwReady()) {
 			this.hands[1].throw();
+			this.inventory.throwNade();
 		}
 		this.mouseControll.left = false;
+	}
+
+	private takeLoot(): void {
+		if (!this.controll.action) return;
+		for (const loot of this.loot.lootItems) {
+			if (!loot.isActive()) continue;
+			const x = this.getCenterX() - loot.getCenterX();
+			const y = this.getCenterY() - loot.getCenterY();
+			const distance = Math.sqrt(x * x + y * y);
+			const lootAndPlayerRadius = Player.radius + loot.radius;
+			if (distance < lootAndPlayerRadius) {
+				loot.take();
+				this.inventory.take(loot);
+				this.controll.action = false;
+				return;
+			}
+		}
+		this.controll.action = false;
 	}
 
 	move(): void {
@@ -293,8 +328,22 @@ export class Player {
 			this.shiftOnPosition(shiftX, shiftY);
 		}
 
-		this.changeHandsPosition();
-		if (this.activeWeapon === Weapon.Hammer) this.hammer.move();
+		this.takeLoot();
+		if (
+			this.inventory.activeItem === Weapon.Hand ||
+			this.inventory.activeItem === Weapon.Granade ||
+			this.inventory.activeItem === Weapon.Smoke
+		) {
+			this.changeHandsPosition();
+		}
+		if (this.inventory.activeItem === Weapon.Hammer) this.inventory.activeItem.move();
+		this.reload();
+	}
+
+	private reload(): void {
+		if (!this.controll.reload) return;
+		this.controll.reload = false;
+		if (this.inventory.activeItem instanceof Gun) this.inventory.reload(this.inventory.activeItem);
 	}
 
 	private changeHandsPosition(): void {
@@ -568,35 +617,6 @@ export class Player {
 	}
 
 	private rotatePlayer(angle: number): void {
-		/*
-		//triangular sides
-		const centerX = this.canvas.width / 2;
-		const centerY = this.canvas.height / 2;
-		let x = centerX - mouseX;
-		let y = centerY - mouseY;
-		//can not set x and y to 0 because angle
-		if (x === 0) x = 0.1;
-		//atangens
-		let angle = Math.abs(Math.atan(x / y) * 180 / Math.PI);
-		//1..2..3..4.. Q; 0 - 90, 90 - 180...
-		//1
-		if (mouseX >= centerX && mouseY < centerY) {
-			this.angle = angle;
-		}
-		//2
-		if (mouseX >= centerX && mouseY >= centerY) {
-			this.angle = 90 + 90 - angle;
-		}
-		//3
-		if (mouseX < centerX && mouseY >= centerY) {
-			this.angle = 180 + angle;
-		}
-		//4
-		if (mouseX < centerX && mouseY < centerY) {
-			this.angle = 270 + 90 - angle;
-		}
-		*/
-
 		this.angle = Math.round(angle);
 		if (this.angle === 360) this.angle = 0;
 	}

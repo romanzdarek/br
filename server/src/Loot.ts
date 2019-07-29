@@ -1,56 +1,52 @@
-import { Player } from './Player';
+import LootItem from './LootItem';
 import { LootType } from './LootType';
 
 export default class Loot {
-	readonly id: number;
-	readonly size: number;
-	readonly type: LootType;
-	readonly radius: number;
-	private x: number;
-	private y: number;
-	private active: boolean = true;
-	private direction: number = 1;
+	private lootId: number = 0;
+	lootItems: LootItem[] = [];
 
-	constructor(id: number, x: number, y: number, type: LootType) {
-		this.id = id;
-		this.x = x;
-		this.y = y;
-		this.type = type;
-		this.size = 80;
-		this.radius = this.size / 2;
+	constructor() {}
+
+	createLootItem(x: number, y: number, type: LootType, bullets: number = 0): void {
+		this.lootItems.push(new LootItem(this.lootId++, x, y, type, bullets));
 	}
 
-	isPlayerIn(player: Player): boolean {
-		const lootAndPlayerRadius = Player.radius + this.radius;
-		const x = this.getCenterX() - player.getCenterX();
-		const y = this.getCenterY() - player.getCenterY();
-		const distance = Math.sqrt(x * x + y * y);
-		return distance < lootAndPlayerRadius;
+	createMainLootItems(): void {
+		let x = 0;
+		let y = 0;
+		const shift = 100;
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Pistol, 10);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Machinegun, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Shotgun, 2);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Rifle, 5);
+
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Hammer);
+
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Granade);
+
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Smoke);
+
+		this.createLootItem(x++ * shift, y++ * shift, LootType.RedAmmo, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.BlueAmmo, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.GreenAmmo, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.OrangeAmmo, 30);
+
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Vest, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Vest, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Scope2, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Scope4, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Scope6, 30);
 	}
 
-	isActive(): boolean {
-		return this.active;
+	/*
+	removeLootItem(lootItem: LootItem): void {
+		for (let i = 0; i < this.lootItems.length; i++) {
+			if (lootItem === this.lootItems[i]) this.lootItems.splice(i, 1);
+		}
 	}
-
-	getX(): number {
-		return this.x;
-	}
-
-	getY(): number {
-		return this.y;
-	}
-
-	getCenterX(): number {
-		return this.x + this.radius;
-	}
-
-	getCenterY(): number {
-		return this.y + this.radius;
-	}
-
-	move(): void {
-		this.x += 5 * this.direction;
-		if (this.x > 1000) this.direction = -1;
-		if (this.x < 0) this.direction = 1;
-	}
+	*/
 }

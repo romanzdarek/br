@@ -19,20 +19,25 @@ import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
 import Point from './Point';
 import MapData from './Mapdata';
-import Loot from './Loot';
-import { LootType } from './LootType';
 import LootSnapshot from './LootSnapshot';
 import Snapshot from './Snapshot';
+import Pistol from './Pistol';
+import Machinegun from './Machinegun';
+import Shotgun from './Shotgun';
+import Rifle from './Rifle';
+import Hammer from './Hammer';
+import Loot from './Loot';
 
 export default class Game {
 	private map: Map;
 	private mapData: MapData;
 	private zone: Zone;
 	private playerId: number = 0;
+
 	players: Player[] = [];
 	private previousSnapshot: Snapshot;
 	private bullets: Bullet[] = [];
-	private loots: Loot[] = [];
+	private loot: Loot;
 	private smokeClouds: SmokeCloud[] = [];
 	private granades: ThrowingObject[] = [];
 	private numberOfBullets: number = 0;
@@ -46,14 +51,8 @@ export default class Game {
 		this.mapData = mapData;
 		this.map = new Map(waterTerrainData, mapData);
 		this.zone = new Zone(this.map);
-		this.createLoot();
-	}
-
-	private createLoot(): void {
-		let id = 0;
-		for (let i = 0; i < 10; i++) {
-			this.loots.push(new Loot(id++, 300 * i, 300 * i, LootType.Rifle));
-		}
+		this.loot = new Loot();
+		this.loot.createMainLootItems();
 	}
 
 	private updateListOfPlayers(): void {
@@ -123,7 +122,15 @@ export default class Game {
 				name = uniqueName(2);
 			}
 		}
-		const newPlayer = new Player(this.playerId++, name, socket, this.map, this.collisionPoints, this.players);
+		const newPlayer = new Player(
+			this.playerId++,
+			name,
+			socket,
+			this.map,
+			this.collisionPoints,
+			this.players,
+			this.loot
+		);
 		this.setRandomPosition(newPlayer);
 		this.players.push(newPlayer);
 		//send it to the client
@@ -249,9 +256,16 @@ export default class Game {
 		this.zone.move();
 
 		//move loot
-		for (const loot of this.loots) {
+		for (const loot of this.loot.lootItems) {
 			loot.move();
 		}
+
+		//test create loot
+		/*
+		if (Math.floor(Math.random() * 500) === 0) {
+			this.loots.push(new Loot(this.lootId++, 0, 0, 0));
+		}
+		*/
 
 		//move granades
 		for (let i = this.granades.length - 1; i >= 0; i--) {
@@ -312,96 +326,83 @@ export default class Game {
 		//player move
 		for (const player of this.players) {
 			player.move();
+
+			//hammer move
+			if (player.inventory.activeItem instanceof Hammer) player.inventory.activeItem.move();
+
 			//zone damage
 			if (!this.zone.isPointIn(new Point(player.getCenterX(), player.getCenterY()))) {
 				player.acceptHit(this.zone.getDamage());
 			}
 
-			//hit
+			//left click
 			if (player.mouseControll.left) {
-				switch (player.getActiveWeapon()) {
-					case Weapon.Hand:
-						player.hit();
-						break;
+				if (player.inventory.activeItem === Weapon.Hand) {
+					player.hit();
+				}
+				if (
+					(player.inventory.activeItem instanceof Pistol ||
+						player.inventory.activeItem instanceof Machinegun ||
+						player.inventory.activeItem instanceof Shotgun ||
+						player.inventory.activeItem instanceof Rifle) &&
+					player.inventory.activeItem.ready()
+				) {
+					player.inventory.activeItem.fire();
+					if (!(player.inventory.activeItem instanceof Shotgun)) {
+						this.bullets.push(
+							Bullet.makeBullet(
+								++this.numberOfBullets,
+								player,
+								player.inventory.activeItem,
+								this.map,
+								this.players
+							)
+						);
+					}
 
-					case Weapon.Pistol:
-						if (player.pistol.ready()) {
-							this.bullets.push(
-								Bullet.makeBullet(++this.numberOfBullets, player, player.pistol, this.map, this.players)
-							);
-						}
-						player.mouseControll.left = false;
-						break;
-
-					case Weapon.Machinegun:
-						if (player.machinegun.ready()) {
+					if (player.inventory.activeItem instanceof Shotgun) {
+						let shotgunSpray = -12;
+						for (let i = 0; i < 7; i++) {
+							shotgunSpray += 3;
 							this.bullets.push(
 								Bullet.makeBullet(
 									++this.numberOfBullets,
 									player,
-									player.machinegun,
+									player.inventory.activeItem,
 									this.map,
-									this.players
+									this.players,
+									shotgunSpray
 								)
 							);
 						}
-						break;
+					}
 
-					case Weapon.Shotgun:
-						if (player.shotgun.ready()) {
-							let shotgunSpray = -12;
-							for (let i = 0; i < 7; i++) {
-								shotgunSpray += 3;
-								this.bullets.push(
-									Bullet.makeBullet(
-										++this.numberOfBullets,
-										player,
-										player.shotgun,
-										this.map,
-										this.players,
-										shotgunSpray
-									)
-								);
-							}
-							player.mouseControll.left = false;
-						}
-						break;
+					if (!(player.inventory.activeItem instanceof Machinegun)) player.mouseControll.left = false;
+				}
 
-					case Weapon.Rifle:
-						if (player.rifle.ready()) {
-							this.bullets.push(
-								Bullet.makeBullet(++this.numberOfBullets, player, player.rifle, this.map, this.players)
-							);
-							player.mouseControll.left = false;
-						}
-						break;
+				if (player.inventory.activeItem instanceof Hammer) {
+					if (player.inventory.activeItem.ready()) {
+						player.inventory.activeItem.hit();
+						player.mouseControll.left = false;
+					}
+				}
 
-					case Weapon.Hammer:
-						if (player.hammer.ready()) {
-							player.hammer.hit();
-							player.mouseControll.left = false;
-						}
-						break;
+				if (player.inventory.activeItem === Weapon.Granade) {
+					if (player.hands[1].throwReady()) {
+						player.throw();
+						this.granades.push(
+							new Granade(player.hands[1], player.mouseControll.x, player.mouseControll.y)
+						);
+						player.mouseControll.left = false;
+					}
+				}
 
-					case Weapon.Granade:
-						if (player.hands[1].throwReady()) {
-							player.throw();
-							this.granades.push(
-								new Granade(player.hands[1], player.mouseControll.x, player.mouseControll.y)
-							);
-							player.mouseControll.left = false;
-						}
-						break;
-
-					case Weapon.Smoke:
-						if (player.hands[1].throwReady()) {
-							player.throw();
-							this.granades.push(
-								new Smoke(player.hands[1], player.mouseControll.x, player.mouseControll.y)
-							);
-							player.mouseControll.left = false;
-						}
-						break;
+				if (player.inventory.activeItem === Weapon.Smoke) {
+					if (player.hands[1].throwReady()) {
+						player.throw();
+						this.granades.push(new Smoke(player.hands[1], player.mouseControll.x, player.mouseControll.y));
+						player.mouseControll.left = false;
+					}
 				}
 			}
 		}
@@ -412,12 +413,12 @@ export default class Game {
 		const dateNow = Date.now();
 		//loots
 		const lootSnapshots: LootSnapshot[] = [];
-		for (const loot of this.loots) {
+		for (const loot of this.loot.lootItems) {
 			lootSnapshots.push(new LootSnapshot(loot));
 		}
 		//loots  snapshots copy for optimalization
 		const lootSnapshotsOptimalization: LootSnapshot[] = [];
-		for (const loot of this.loots) {
+		for (const loot of this.loot.lootItems) {
 			lootSnapshotsOptimalization.push(new LootSnapshot(loot));
 		}
 
@@ -460,24 +461,31 @@ export default class Game {
 			if (this.previousSnapshot) {
 				for (const playerBefore of this.previousSnapshot.p) {
 					if (playerNow.i === playerBefore.i) {
+						//for deny hands beetween snapshot
+						if (
+							(playerNow.w === Weapon.Hand ||
+								playerNow.w === Weapon.Smoke ||
+								playerNow.w === Weapon.Granade) &&
+							(playerBefore.w !== Weapon.Hand &&
+								playerBefore.w !== Weapon.Smoke &&
+								playerBefore.w !== Weapon.Granade)
+						) {
+							playerNow.h = 1;
+						}
+
+						//player
 						if (playerNow.x === playerBefore.x) delete playerNow.x;
 						if (playerNow.y === playerBefore.y) delete playerNow.y;
 						if (playerNow.a === playerBefore.a) delete playerNow.a;
 						if (playerNow.m === playerBefore.m) delete playerNow.m;
 						if (playerNow.w === playerBefore.w) delete playerNow.w;
 						if (playerNow.size === playerBefore.size) delete playerNow.size;
-						if (playerNow.h[0].size === playerBefore.h[0].size) {
-							delete playerNow.h[0].size;
-							delete playerNow.h[1].size;
-						}
-						if (
-							playerNow.h[0].x === playerBefore.h[0].x &&
-							playerNow.h[0].y === playerBefore.h[0].y &&
-							playerNow.h[1].x === playerBefore.h[1].x &&
-							playerNow.h[1].y === playerBefore.h[1].y
-						) {
-							delete playerNow.h;
-						}
+						//hands
+						if (playerNow.hSize === playerBefore.hSize) delete playerNow.hSize;
+						if (playerNow.lX === playerBefore.lX) delete playerNow.lX;
+						if (playerNow.lY === playerBefore.lY) delete playerNow.lY;
+						if (playerNow.rX === playerBefore.rX) delete playerNow.rX;
+						if (playerNow.rY === playerBefore.rY) delete playerNow.rY;
 					}
 				}
 			}
@@ -492,7 +500,11 @@ export default class Game {
 				!player.hasOwnProperty('m') &&
 				!player.hasOwnProperty('w') &&
 				!player.hasOwnProperty('size') &&
-				!player.hasOwnProperty('h')
+				!player.hasOwnProperty('hSize') &&
+				!player.hasOwnProperty('lX') &&
+				!player.hasOwnProperty('lY') &&
+				!player.hasOwnProperty('rX') &&
+				!player.hasOwnProperty('rY')
 			) {
 				playerSnapshotsOptimalization.splice(i, 1);
 			}
@@ -563,6 +575,17 @@ export default class Game {
 					lootSnapshotsOptimalization
 				)
 			);
+		}
+
+		//delete !active loot
+		for (let i = lootSnapshots.length - 1; i >= 0; i--) {
+			const loot = lootSnapshots[i];
+			if (loot.hasOwnProperty('del')) {
+				//from last snapshot
+				lootSnapshots.splice(i, 1);
+				//from this.loots
+				this.loot.lootItems.splice(i, 1);
+			}
 		}
 
 		//map objects

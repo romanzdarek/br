@@ -5,6 +5,7 @@ import PlayerSnapshot from './PlayerSnapshot';
 import Zone from './Zone';
 import ZoneSnapshot from './ZoneSnapshot';
 import LootSnapshot from './LootSnapshot';
+import { Weapon } from './Weapon';
 
 export default class SnapshotManager {
 	private serverClientSync: ServerClientSync;
@@ -78,10 +79,7 @@ export default class SnapshotManager {
 
 	private completeSnapshot(previousSnapshot: Snapshot, lastSnapshot: Snapshot): void {
 		this.completePlayerSnapshots(previousSnapshot.p, lastSnapshot.p);
-		console.log('----------');
-		console.log(JSON.stringify(lastSnapshot.l));
 		this.completeLootSnapshots(previousSnapshot.l, lastSnapshot.l);
-		console.log(JSON.stringify(lastSnapshot.l));
 	}
 
 	private completeLootSnapshots(previousSnapshotLoots: LootSnapshot[], lastSnapshotLoots: LootSnapshot[]): void {
@@ -115,6 +113,13 @@ export default class SnapshotManager {
 		for (const missingLoot of missingLoots) {
 			lastSnapshotLoots.push(missingLoot);
 		}
+
+		//delete !active loot
+		for (let i = lastSnapshotLoots.length - 1; i >= 0; i--) {
+			if (lastSnapshotLoots[i].hasOwnProperty('del')) {
+				lastSnapshotLoots.splice(i, 1);
+			}
+		}
 	}
 
 	private completePlayerSnapshots(
@@ -129,18 +134,18 @@ export default class SnapshotManager {
 			}
 			if (previousSnapshotPlayer) {
 				if (!lastSnapshotPlayer.hasOwnProperty('a')) lastSnapshotPlayer.a = previousSnapshotPlayer.a;
-				if (!lastSnapshotPlayer.hasOwnProperty('h')) {
-					lastSnapshotPlayer.h = [ { ...previousSnapshotPlayer.h[0] }, { ...previousSnapshotPlayer.h[1] } ];
-				}
-				else {
-					lastSnapshotPlayer.h[0].size = previousSnapshotPlayer.h[0].size;
-					lastSnapshotPlayer.h[1].size = previousSnapshotPlayer.h[1].size;
-				}
 				if (!lastSnapshotPlayer.hasOwnProperty('m')) lastSnapshotPlayer.m = previousSnapshotPlayer.m;
 				if (!lastSnapshotPlayer.hasOwnProperty('size')) lastSnapshotPlayer.size = previousSnapshotPlayer.size;
 				if (!lastSnapshotPlayer.hasOwnProperty('w')) lastSnapshotPlayer.w = previousSnapshotPlayer.w;
 				if (!lastSnapshotPlayer.hasOwnProperty('x')) lastSnapshotPlayer.x = previousSnapshotPlayer.x;
 				if (!lastSnapshotPlayer.hasOwnProperty('y')) lastSnapshotPlayer.y = previousSnapshotPlayer.y;
+				//hands
+				if (!lastSnapshotPlayer.hasOwnProperty('hSize'))
+					lastSnapshotPlayer.hSize = previousSnapshotPlayer.hSize;
+				if (!lastSnapshotPlayer.hasOwnProperty('lX')) lastSnapshotPlayer.lX = previousSnapshotPlayer.lX;
+				if (!lastSnapshotPlayer.hasOwnProperty('lY')) lastSnapshotPlayer.lY = previousSnapshotPlayer.lY;
+				if (!lastSnapshotPlayer.hasOwnProperty('rX')) lastSnapshotPlayer.rX = previousSnapshotPlayer.rX;
+				if (!lastSnapshotPlayer.hasOwnProperty('rY')) lastSnapshotPlayer.rY = previousSnapshotPlayer.rY;
 			}
 		}
 
@@ -232,13 +237,6 @@ export default class SnapshotManager {
 				};
 				for (const player of copyFrom.p) {
 					this.betweenSnapshots.p.push({ ...player });
-
-					const hands = player.h;
-					//opcny postup: nejprve udelame melkou kopii a nasledne znovu vytvorime zdroj, nove pole a nove objekty rukou
-					player.h = [];
-					for (const hand of hands) {
-						player.h.push({ ...hand });
-					}
 				}
 				for (const bullet of copyFrom.b) {
 					this.betweenSnapshots.b.push({ ...bullet });
@@ -256,22 +254,28 @@ export default class SnapshotManager {
 				//players
 				for (let i = 0; i < this.betweenSnapshots.p.length; i++) {
 					const player = this.betweenSnapshots.p[i];
-
 					player.x = this.positionBetweenSnapshots(olderSnapshot.p[i].x, newerSnapshot.p[i].x, percentShift);
 					player.y = this.positionBetweenSnapshots(olderSnapshot.p[i].y, newerSnapshot.p[i].y, percentShift);
-
 					//hands
-
-					for (let j = 0; j < 2; j++) {
-						const hand = player.h[j];
-						hand.x = this.positionBetweenSnapshots(
-							olderSnapshot.p[i].h[j].x,
-							newerSnapshot.p[i].h[j].x,
+					if (!player.h) {
+						player.lX = this.positionBetweenSnapshots(
+							olderSnapshot.p[i].lX,
+							newerSnapshot.p[i].lX,
 							percentShift
 						);
-						hand.y = this.positionBetweenSnapshots(
-							olderSnapshot.p[i].h[j].y,
-							newerSnapshot.p[i].h[j].y,
+						player.lY = this.positionBetweenSnapshots(
+							olderSnapshot.p[i].lY,
+							newerSnapshot.p[i].lY,
+							percentShift
+						);
+						player.rX = this.positionBetweenSnapshots(
+							olderSnapshot.p[i].rX,
+							newerSnapshot.p[i].rX,
+							percentShift
+						);
+						player.rY = this.positionBetweenSnapshots(
+							olderSnapshot.p[i].rY,
+							newerSnapshot.p[i].rY,
 							percentShift
 						);
 					}
@@ -333,30 +337,18 @@ export default class SnapshotManager {
 					playerInstance.setAngle(playerSnapshot.a);
 					playerInstance.setWeapon(playerSnapshot.w);
 					playerInstance.setHammerAngle(playerSnapshot.m);
-
-					for (let i = 0; i < 2; i++) {
-						playerInstance.hands[i].setX(playerSnapshot.h[i].x);
-						playerInstance.hands[i].setY(playerSnapshot.h[i].y);
-					}
-
+					//hands
+					playerInstance.hands[0].setX(playerSnapshot.lX);
+					playerInstance.hands[0].setY(playerSnapshot.lY);
+					playerInstance.hands[1].setX(playerSnapshot.rX);
+					playerInstance.hands[1].setY(playerSnapshot.rY);
 					playerExists = true;
 					break;
 				}
 			}
 			if (!playerExists) {
 				//create player
-				this.players.push(
-					new Player(
-						playerSnapshot.i,
-						playerSnapshot.x,
-						playerSnapshot.y,
-						playerSnapshot.a,
-						playerSnapshot.m,
-						playerSnapshot.size,
-						playerSnapshot.h,
-						playerSnapshot.w
-					)
-				);
+				this.players.push(new Player(playerSnapshot));
 			}
 		}
 	}

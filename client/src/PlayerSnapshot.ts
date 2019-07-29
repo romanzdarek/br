@@ -1,5 +1,4 @@
 import { Weapon } from './Weapon';
-import HandSnapshot from './HandSnapshot';
 
 export default interface PlayerSnapshot {
 	//id
@@ -8,15 +7,19 @@ export default interface PlayerSnapshot {
 	y?: number;
 	//angle
 	a?: number;
-	//hands
-	h?: HandSnapshot[];
-	//name
-	//readonly n: string;
-	//active weapon
-	w?: Weapon;
 	//hammer angle
 	m?: number;
+	//active weapon
+	w?: Weapon;
 	size?: number;
+	//deny hand beetween snapshot
+	h? :number;
+	//left hand
+	lX?: number;
+	lY?: number;
+	//right hand
+	rX?: number;
+	rY?: number;
+	//hand size
+	hSize?: number;
 };
-
-

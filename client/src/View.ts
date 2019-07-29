@@ -23,6 +23,7 @@ import Point from './Point';
 import ZoneSnapshot from './ZoneSnapshot';
 import SnapshotManager from './SnapshotManager';
 import { PlayerOld } from './PlayerOld';
+import { LootType } from './LootType';
 
 type DrawData = {
 	x: number;
@@ -72,7 +73,25 @@ export default class View {
 	private loadingCircleSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
 
+	private pistolLootSVG: HTMLImageElement;
+	private shotgunLootSVG: HTMLImageElement;
+	private machinegunLootSVG: HTMLImageElement;
 	private rifleLootSVG: HTMLImageElement;
+
+	private hammerLootSVG: HTMLImageElement;
+	private granadeLootSVG: HTMLImageElement;
+	private smokeLootSVG: HTMLImageElement;
+
+	private redAmmoLootSVG: HTMLImageElement;
+	private greenAmmoLootSVG: HTMLImageElement;
+	private blueAmmoLootSVG: HTMLImageElement;
+	private orangeAmmoLootSVG: HTMLImageElement;
+
+	private medkitLootSVG: HTMLImageElement;
+	private vestLootSVG: HTMLImageElement;
+	private scope2LootSVG: HTMLImageElement;
+	private scope4LootSVG: HTMLImageElement;
+	private scope6LootSVG: HTMLImageElement;
 
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
@@ -178,6 +197,47 @@ export default class View {
 
 		this.rifleLootSVG = new Image();
 		this.rifleLootSVG.src = 'img/rifleLoot.svg';
+
+		this.pistolLootSVG = new Image();
+		this.pistolLootSVG.src = 'img/pistolLoot.svg';
+
+		this.shotgunLootSVG = new Image();
+		this.shotgunLootSVG.src = 'img/shotgunLoot.svg';
+
+		this.machinegunLootSVG = new Image();
+		this.machinegunLootSVG.src = 'img/machinegunLoot.svg';
+
+		this.hammerLootSVG = new Image();
+		this.hammerLootSVG.src = 'img/hammerLoot.svg';
+
+		this.granadeLootSVG = new Image();
+		this.granadeLootSVG.src = 'img/granadeLoot.svg';
+
+		this.smokeLootSVG = new Image();
+		this.smokeLootSVG.src = 'img/smokeLoot.svg';
+
+		this.redAmmoLootSVG = new Image();
+		this.redAmmoLootSVG.src = 'img/redAmmoLoot.svg';
+
+		this.greenAmmoLootSVG = new Image();
+		this.greenAmmoLootSVG.src = 'img/greenAmmoLoot.svg';
+
+		this.blueAmmoLootSVG = new Image();
+		this.blueAmmoLootSVG.src = 'img/blueAmmoLoot.svg';
+
+		this.orangeAmmoLootSVG = new Image();
+		this.orangeAmmoLootSVG.src = 'img/orangeAmmoLoot.svg';
+
+		this.medkitLootSVG = new Image();
+		this.medkitLootSVG.src = 'img/medkitLoot.svg';
+		this.vestLootSVG = new Image();
+		this.vestLootSVG.src = 'img/vestLoot.svg';
+		this.scope2LootSVG = new Image();
+		this.scope2LootSVG.src = 'img/scope2Loot.svg';
+		this.scope4LootSVG = new Image();
+		this.scope4LootSVG.src = 'img/scope4Loot.svg';
+		this.scope6LootSVG = new Image();
+		this.scope6LootSVG.src = 'img/scope6Loot.svg';
 
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
@@ -706,201 +766,267 @@ export default class View {
 			}
 		}
 
+		//loot
+		for (const loot of betweenSnapshots.l) {
+			const { x, y, size, isOnScreen } = this.howToDraw(loot);
+			let lootSVG;
+			switch (loot.type) {
+				case LootType.Pistol:
+					lootSVG = this.pistolLootSVG;
+					break;
+				case LootType.Machinegun:
+					lootSVG = this.machinegunLootSVG;
+					break;
+				case LootType.Shotgun:
+					lootSVG = this.shotgunLootSVG;
+					break;
+				case LootType.Rifle:
+					lootSVG = this.rifleLootSVG;
+					break;
+
+				case LootType.Smoke:
+					lootSVG = this.smokeLootSVG;
+					break;
+
+				case LootType.Granade:
+					lootSVG = this.granadeLootSVG;
+					break;
+
+				case LootType.Hammer:
+					lootSVG = this.hammerLootSVG;
+					break;
+
+				case LootType.RedAmmo:
+					lootSVG = this.redAmmoLootSVG;
+					break;
+
+				case LootType.BlueAmmo:
+					lootSVG = this.blueAmmoLootSVG;
+					break;
+
+				case LootType.GreenAmmo:
+					lootSVG = this.greenAmmoLootSVG;
+					break;
+
+				case LootType.OrangeAmmo:
+					lootSVG = this.orangeAmmoLootSVG;
+					break;
+
+				case LootType.Vest:
+					lootSVG = this.vestLootSVG;
+					break;
+
+				case LootType.Medkit:
+					lootSVG = this.medkitLootSVG;
+					break;
+
+				case LootType.Scope2:
+					lootSVG = this.scope2LootSVG;
+					break;
+
+				case LootType.Scope4:
+					lootSVG = this.scope4LootSVG;
+					break;
+
+				case LootType.Scope6:
+					lootSVG = this.scope6LootSVG;
+					break;
+			}
+			ctx.drawImage(lootSVG, x, y, size, size);
+		}
+
 		//players
-		{
-			for (const player of players) {
-				//pistol
-				if (player.getWeapon() === Weapon.Pistol) {
-					//draw pistol
-					const gunSize = 200;
-					const gunX = player.getCenterX() - gunSize / 2;
-					const gunY = player.getCenterY() - gunSize / 2;
-					const { x, y, size, isOnScreen } = this.howToDraw({
-						x: gunX,
-						y: gunY,
-						size: gunSize
-					});
-					if (isOnScreen) {
-						let middleImage = size / 2;
-						ctx.save();
-						ctx.translate(x + middleImage, y + middleImage);
-						ctx.rotate(player.getAngle() * Math.PI / 180);
-						ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
-						ctx.restore();
-					}
-				}
-
-				//machinegun
-				if (player.getWeapon() === Weapon.Machinegun) {
-					const gunSize = 200;
-					const gunX = player.getCenterX() - gunSize / 2;
-					const gunY = player.getCenterY() - gunSize / 2;
-					const { x, y, size, isOnScreen } = this.howToDraw({
-						x: gunX,
-						y: gunY,
-						size: gunSize
-					});
-					if (isOnScreen) {
-						let middleImage = size / 2;
-						ctx.save();
-						ctx.translate(x + middleImage, y + middleImage);
-						ctx.rotate(player.getAngle() * Math.PI / 180);
-						ctx.drawImage(this.machinegunSVG, -middleImage, -middleImage, size, size);
-						ctx.restore();
-					}
-				}
-
-				//shotgun
-				if (player.getWeapon() === Weapon.Shotgun) {
-					const gunSize = 200;
-					const gunX = player.getCenterX() - gunSize / 2;
-					const gunY = player.getCenterY() - gunSize / 2;
-					const { x, y, size, isOnScreen } = this.howToDraw({
-						x: gunX,
-						y: gunY,
-						size: gunSize
-					});
-					if (isOnScreen) {
-						let middleImage = size / 2;
-						ctx.save();
-						ctx.translate(x + middleImage, y + middleImage);
-						ctx.rotate(player.getAngle() * Math.PI / 180);
-						ctx.drawImage(this.shotgunSVG, -middleImage, -middleImage, size, size);
-						ctx.restore();
-					}
-				}
-
-				//rifle
-				if (player.getWeapon() === Weapon.Rifle) {
-					const gunSize = 200;
-					const gunX = player.getCenterX() - gunSize / 2;
-					const gunY = player.getCenterY() - gunSize / 2;
-					const { x, y, size, isOnScreen } = this.howToDraw({
-						x: gunX,
-						y: gunY,
-						size: gunSize
-					});
-					if (isOnScreen) {
-						let middleImage = size / 2;
-						ctx.save();
-						ctx.translate(x + middleImage, y + middleImage);
-						ctx.rotate(player.getAngle() * Math.PI / 180);
-						ctx.drawImage(this.rifleSVG, -middleImage, -middleImage, size, size);
-						ctx.restore();
-					}
-				}
-
-				//hammer
-				if (player.getWeapon() === Weapon.Hammer) {
-					const gunSize = 200;
-					const gunX = player.getCenterX() - gunSize / 2;
-					const gunY = player.getCenterY() - gunSize / 2;
-					const { x, y, size, isOnScreen } = this.howToDraw({
-						x: gunX,
-						y: gunY,
-						size: gunSize
-					});
-					if (isOnScreen) {
-						let middleImage = size / 2;
-						ctx.save();
-						ctx.translate(x + middleImage, y + middleImage);
-						ctx.rotate(player.getHammerAngle() * Math.PI / 180);
-						ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
-						ctx.restore();
-
-						if (this.collisionPoints.isReady()) {
-							//collisionPoints
-							ctx.fillStyle = this.colors.collisionPoint;
-							for (const point of this.collisionPoints.hammer[player.getHammerAngle()]) {
-								const { x, y, size } = this.howToDraw({
-									x: player.getCenterX() - 100 + point.x,
-									y: player.getCenterY() - 100 + point.y,
-									size: 1
-								});
-								ctx.fillRect(x, y, size, size);
-							}
-						}
-					}
-				}
-
-				//player hands
-				if (
-					player.getWeapon() === Weapon.Hand ||
-					player.getWeapon() === Weapon.Granade ||
-					player.getWeapon() === Weapon.Smoke
-				) {
-					for (let i = 0; i < 2; i++) {
-						const { x, y, size, isOnScreen } = this.howToDraw({
-							x: player.hands[i].getX(),
-							y: player.hands[i].getY(),
-							size: player.hands[i].size
-						});
-						if (isOnScreen) {
-							ctx.drawImage(this.playerHandSVG, x, y, size, size);
-							//hand collisionPoints
-							ctx.fillStyle = this.colors.collisionPoint;
-							for (const point of this.collisionPoints.hand) {
-								const { x, y, size } = this.howToDraw({
-									x: player.hands[i].getCenterX() + point.x,
-									y: player.hands[i].getCenterY() + point.y,
-									size: 1
-								});
-								ctx.fillRect(x, y, size, size);
-							}
-
-							//granade || smoke in hand
-							if (
-								(player.getWeapon() === Weapon.Granade || player.getWeapon() === Weapon.Smoke) &&
-								i === 1
-							) {
-								const granadeShiftAngle = 30;
-								const playerAngle = player.getAngle();
-								const shiftZ = player.hands[1].radius;
-								//triangle
-								const shiftX = Math.sin(playerAngle * Math.PI / 180) * shiftZ;
-								const shiftY = Math.cos(playerAngle * Math.PI / 180) * shiftZ;
-
-								const { x, y, size, isOnScreen } = this.howToDraw({
-									x: player.hands[i].getX() + shiftX,
-									y: player.hands[i].getY() - shiftY,
-									size: player.hands[i].size
-								});
-
-								if (isOnScreen) {
-									let middleImage = size / 2;
-									ctx.save();
-									ctx.translate(x + middleImage, y + middleImage);
-									ctx.rotate((playerAngle - granadeShiftAngle) * Math.PI / 180);
-									let SVG;
-									if (player.getWeapon() === Weapon.Granade) SVG = this.granadeSVG;
-
-									if (player.getWeapon() === Weapon.Smoke) SVG = this.smokeSVG;
-									ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
-									ctx.restore();
-								}
-							}
-						}
-					}
-				}
-
-				//player body
+		for (const player of players) {
+			//pistol
+			if (player.getWeapon() === Weapon.Pistol) {
+				//draw pistol
+				const gunSize = 200;
+				const gunX = player.getCenterX() - gunSize / 2;
+				const gunY = player.getCenterY() - gunSize / 2;
 				const { x, y, size, isOnScreen } = this.howToDraw({
-					x: player.getX(),
-					y: player.getY(),
-					size: player.size
+					x: gunX,
+					y: gunY,
+					size: gunSize
 				});
 				if (isOnScreen) {
-					ctx.drawImage(this.playerSVG, x, y, size, size);
-					//collisionPoints
-					ctx.fillStyle = this.colors.collisionPoint;
-					for (const point of this.collisionPoints.body) {
-						const { x, y, size } = this.howToDraw({
-							x: player.getCenterX() + point.x,
-							y: player.getCenterY() + point.y,
-							size: 1
-						});
-						ctx.fillRect(x, y, size, size);
+					let middleImage = size / 2;
+					ctx.save();
+					ctx.translate(x + middleImage, y + middleImage);
+					ctx.rotate(player.getAngle() * Math.PI / 180);
+					ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
+					ctx.restore();
+				}
+			}
+
+			//machinegun
+			if (player.getWeapon() === Weapon.Machinegun) {
+				const gunSize = 200;
+				const gunX = player.getCenterX() - gunSize / 2;
+				const gunY = player.getCenterY() - gunSize / 2;
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: gunX,
+					y: gunY,
+					size: gunSize
+				});
+				if (isOnScreen) {
+					let middleImage = size / 2;
+					ctx.save();
+					ctx.translate(x + middleImage, y + middleImage);
+					ctx.rotate(player.getAngle() * Math.PI / 180);
+					ctx.drawImage(this.machinegunSVG, -middleImage, -middleImage, size, size);
+					ctx.restore();
+				}
+			}
+
+			//shotgun
+			if (player.getWeapon() === Weapon.Shotgun) {
+				const gunSize = 200;
+				const gunX = player.getCenterX() - gunSize / 2;
+				const gunY = player.getCenterY() - gunSize / 2;
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: gunX,
+					y: gunY,
+					size: gunSize
+				});
+				if (isOnScreen) {
+					let middleImage = size / 2;
+					ctx.save();
+					ctx.translate(x + middleImage, y + middleImage);
+					ctx.rotate(player.getAngle() * Math.PI / 180);
+					ctx.drawImage(this.shotgunSVG, -middleImage, -middleImage, size, size);
+					ctx.restore();
+				}
+			}
+
+			//rifle
+			if (player.getWeapon() === Weapon.Rifle) {
+				const gunSize = 200;
+				const gunX = player.getCenterX() - gunSize / 2;
+				const gunY = player.getCenterY() - gunSize / 2;
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: gunX,
+					y: gunY,
+					size: gunSize
+				});
+				if (isOnScreen) {
+					let middleImage = size / 2;
+					ctx.save();
+					ctx.translate(x + middleImage, y + middleImage);
+					ctx.rotate(player.getAngle() * Math.PI / 180);
+					ctx.drawImage(this.rifleSVG, -middleImage, -middleImage, size, size);
+					ctx.restore();
+				}
+			}
+
+			//hammer
+			if (player.getWeapon() === Weapon.Hammer) {
+				const gunSize = 200;
+				const gunX = player.getCenterX() - gunSize / 2;
+				const gunY = player.getCenterY() - gunSize / 2;
+				const { x, y, size, isOnScreen } = this.howToDraw({
+					x: gunX,
+					y: gunY,
+					size: gunSize
+				});
+				if (isOnScreen) {
+					let middleImage = size / 2;
+					ctx.save();
+					ctx.translate(x + middleImage, y + middleImage);
+					ctx.rotate(player.getHammerAngle() * Math.PI / 180);
+					ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
+					ctx.restore();
+
+					if (this.collisionPoints.isReady()) {
+						//collisionPoints
+						ctx.fillStyle = this.colors.collisionPoint;
+						for (const point of this.collisionPoints.hammer[player.getHammerAngle()]) {
+							const { x, y, size } = this.howToDraw({
+								x: player.getCenterX() - 100 + point.x,
+								y: player.getCenterY() - 100 + point.y,
+								size: 1
+							});
+							ctx.fillRect(x, y, size, size);
+						}
 					}
+				}
+			}
+
+			//player hands
+			if (
+				player.getWeapon() === Weapon.Hand ||
+				player.getWeapon() === Weapon.Granade ||
+				player.getWeapon() === Weapon.Smoke
+			) {
+				for (let i = 0; i < 2; i++) {
+					const { x, y, size, isOnScreen } = this.howToDraw({
+						x: player.hands[i].getX(),
+						y: player.hands[i].getY(),
+						size: player.hands[i].size
+					});
+					if (isOnScreen) {
+						ctx.save();
+						ctx.drawImage(this.playerHandSVG, x, y, size, size);
+						ctx.restore();
+						//hand collisionPoints
+						ctx.fillStyle = this.colors.collisionPoint;
+						for (const point of this.collisionPoints.hand) {
+							const { x, y, size } = this.howToDraw({
+								x: player.hands[i].getCenterX() + point.x,
+								y: player.hands[i].getCenterY() + point.y,
+								size: 1
+							});
+							ctx.fillRect(x, y, size, size);
+						}
+
+						//granade || smoke in hand
+						if ((player.getWeapon() === Weapon.Granade || player.getWeapon() === Weapon.Smoke) && i === 1) {
+							const granadeShiftAngle = 30;
+							const playerAngle = player.getAngle();
+							const shiftZ = player.hands[1].radius;
+							//triangle
+							const shiftX = Math.sin(playerAngle * Math.PI / 180) * shiftZ;
+							const shiftY = Math.cos(playerAngle * Math.PI / 180) * shiftZ;
+
+							const { x, y, size, isOnScreen } = this.howToDraw({
+								x: player.hands[i].getX() + shiftX,
+								y: player.hands[i].getY() - shiftY,
+								size: player.hands[i].size
+							});
+
+							if (isOnScreen) {
+								let middleImage = size / 2;
+								ctx.save();
+								ctx.translate(x + middleImage, y + middleImage);
+								ctx.rotate((playerAngle - granadeShiftAngle) * Math.PI / 180);
+								let SVG;
+								if (player.getWeapon() === Weapon.Granade) SVG = this.granadeSVG;
+
+								if (player.getWeapon() === Weapon.Smoke) SVG = this.smokeSVG;
+								ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
+								ctx.restore();
+							}
+						}
+					}
+				}
+			}
+
+			//player body
+			const { x, y, size, isOnScreen } = this.howToDraw({
+				x: player.getX(),
+				y: player.getY(),
+				size: player.size
+			});
+			if (isOnScreen) {
+				ctx.drawImage(this.playerSVG, x, y, size, size);
+				//collisionPoints
+				ctx.fillStyle = this.colors.collisionPoint;
+				for (const point of this.collisionPoints.body) {
+					const { x, y, size } = this.howToDraw({
+						x: player.getCenterX() + point.x,
+						y: player.getCenterY() + point.y,
+						size: 1
+					});
+					ctx.fillRect(x, y, size, size);
 				}
 			}
 		}
@@ -995,12 +1121,6 @@ export default class View {
 			if (!this.bulletLines[i].isActive()) {
 				this.bulletLines.splice(i, 1);
 			}
-		}
-
-		//loot
-		for (const loot of betweenSnapshots.l) {
-			const { x, y, size, isOnScreen } = this.howToDraw(loot);
-			ctx.drawImage(this.rifleLootSVG, x, y, size, size);
 		}
 
 		//bushes

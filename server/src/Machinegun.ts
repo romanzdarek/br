@@ -3,16 +3,18 @@ import Gun from './Gun';
 export default class Machinegun extends Gun {
 	private delay: number;
 
-	constructor(playerRadius: number) {
+	constructor(bullets: number) {
 		const length = 70;
 		const range = 20;
 		const bulletSpeed = 15;
 		const spray = 5;
-		super(playerRadius, length, range, bulletSpeed, spray);
+		const bulletsMax = 30;
+		super(length, range, bulletSpeed, spray, bullets, bulletsMax);
 		this.delay = 0;
 	}
 
 	ready(): boolean {
+		if (!super.ready()) return false;
 		if (this.delay === 0) {
 			this.delay = 3;
 			return true;

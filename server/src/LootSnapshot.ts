@@ -1,4 +1,4 @@
-import Loot from './Loot';
+import Loot from './LootItem';
 
 export default class LootSnapshot {
 	//id
@@ -6,7 +6,8 @@ export default class LootSnapshot {
 	x: number;
 	y: number;
 	size: number;
-	type: number;
+    type: number;
+    del?: number;
 
 	constructor(loot: Loot) {
 		//1 = zero digit after the comma
@@ -17,6 +18,7 @@ export default class LootSnapshot {
 		this.y = Math.round(loot.getY() * afterComma) / afterComma;
 		this.i = loot.id;
 		this.size = loot.size;
-		this.type = loot.type;
+        this.type = loot.type;
+        if(!loot.isActive()) this.del = 1;
 	}
 }

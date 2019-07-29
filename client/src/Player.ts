@@ -1,6 +1,6 @@
 import Hand from './Hand';
-import HandSnapshot from './HandSnapshot';
 import { Weapon } from './Weapon';
+import PlayerSnapshot from './PlayerSnapshot';
 
 export default class Player {
 	readonly id: number;
@@ -13,18 +13,17 @@ export default class Player {
 	readonly hands: Hand[] = [];
 	private weapon: Weapon;
 
-	constructor(id: number, x: number, y: number, angle: number, hammerAngle: number, size: number, hands: HandSnapshot[], weapon: Weapon) {
-		this.id = id;
-		this.x = x;
-		this.y = y;
-		this.angle = angle;
-		this.hammerAngle = hammerAngle;
-		this.weapon = weapon;
-		this.size = size;
-		this.radius = size / 2;
-		for (const hand of hands) {
-			this.hands.push(new Hand(hand.x, hand.y, hand.size));
-		}
+	constructor(playerSnapshot: PlayerSnapshot) {
+		this.id = playerSnapshot.i;
+		this.x = playerSnapshot.x;
+		this.y = playerSnapshot.y;
+		this.angle = playerSnapshot.a;
+		this.hammerAngle = playerSnapshot.m;
+		this.weapon = playerSnapshot.w;
+		this.size = playerSnapshot.size;
+		this.radius = this.size / 2;
+		this.hands.push(new Hand(playerSnapshot.lX, playerSnapshot.lY, playerSnapshot.hSize));
+		this.hands.push(new Hand(playerSnapshot.rX, playerSnapshot.rY, playerSnapshot.hSize));
 	}
 
 	setX(x: number): void {

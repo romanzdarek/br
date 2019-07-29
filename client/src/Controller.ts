@@ -19,6 +19,8 @@ export type Keys = {
 	a: boolean;
 	s: boolean;
 	d: boolean;
+	e: boolean;
+	r: boolean;
 };
 
 export type Mouse = {
@@ -42,7 +44,9 @@ export class Controller {
 		w: false,
 		a: false,
 		s: false,
-		d: false
+		d: false,
+		e: false,
+		r: false
 	};
 	private mouse: Mouse = {
 		x: 0,
@@ -347,6 +351,16 @@ export class Controller {
 					this.keys.d = true;
 					break;
 
+				case 'KeyE':
+					if (!this.keys.e) this.socket.emit('c', this.model.getGameId(), 'e');
+					this.keys.e = true;
+					break;
+
+				case 'KeyR':
+					if (!this.keys.e) this.socket.emit('c', this.model.getGameId(), 're');
+					this.keys.r = true;
+					break;
+
 				case 'Digit0':
 					this.socket.emit('i', this.model.getGameId(), 0);
 					break;
@@ -395,6 +409,12 @@ export class Controller {
 				case 'KeyD':
 					if (this.keys.d) this.socket.emit('c', this.model.getGameId(), '-r');
 					this.keys.d = false;
+					break;
+				case 'KeyE':
+					this.keys.e = false;
+					break;
+				case 'KeyR':
+					this.keys.r = false;
 					break;
 			}
 		});
