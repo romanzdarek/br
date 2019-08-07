@@ -4,9 +4,11 @@ import SmokeCloudSnapshot from './SmokeCloudSnapshot';
 import ZoneSnapshot from './ZoneSnapshot';
 import LootSnapshot from './LootSnapshot';
 import ThrowingObjectSnapshot from './ThrowingObjectSnapshot';
+import MyPlayerSnapshot from './MyPlayerSnapshot';
 
 export default class Snapshot {
 	t: number;
+	i: MyPlayerSnapshot;
 	p: PlayerSnapshot[];
 	b: BulletSnapshot[];
 	g: ThrowingObjectSnapshot[];

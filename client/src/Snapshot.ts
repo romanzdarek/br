@@ -4,9 +4,11 @@ import GranadeSnapshot from './GranadeSnapshot';
 import SmokeCloudSnapshot from './SmokeCloudSnapshot';
 import ZoneSnapshot from './ZoneSnapshot';
 import LootSnapshot from './LootSnapshot';
+import MyPlayerSnapshot from './MyPlayerSnapshot';
 
 export type Snapshot = {
 	t: number;
+	i: MyPlayerSnapshot;
 	p: PlayerSnapshot[];
 	b: BulletSnapshot[];
 	g: GranadeSnapshot[];

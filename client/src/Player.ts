@@ -5,7 +5,7 @@ import PlayerSnapshot from './PlayerSnapshot';
 export default class Player {
 	readonly id: number;
 	readonly size: number;
-	private radius: number;
+	readonly radius: number;
 	private x: number;
 	private y: number;
 	private angle: number;

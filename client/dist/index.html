@@ -9,6 +9,12 @@
 			margin: 0;
 			padding: 0;
 			box-sizing: border-box;
+			-webkit-touch-callout: none; 
+            -webkit-user-select: none; 
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
 		}
 		body{
 			overflow: hidden;
@@ -16,22 +22,31 @@
 		canvas#gameScreen{
 			cursor: none;
 		}
-		svg#mapZoneSVG{
-			border-radius: 7px;
-			position: absolute;
-			bottom:0;
-			right:0;
-			z-index: 5;
-			margin-right: 2px;
-			margin-bottom: 2px;
-		}
-		canvas#mapScreen{
-			border: 2px solid black;
+		#mapContainer{
 			border-radius: 10px;
 			position: absolute;
 			bottom:0;
-			right:0;
+			left:0;
 			z-index: 5;
+			background: rgba(128, 128, 128, 0.5);
+		}
+		svg#mapZoneSVG{
+			border-radius: 10px;
+			position: absolute;
+			bottom:0;
+			left:0;
+			z-index: 5;
+			margin-left: 5px;
+			margin-bottom: 5px;
+		}
+		canvas#mapScreen{
+			border-radius: 10px;
+			position: absolute;
+			bottom:0;
+			left:0;
+			z-index: 5;
+			margin-left: 5px;
+			margin-bottom: 5px;
 		}
 		canvas#helperScreen{
 			display: none;
@@ -98,7 +113,6 @@
 			position: absolute;
 			top:0;
 			left:0;
-			cursor:url(img/cursor.png) 12 12, auto;
 		}
 		#mainMenu{
 			display: block;
@@ -106,6 +120,131 @@
 		#alertMenu{
 			background: pink;
 		}
+		#healthBar{
+			border-radius: 10px;
+			background: rgba(128, 128, 128, 0.5);
+			padding: 5px;
+			width: 300px;
+			height:40px;
+			position: absolute;
+			bottom: 5%;
+			left:50%;
+			margin-left: -100px;
+		}
+		#healthBarIn{
+			background: rgba(255, 255, 255, 1);
+			border-radius: 7px;
+			height: 100%;
+			width:100%;
+		}
+		#activeGunAmmo{
+			position: absolute;
+			z-index: 8;
+			bottom: 10%;
+			left:50%;
+			font-family: sans-serif;
+			font-size: 250%;
+			color: white;
+			border-radius: 10px;
+			background: rgba(128, 128, 128, 0.5);
+			padding: 3px;
+		}
+		#loading{
+			width:80px;
+			height:80px;
+			position: absolute;
+			z-index: 8;
+			top:50%;
+			left:50%;
+			margin-top: -200px;
+			margin-left: -40px;
+			display: none;
+		}
+		#loadingText, #takeLoot{
+			font-family: sans-serif;
+			font-size: 180%;
+			color: white;
+			width:80px;
+			height:80px;
+			position: absolute;
+			z-index: 8;
+			top:50%;
+			left:50%;
+			margin-top: -250px;
+			margin-left: -60px;
+			display: none;
+		}
+		#takeLoot{
+			display: block;
+		}
+		#transparentLayer{
+			width: 100%;
+			height:100%;
+			opacity: 0.5;
+			position: absolute;
+			top:0;
+			left:0;
+			z-index:9;
+			cursor:url(img/cursor.png) 12 12, auto;
+		}
+		#items{
+			width:10%;
+			position: absolute;
+			z-index: 8;
+			top:30%;
+			right:2%;
+		}
+		#items div{
+			border-radius: 10px;
+			background: rgba(128, 128, 128, 0.5);
+			color:white;
+			font-weight: bold;
+			padding: 10px;
+			padding-left:0;
+			margin:10px;
+			height: 37px;
+		}
+		.active{
+			background: rgba(0, 0, 0, 0.5) !important;
+		}
+		#items b{
+			border-top-left-radius: 10px;
+			border-bottom-left-radius: 10px;
+			background: rgba(0, 0, 0, 0.5);
+			padding: 10px;
+		}
+
+		#ammo{
+			padding:0 !important;
+
+		}
+
+		#redAmmo, #blueAmmo, #greenAmmo, #orangeAmmo{
+			width: 25%;
+			height: 100%;
+			display:block;
+			float:left;
+			text-align: center;
+			line-height: 37px;
+		}
+		#redAmmo{
+			background: red;
+			border-top-left-radius: 10px;
+			border-bottom-left-radius: 10px;
+			
+		}
+		#blueAmmo{
+			background: blue;
+		}
+		#greenAmmo{
+			background: green;
+		}
+		#orangeAmmo{
+			background: orange;
+			border-top-right-radius: 10px;
+			border-bottom-right-radius: 10px;
+		}
+
 	</style>
 </head>
 <body>
@@ -118,6 +257,7 @@
 		<rect id="zoneRect" mask="url(#maskSVG)" fill="black" width="100%" height="100%" opacity="0.5" />
 	</svg>
 
+	<div id="mapContainer"></div>
 	<canvas id="mapScreen" width="1" height="1"></canvas>
 	<svg id="mapZoneSVG" width="0" height="0">
 		<mask id="mapMaskSVG">
@@ -126,6 +266,49 @@
 		</mask>
 		<rect id="mapZoneRect" mask="url(#mapMaskSVG)" fill="black" width="100%" height="100%" opacity="0.5" />
 	</svg>
+    <div id="items">
+		<div id='scope'>Scope: 1X</div>
+		
+		
+		<div id='item1'><b>1</b> <span></span></div>
+		<div id='item2'><b>2</b> <span></span></div>
+		<div id='item3'><b>3</b> <span></span></div>
+		<div id='item4'><b>4</b> <span></span></div>
+		<div id='item5'><b>5</b> <span></span></div>
+
+		<div id='ammo'>
+			<span id='redAmmo'>0</span>
+			<span id='blueAmmo'>0</span>
+			<span id='greenAmmo'>0</span>
+			<span id='orangeAmmo'>0</span>
+		</div>
+	</div>
+	<div id="activeGunAmmo"></div>
+	<div id="healthBar"><div id="healthBarIn"></div></div>
+	<svg id="loading" viewBox="0 0 36 36">
+			<path opacity="0.5"
+			d="M18 2.0845
+			  a 15.9155 15.9155 0 0 1 0 31.831
+			  a 15.9155 15.9155 0 0 1 0 -31.831"
+			fill="none"
+			stroke="gray";
+			stroke-width="2";
+			stroke-dasharray="100, 100"
+		  />
+		<path id="loadingCircle"
+		  d="M18 2.0845
+			a 15.9155 15.9155 0 0 1 0 31.831
+			a 15.9155 15.9155 0 0 1 0 -31.831"
+		  fill="none"
+		  stroke="white";
+		  stroke-width="2";
+		  stroke-dasharray="95, 100"
+		/>
+		<text id="loadingCounter" x="8" y="23" fill="white" font-family="Sans-serif" font-size="14"></text>
+	</svg>
+	<div id="loadingText"></div>
+	<div id="takeLoot"></div>
+	<div id="transparentLayer"></div>
 	
 	<div class="menu" id="mainMenu">
 		<h1>Mini battle royale</h1>

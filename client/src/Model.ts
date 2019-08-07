@@ -17,8 +17,6 @@ export default class Model {
 	private playerId: number = -1;
 	private name: string;
 	view: View;
-	//private player: Player;
-
 	private socket: Socket;
 	private waterTerrainData: WaterTerrainData;
 	private keys: Keys;
@@ -57,7 +55,8 @@ export default class Model {
 			this.waterTerrainData,
 			this.serverClientSync,
 			this.myHtmlElements,
-			this.collisionPoints
+			this.collisionPoints,
+			this.snapshotManager
 		);
 		setTimeout(() => {
 			this.loop();
@@ -109,6 +108,7 @@ export default class Model {
 
 	setPlayerId(playerId: number): void {
 		this.playerId = playerId;
+		console.log('playerId:', playerId);
 	}
 
 	private loop(): void {
@@ -124,6 +124,6 @@ export default class Model {
 			this.view.drawEditor(this.editor);
 		}
 		this.snapshotManager.createBetweenSnapshot();
-		this.view.drawGame(this.snapshotManager, this.playerId);
+		this.view.drawGame(this.playerId);
 	}
 }

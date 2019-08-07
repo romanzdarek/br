@@ -26,7 +26,7 @@ export default class Bullet {
 	}
 
 	//constructor
-	static makeBullet(
+	static createBullet(
 		id: number,
 		player: Player,
 		gun: Gun,
@@ -71,7 +71,7 @@ export default class Bullet {
 	}
 
 	//constructor
-	static makeFragment(id: number, granade: Granade, map: Map, players: Player[], shiftAngle: number): Bullet {
+	static createFragment(id: number, granade: Granade, map: Map, players: Player[], shiftAngle: number): Bullet {
 		const fragmentRange = Math.floor(Math.random() * granade.fragmentRange) + granade.fragmentRange / 3;
 		const instance = new Bullet(id, fragmentRange);
 		instance.map = map;

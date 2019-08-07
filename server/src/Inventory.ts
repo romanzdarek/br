@@ -16,13 +16,13 @@ export default class Inventory {
 	private player: Player;
 	private loot: Loot;
 	private hammer: Hammer;
-	private item1: Gun | null = null;
-	private item2: Gun | null = null;
-	private item3: any = Weapon.Hand;
+	item1: Gun | null = null;
+	item2: Gun | null = null;
+	item3: any = Weapon.Hand;
 	private item33: any = null;
-	private item4: Weapon[] = [];
+	item4: Weapon[] = [];
 	private item4Max: number = 3;
-	private item5: number = 0;
+	item5: number = 0;
 	private item5Max: number = 3;
 
 	activeItem: any = this.item3;
@@ -37,17 +37,89 @@ export default class Inventory {
 
 	private maxAmmo: number = 100;
 
+	loadingStart: number = 0;
+	loadingNow: number = 0;
+	loadingEnd: number = 0;
+	loadingText: string = '';
+	private loadingItem: any;
+
 	constructor(player: Player, loot: Loot, hammer: Hammer) {
 		this.player = player;
 		this.loot = loot;
 		this.hammer = hammer;
 	}
+	ready(): boolean {
+		return this.loadingStart === 0;
+	}
+
+	loading(): void {
+		if (this.ready()) return;
+		if (this.loadingNow < this.loadingEnd) {
+			this.loadingNow = Date.now();
+		}
+		else {
+			if (this.loadingItem instanceof Gun) {
+				this.finalReload(this.loadingItem);
+				this.cancelLoading();
+			}
+			else if (this.loadingItem === Weapon.Medkit) {
+				this.item5--;
+				this.player.healing(50);
+				this.cancelLoading();
+				if (!this.item5) {
+					if (this.item3 !== Weapon.Hand) {
+						this.activeItem = this.item3;
+					}
+					this.changeActiveItem(3);
+				}
+			}
+		}
+	}
 
 	reload(gun: Gun): void {
+		if (!this.ready()) return;
+		let reload = false;
+		if (gun.getBullets() < gun.bulletsMax) {
+			if (gun instanceof Pistol && this.orangeAmmo > 0) {
+				reload = true;
+			}
+			else if (gun instanceof Machinegun && this.blueAmmo > 0) {
+				reload = true;
+			}
+			else if (gun instanceof Shotgun && this.redAmmo > 0) {
+				reload = true;
+			}
+			else if (gun instanceof Rifle && this.greenAmmo > 0) {
+				reload = true;
+			}
+		}
+		if (reload) {
+			//start reload
+			this.loadingText = 'Reloading';
+			this.loadingStart = Date.now();
+			this.loadingNow = this.loadingStart;
+			this.loadingEnd = this.loadingStart + 2.5 * 1000;
+			this.loadingItem = gun;
+		}
+	}
+
+	heal(): void {
+		if (!this.ready()) return;
+		if (this.item5 > 0 && this.player.getHealth() < 100) {
+			//start heal
+			this.loadingText = ' Healing';
+			this.loadingStart = Date.now();
+			this.loadingNow = this.loadingStart;
+			this.loadingEnd = this.loadingStart + 2.5 * 1000;
+			this.loadingItem = Weapon.Medkit;
+		}
+	}
+
+	private finalReload(gun: Gun): void {
 		if (gun instanceof Pistol) {
 			let bullets = 0;
-			if (this.orangeAmmo > gun.bulletsMax - gun.getBullets()) {
-				bullets = gun.bulletsMax;
+			if (this.orangeAmmo >= gun.bulletsMax - gun.getBullets()) {
+				bullets = gun.bulletsMax - gun.getBullets();
 			}
 			else {
 				bullets = this.orangeAmmo;
@@ -59,8 +131,8 @@ export default class Inventory {
 		}
 		else if (gun instanceof Machinegun) {
 			let bullets = 0;
-			if (this.blueAmmo > gun.bulletsMax - gun.getBullets()) {
-				bullets = gun.bulletsMax;
+			if (this.blueAmmo >= gun.bulletsMax - gun.getBullets()) {
+				bullets = gun.bulletsMax - gun.getBullets();
 			}
 			else {
 				bullets = this.blueAmmo;
@@ -72,8 +144,8 @@ export default class Inventory {
 		}
 		else if (gun instanceof Shotgun) {
 			let bullets = 0;
-			if (this.redAmmo > gun.bulletsMax - gun.getBullets()) {
-				bullets = gun.bulletsMax;
+			if (this.redAmmo >= gun.bulletsMax - gun.getBullets()) {
+				bullets = gun.bulletsMax - gun.getBullets();
 			}
 			else {
 				bullets = this.redAmmo;
@@ -85,8 +157,8 @@ export default class Inventory {
 		}
 		else if (gun instanceof Rifle) {
 			let bullets = 0;
-			if (this.greenAmmo > gun.bulletsMax - gun.getBullets()) {
-				bullets = gun.bulletsMax;
+			if (this.greenAmmo >= gun.bulletsMax - gun.getBullets()) {
+				bullets = gun.bulletsMax - gun.getBullets();
 			}
 			else {
 				bullets = this.greenAmmo;
@@ -122,7 +194,15 @@ export default class Inventory {
 		}
 	}
 
+	private cancelLoading(): void {
+		this.loadingStart = 0;
+		this.loadingEnd = 0;
+		this.loadingNow = 0;
+	}
+
 	changeActiveItem(item: number): void {
+		if (!this.ready()) return;
+
 		switch (item) {
 			case 1:
 				if (this.item1) this.activeItem = this.item1;
@@ -151,10 +231,11 @@ export default class Inventory {
 
 				break;
 			case 5:
-				//this.activeItem = this.item5;
+				if (this.item5 > 0) this.activeItem = Weapon.Medkit;
 				break;
 		}
 	}
+
 	take(loot: LootItem): void {
 		//take guns
 		if (

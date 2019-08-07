@@ -42,6 +42,7 @@ export default class Map {
 	private openMap(mapData: any): void {
 		const map = mapData;
 		this.size = map.size * map.blockSize;
+		let mapObjectId: number = 0;
 		//Create blocks
 		for (let yy = 0; yy < map.size; yy++) {
 			for (let xx = 0; xx < map.size; xx++) {
@@ -54,25 +55,24 @@ export default class Map {
 			this.terrain.push(new Terrain(terrain.type, terrain.x, terrain.y, terrain.size));
 		}
 		//rocks
-		let id = 0;
 		for (const rock of map.rocks) {
-			const newRock = new Rock(id++, rock.x, rock.y);
+			const newRock = new Rock(mapObjectId++, rock.x, rock.y);
 			this.rocks.push(newRock);
 			this.impassableRoundObstacles.push(newRock);
 		}
 		//bushes
 		for (const bush of map.bushes) {
-			this.bushes.push(new Bush(id++, bush.x, bush.y));
+			this.bushes.push(new Bush(mapObjectId++, bush.x, bush.y));
 		}
 		//trees
 		for (const tree of map.trees) {
-			const newTree = new Tree(id++, tree.x, tree.y);
+			const newTree = new Tree(mapObjectId++, tree.x, tree.y);
 			this.trees.push(newTree);
 			this.impassableRoundObstacles.push(newTree);
 		}
 		//walls
 		for (const wall of map.rects) {
-			this.rectangleObstacles.push(new Wall(id++, wall.x, wall.y, wall.width, wall.height));
+			this.rectangleObstacles.push(new Wall(mapObjectId++, wall.x, wall.y, wall.width, wall.height));
 		}
 	}
 }

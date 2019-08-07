@@ -6,7 +6,14 @@ export default class Gun {
 	private bullets: number;
 	readonly bulletsMax: number;
 
-	constructor(length: number, range: number, bulletSpeed: number, spray: number, bullets: number, bulletsMax: number) {
+	constructor(
+		length: number,
+		range: number,
+		bulletSpeed: number,
+		spray: number,
+		bullets: number,
+		bulletsMax: number
+	) {
 		this.range = range;
 		this.bulletSpeed = bulletSpeed;
 		this.length = length;
@@ -24,7 +31,7 @@ export default class Gun {
 	}
 
 	reload(bullets: number): void {
-		this.bullets = bullets;
+		this.bullets += bullets;
 	}
 
 	getBullets(): number {

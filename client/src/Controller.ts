@@ -268,7 +268,14 @@ export class Controller {
 	}
 
 	private mouseController(): void {
-		this.myHtmlElements.zoneSVG.addEventListener('mousemove', (e: MouseEvent) => {
+		document.addEventListener('contextmenu', function(e) {
+			e.preventDefault();
+		});
+		document.addEventListener('mousedown', function(e) {
+			if (e.which === 2) e.preventDefault();
+		});
+
+		this.myHtmlElements.transparentLayer.addEventListener('mousemove', (e: MouseEvent) => {
 			if (e.x == undefined) {
 				this.mouse.x = this.canvas.width / 2;
 				this.mouse.y = this.canvas.height / 2;
@@ -285,14 +292,14 @@ export class Controller {
 				this.socket.emit('a', this.model.getGameId(), this.playerAngle);
 			}
 		});
-		this.myHtmlElements.zoneSVG.addEventListener('mousedown', (e: MouseEvent) => {
+		this.myHtmlElements.transparentLayer.addEventListener('mousedown', (e: MouseEvent) => {
 			this.mouse.left = true;
 			const clickPoint = new Point(e.clientX, e.clientY);
 			const serverPosition = this.model.view.calculateServerPosition(clickPoint);
 			//TODO optimalization: send click position only if i have granade or smoke...
 			this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
 		});
-		this.myHtmlElements.zoneSVG.addEventListener('mouseup', (e: MouseEvent) => {
+		this.myHtmlElements.transparentLayer.addEventListener('mouseup', (e: MouseEvent) => {
 			this.mouse.left = false;
 			this.socket.emit('m', this.model.getGameId(), '-l');
 		});

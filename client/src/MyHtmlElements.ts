@@ -1,12 +1,39 @@
 export default class MyHtmlElements {
 	readonly gameScreen: HTMLElement;
 	readonly mapScreen: HTMLElement;
+	readonly mapContainer: HTMLElement;
 	readonly helperScreen: HTMLElement;
 	readonly zoneSVG: HTMLElement;
 	readonly zoneCircle: HTMLElement;
 	readonly zoneRect: HTMLElement;
 	readonly mapZoneSVG: HTMLElement;
 	readonly mapZoneCircle: HTMLElement;
+	readonly takeLoot: HTMLElement;
+	readonly transparentLayer: HTMLElement;
+	readonly activeGunAmmo: HTMLElement;
+
+	//<div id="healthBar"><div id="healthBarIn"></div></div>
+	readonly healthBar = {
+		main: document.getElementById('healthBar'),
+		in: document.getElementById('healthBarIn')
+	};
+
+	readonly items = {
+		redAmmo: document.getElementById('redAmmo'),
+		greenAmmo: document.getElementById('greenAmmo'),
+		blueAmmo: document.getElementById('blueAmmo'),
+		orangeAmmo: document.getElementById('orangeAmmo'),
+		item1: document.getElementById('item1'),
+		item2: document.getElementById('item2'),
+		item3: document.getElementById('item3'),
+		item4: document.getElementById('item4'),
+		item5: document.getElementById('item5'),
+		item1in: document.getElementById('item1').getElementsByTagName('span')[0],
+		item2in: document.getElementById('item2').getElementsByTagName('span')[0],
+		item3in: document.getElementById('item3').getElementsByTagName('span')[0],
+		item4in: document.getElementById('item4').getElementsByTagName('span')[0],
+		item5in: document.getElementById('item5').getElementsByTagName('span')[0]
+	};
 
 	readonly editor = {
 		coordinates: document.getElementById('editorCoordinates'),
@@ -185,6 +212,13 @@ export default class MyHtmlElements {
 		cancel: document.getElementById('lobbyMenuCancel')
 	};
 
+	readonly loading = {
+		main: document.getElementById('loading'),
+		counter: document.getElementById('loadingCounter'),
+		circle: document.getElementById('loadingCircle'),
+		text: document.getElementById('loadingText')
+	};
+
 	constructor() {
 		this.gameScreen = document.getElementById('gameScreen');
 		this.mapScreen = document.getElementById('mapScreen');
@@ -194,6 +228,10 @@ export default class MyHtmlElements {
 		this.zoneRect = document.getElementById('zoneRect');
 		this.mapZoneSVG = document.getElementById('mapZoneSVG');
 		this.mapZoneCircle = document.getElementById('mapZoneCircle');
+		this.takeLoot = document.getElementById('takeLoot');
+		this.transparentLayer = document.getElementById('transparentLayer');
+		this.activeGunAmmo = document.getElementById('activeGunAmmo');
+		this.mapContainer = document.getElementById('mapContainer');
 	}
 
 	close(...elements: HTMLElement[]): void {

@@ -7,5 +7,6 @@ export enum Weapon {
     Rifle,
     Hammer,
     Granade,
-    Smoke
+    Smoke,
+    Medkit
 }

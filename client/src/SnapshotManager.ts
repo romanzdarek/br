@@ -10,7 +10,7 @@ import { Weapon } from './Weapon';
 export default class SnapshotManager {
 	private serverClientSync: ServerClientSync;
 	private snapshots: Snapshot[] = [];
-	betweenSnapshots: Snapshot | null;
+	betweenSnapshot: Snapshot | null;
 	players: Player[] = [];
 	zone: Zone;
 	private numberOfPlayers: number;
@@ -150,6 +150,35 @@ export default class SnapshotManager {
 		}
 
 		//find missing players and copy previous values
+		const missingPlayerIds = [];
+		for (const previousSnapshotPlayer of previousSnapshotPlayers) {
+			let playerExists = false;
+			for (const lastSnapshotPlayer of lastSnapshotPlayers) {
+				if (previousSnapshotPlayer.i === lastSnapshotPlayer.i) {
+					playerExists = true;
+					break;
+				}
+			}
+			if (!playerExists) {
+				missingPlayerIds.push(previousSnapshotPlayer.i);
+			}
+		}
+		//copy previous snapshot
+		for (const missingPlayerId of missingPlayerIds) {
+			for (const previousSnapshotPlayer of previousSnapshotPlayers) {
+				if (missingPlayerId === previousSnapshotPlayer.i) {
+					lastSnapshotPlayers.push(previousSnapshotPlayer);
+					break;
+				}
+			}
+		}
+		//sort by id!
+		lastSnapshotPlayers.sort((a: PlayerSnapshot, b: PlayerSnapshot) => {
+			return a.i - b.i;
+		});
+
+		////////////////////////////////
+		/*
 		const missingPlayers = [];
 		for (let i = 0; i < this.numberOfPlayers; i++) {
 			let playerExists = false;
@@ -170,6 +199,7 @@ export default class SnapshotManager {
 		lastSnapshotPlayers.sort((a: PlayerSnapshot, b: PlayerSnapshot) => {
 			return a.i - b.i;
 		});
+		*/
 	}
 
 	//1. urcime si cas pred nejakou dobou a budeme hledat snimky hry pred timto a za timto bodem (ServerClientSync class)
@@ -207,6 +237,7 @@ export default class SnapshotManager {
 				newerSnapshot = olderSnapshot;
 				this.serverClientSync.reset();
 			}
+
 			//change draw delay
 			if (this.sumaNewer > 3) this.serverClientSync.changeDrawDelay(-0.1);
 			if (this.sumaNewer < 3) this.serverClientSync.changeDrawDelay(0.1);
@@ -226,8 +257,9 @@ export default class SnapshotManager {
 				//this.betweenSnapshots = JSON.parse(JSON.stringify(copyFrom));
 
 				//fast copy
-				this.betweenSnapshots = {
+				this.betweenSnapshot = {
 					t: copyFrom.t,
+					i: { ...copyFrom.i },
 					p: [],
 					b: [],
 					g: [],
@@ -235,28 +267,30 @@ export default class SnapshotManager {
 					z: { ...copyFrom.z },
 					l: []
 				};
+
 				for (const player of copyFrom.p) {
-					this.betweenSnapshots.p.push({ ...player });
+					this.betweenSnapshot.p.push({ ...player });
 				}
 				for (const bullet of copyFrom.b) {
-					this.betweenSnapshots.b.push({ ...bullet });
+					this.betweenSnapshot.b.push({ ...bullet });
 				}
 				for (const granade of copyFrom.g) {
-					this.betweenSnapshots.g.push({ ...granade });
+					this.betweenSnapshot.g.push({ ...granade });
 				}
 				for (const smoke of copyFrom.s) {
-					this.betweenSnapshots.s.push({ ...smoke });
+					this.betweenSnapshot.s.push({ ...smoke });
 				}
 				for (const loot of copyFrom.l) {
-					this.betweenSnapshots.l.push({ ...loot });
+					this.betweenSnapshot.l.push({ ...loot });
 				}
 
 				//players
-				for (let i = 0; i < this.betweenSnapshots.p.length; i++) {
-					const player = this.betweenSnapshots.p[i];
+				for (let i = 0; i < this.betweenSnapshot.p.length; i++) {
+					const player = this.betweenSnapshot.p[i];
 					player.x = this.positionBetweenSnapshots(olderSnapshot.p[i].x, newerSnapshot.p[i].x, percentShift);
 					player.y = this.positionBetweenSnapshots(olderSnapshot.p[i].y, newerSnapshot.p[i].y, percentShift);
 					//hands
+					//deny between snapshot...
 					if (!player.h) {
 						player.lX = this.positionBetweenSnapshots(
 							olderSnapshot.p[i].lX,
@@ -282,7 +316,7 @@ export default class SnapshotManager {
 				}
 
 				//loot
-				for (const loot of this.betweenSnapshots.l) {
+				for (const loot of this.betweenSnapshot.l) {
 					let olderLoot, newerLoot;
 					for (const older of olderSnapshot.l) {
 						if (loot.i === older.i) {
@@ -326,8 +360,8 @@ export default class SnapshotManager {
 	}
 
 	private updatePlayers(): void {
-		if (!this.betweenSnapshots) return;
-		for (const playerSnapshot of this.betweenSnapshots.p) {
+		if (!this.betweenSnapshot) return;
+		for (const playerSnapshot of this.betweenSnapshot.p) {
 			let playerExists = false;
 			for (const playerInstance of this.players) {
 				if (playerInstance.id === playerSnapshot.i) {

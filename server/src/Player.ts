@@ -17,13 +17,14 @@ import LootItem from './LootItem';
 import Inventory from './Inventory';
 import Loot from './Loot';
 import Gun from './Gun';
-
-type Loading = {
-	time: number;
-	max: number;
-};
+import Bullet from './Bullet';
+import Smoke from './Smoke';
+import Granade from './Granade';
+import ThrowingObject from './ThrowingObject';
+import BulletFactory from './BulletFactory';
 
 export class Player {
+	private static numberOfplayers: number = 0;
 	socket: SocketIO.Socket;
 	readonly id: number;
 	readonly name: string;
@@ -34,34 +35,18 @@ export class Player {
 	private y: number = 0;
 	private angle: number = 0;
 	private map: Map;
+	private bullets: Bullet[];
+	private granades: ThrowingObject[];
 	private loot: Loot;
 	private players: Player[];
 	hands: Hand[] = [];
 	inventory: Inventory;
-	pistol: Pistol;
-	machinegun: Machinegun;
-	shotgun: Shotgun;
-	rifle: Rifle;
-
 	private slowAroundObstacle: boolean = false;
 	private goAroundObstacleCalls: number = 0;
 	private goAroundObstacleMaxCalls: number = 10;
-	private loadingTime: number = 0;
-	private loadingMaxTime: number = 3 * 60;
-	private lives: number = 3;
-	private weaponInventory: Weapon[] = [
-		Weapon.Empty,
-		Weapon.Hand,
-		Weapon.Pistol,
-		Weapon.Rifle,
-		Weapon.Machinegun,
-		Weapon.Shotgun,
-		Weapon.Hammer,
-		Weapon.Granade,
-		Weapon.Smoke
-	];
-	private activeWeapon: Weapon = Weapon.Hand;
+	private health: number = 100;
 	private collisionPoints: CollisionPoints;
+	private bulletFacory: BulletFactory;
 
 	private controll = {
 		up: false,
@@ -72,7 +57,7 @@ export class Player {
 		reload: false
 	};
 
-	mouseControll = {
+	private mouseControll = {
 		left: false,
 		middle: false,
 		right: false,
@@ -87,10 +72,12 @@ export class Player {
 		map: Map,
 		collisionPoints: CollisionPoints,
 		players: Player[],
-		loot: Loot
+		bullets: Bullet[],
+		granades: ThrowingObject[],
+		loot: Loot,
+		bulletFactory: BulletFactory
 	) {
 		this.id = id;
-		this.activeWeapon = Weapon.Hand;
 		this.socket = socket;
 		this.name = name;
 		this.players = players;
@@ -99,18 +86,17 @@ export class Player {
 		this.collisionPoints = collisionPoints;
 		this.hands.push(new Hand(this, players, map, collisionPoints));
 		this.hands.push(new Hand(this, players, map, collisionPoints));
-
+		this.bullets = bullets;
+		this.granades = granades;
 		const hammer = new Hammer(this, players, map, collisionPoints);
 		this.inventory = new Inventory(this, loot, hammer);
+		this.bulletFacory = bulletFactory;
 	}
 
-	/*
-	changeWeapon(inventoryIndex: number): void {
-		if (inventoryIndex >= 0 && inventoryIndex < this.weaponInventory.length) {
-			this.activeWeapon = this.weaponInventory[inventoryIndex];
-		}
+	healing(healthPoints: number): void {
+		this.health += healthPoints;
+		if (this.health > 100) this.health = 100;
 	}
-	*/
 
 	isPointIn(point: Point): boolean {
 		//triangle
@@ -122,18 +108,20 @@ export class Player {
 	}
 
 	acceptHit(power: number): void {
-		this.lives -= power;
+		if (this.inventory.vest) power /= 2;
+		this.health -= power;
+		this.health = Math.round(this.health * 10) / 10;
 		if (!this.isActive()) this.die();
 	}
 
 	isActive(): boolean {
-		return this.lives > 0;
+		return this.health > 0;
 	}
 
 	private die(): void {
 		this.x = 0;
 		this.y = 0;
-		this.lives = 3;
+		this.health = 100;
 	}
 
 	keyController(key: string): void {
@@ -197,11 +185,6 @@ export class Player {
 		this.angle = angle;
 	}
 
-	loading(): Loading {
-		if (this.loadingTime < this.loadingMaxTime) this.loadingTime++;
-		return { time: this.loadingTime, max: this.loadingMaxTime };
-	}
-
 	getCenterX(): number {
 		return this.x + Player.radius;
 	}
@@ -230,8 +213,8 @@ export class Player {
 		return this.angle;
 	}
 
-	getActiveWeapon(): Weapon {
-		return this.activeWeapon;
+	getHealth(): number {
+		return this.health;
 	}
 
 	hit(): void {
@@ -252,37 +235,108 @@ export class Player {
 
 	private takeLoot(): void {
 		if (!this.controll.action) return;
-		for (const loot of this.loot.lootItems) {
-			if (!loot.isActive()) continue;
-			const x = this.getCenterX() - loot.getCenterX();
-			const y = this.getCenterY() - loot.getCenterY();
-			const distance = Math.sqrt(x * x + y * y);
-			const lootAndPlayerRadius = Player.radius + loot.radius;
-			if (distance < lootAndPlayerRadius) {
-				loot.take();
-				this.inventory.take(loot);
-				this.controll.action = false;
-				return;
+		if (this.inventory.ready()) {
+			for (const loot of this.loot.lootItems) {
+				if (!loot.isActive()) continue;
+				const x = this.getCenterX() - loot.getCenterX();
+				const y = this.getCenterY() - loot.getCenterY();
+				const distance = Math.sqrt(x * x + y * y);
+				const lootAndPlayerRadius = Player.radius + loot.radius;
+				if (distance < lootAndPlayerRadius) {
+					loot.take();
+					this.inventory.take(loot);
+					this.controll.action = false;
+					return;
+				}
 			}
 		}
 		this.controll.action = false;
 	}
 
-	move(): void {
+	loop(): void {
+		//player move
+		this.move();
+		this.takeLoot();
+		this.reload();
+		this.inventory.loading();
+		//hammer move
+		if (this.inventory.activeItem instanceof Hammer) this.inventory.activeItem.move();
+
+		//left click
+		if (this.mouseControll.left) {
+			if (this.inventory.activeItem === Weapon.Hand) {
+				this.hit();
+			}
+			if (
+				(this.inventory.activeItem instanceof Pistol ||
+					this.inventory.activeItem instanceof Machinegun ||
+					this.inventory.activeItem instanceof Shotgun ||
+					this.inventory.activeItem instanceof Rifle) &&
+				(this.inventory.activeItem.ready() && this.inventory.ready())
+			) {
+				this.inventory.activeItem.fire();
+				if (!(this.inventory.activeItem instanceof Shotgun)) {
+					this.bullets.push(
+						this.bulletFacory.createBullet(this, this.inventory.activeItem, this.map, this.players)
+					);
+				}
+
+				if (this.inventory.activeItem instanceof Shotgun) {
+					let shotgunSpray = -12;
+					for (let i = 0; i < 7; i++) {
+						shotgunSpray += 3;
+						this.bullets.push(
+							this.bulletFacory.createBullet(this, this.inventory.activeItem, this.map, this.players, shotgunSpray)
+						);
+					}
+				}
+
+				if (!(this.inventory.activeItem instanceof Machinegun)) this.mouseControll.left = false;
+			}
+
+			if (this.inventory.activeItem instanceof Hammer) {
+				if (this.inventory.activeItem.ready()) {
+					this.inventory.activeItem.hit();
+					this.mouseControll.left = false;
+				}
+			}
+
+			if (this.inventory.activeItem === Weapon.Granade) {
+				if (this.hands[1].throwReady()) {
+					this.throw();
+					this.granades.push(new Granade(this.hands[1], this.mouseControll.x, this.mouseControll.y));
+					this.mouseControll.left = false;
+				}
+			}
+
+			if (this.inventory.activeItem === Weapon.Smoke) {
+				if (this.hands[1].throwReady()) {
+					this.throw();
+					this.granades.push(new Smoke(this.hands[1], this.mouseControll.x, this.mouseControll.y));
+					this.mouseControll.left = false;
+				}
+			}
+
+			if (this.inventory.activeItem === Weapon.Medkit) {
+				this.inventory.heal();
+				this.mouseControll.left = false;
+			}
+		}
+	}
+
+	private move(): void {
 		this.goAroundObstacleCalls = 0;
-
 		const { up, down, left, right } = this.controll;
-
 		if (up || down || left || right) {
 			//standart shift (speed)
 			let shift = this.speed;
-
+			//reloading & healing speed
+			if (!this.inventory.ready()) shift /= 2;
 			//diagonal shift and slow around obstacle
 			if ((up && left) || (up && right) || (down && left) || (down && right) || this.slowAroundObstacle) {
 				shift = shift / Math.sqrt(2);
 				this.slowAroundObstacle = false;
 			}
-
 			//shift in water
 			for (let i = 0; i < this.map.terrain.length; i++) {
 				//terrain block is under my center
@@ -316,7 +370,6 @@ export class Player {
 					}
 				}
 			}
-
 			//player shift
 			let shiftX = 0;
 			let shiftY = 0;
@@ -327,17 +380,14 @@ export class Player {
 			//i want to go this way...
 			this.shiftOnPosition(shiftX, shiftY);
 		}
-
-		this.takeLoot();
 		if (
 			this.inventory.activeItem === Weapon.Hand ||
 			this.inventory.activeItem === Weapon.Granade ||
-			this.inventory.activeItem === Weapon.Smoke
+			this.inventory.activeItem === Weapon.Smoke ||
+			this.inventory.activeItem === Weapon.Medkit
 		) {
 			this.changeHandsPosition();
 		}
-		if (this.inventory.activeItem === Weapon.Hammer) this.inventory.activeItem.move();
-		this.reload();
 	}
 
 	private reload(): void {

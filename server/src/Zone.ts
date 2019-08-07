@@ -1,13 +1,14 @@
 import Map from './Map';
 import ZoneCircle from './ZoneCircle';
 import Point from './Point';
+import { Player } from './Player';
 
 export default class Zone {
 	innerCircle: ZoneCircle;
 	outerCircle: ZoneCircle;
 	private createZoneTime: number | null = null;
-	private moveZoneDelay: number = 1000 * 120;
-	private damage: number = 0.01;
+	private moveZoneDelay: number = 1000 * 10;
+	private damage: number = 0.1;
 	private damageIncrease: number = 0.01;
 
 	constructor(map: Map) {
@@ -46,12 +47,12 @@ export default class Zone {
 		}
 	}
 
-	isPointIn(point: Point): boolean {
+	playertIn(player: Player): boolean {
 		//triangle
-		const x = this.outerCircle.getCenterX() - point.x;
-		const y = this.outerCircle.getCenterY() - point.y;
+		const x = this.outerCircle.getCenterX() - player.getCenterX();
+		const y = this.outerCircle.getCenterY() - player.getCenterY();
 		const radius = Math.sqrt(x * x + y * y);
-		return radius <= this.outerCircle.getRadius();
+		return radius + Player.radius <= this.outerCircle.getRadius();
 	}
 
 	getDamage(): number {

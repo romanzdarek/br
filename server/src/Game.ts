@@ -27,24 +27,26 @@ import Shotgun from './Shotgun';
 import Rifle from './Rifle';
 import Hammer from './Hammer';
 import Loot from './Loot';
+import MyPlayerSnapshot from './MyPlayerSnapshot';
+import PlayerFactory from './PlayerFactory';
+import BulletFactory from './BulletFactory';
 
 export default class Game {
 	private map: Map;
 	private mapData: MapData;
 	private zone: Zone;
-	private playerId: number = 0;
-
 	players: Player[] = [];
 	private previousSnapshot: Snapshot;
 	private bullets: Bullet[] = [];
 	private loot: Loot;
 	private smokeClouds: SmokeCloud[] = [];
 	private granades: ThrowingObject[] = [];
-	private numberOfBullets: number = 0;
 	private collisionPoints: CollisionPoints;
 	private active: boolean = false;
 	private randomPositionAttempts: number = 0;
 	private maxRandomPositionAttempts: number = 1000;
+	private playerFactory: PlayerFactory;
+	private bulletFactory: BulletFactory;
 
 	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints, mapData: MapData) {
 		this.collisionPoints = collisionPoints;
@@ -53,6 +55,8 @@ export default class Game {
 		this.zone = new Zone(this.map);
 		this.loot = new Loot();
 		this.loot.createMainLootItems();
+		this.playerFactory = new PlayerFactory();
+		this.bulletFactory = new BulletFactory();
 	}
 
 	private updateListOfPlayers(): void {
@@ -122,14 +126,16 @@ export default class Game {
 				name = uniqueName(2);
 			}
 		}
-		const newPlayer = new Player(
-			this.playerId++,
+		const newPlayer = this.playerFactory.create(
 			name,
 			socket,
 			this.map,
 			this.collisionPoints,
 			this.players,
-			this.loot
+			this.bullets,
+			this.granades,
+			this.loot,
+			this.bulletFactory
 		);
 		this.setRandomPosition(newPlayer);
 		this.players.push(newPlayer);
@@ -139,19 +145,6 @@ export default class Game {
 		newPlayer.socket.emit('playerId', newPlayer.id);
 		return name;
 	}
-
-	/*
-	makeID(): string {
-		const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-		const length = 6;
-		let id = '';
-		for (let i = 0; i < length; i++) {
-			const randomChar = chars[Math.floor(Math.random() * chars.length)];
-			id += randomChar;
-		}
-		return id;
-	}
-	*/
 
 	private shuffleFragments(fragments: Bullet[]): Bullet[] {
 		const shuffleFragments = [];
@@ -260,13 +253,6 @@ export default class Game {
 			loot.move();
 		}
 
-		//test create loot
-		/*
-		if (Math.floor(Math.random() * 500) === 0) {
-			this.loots.push(new Loot(this.lootId++, 0, 0, 0));
-		}
-		*/
-
 		//move granades
 		for (let i = this.granades.length - 1; i >= 0; i--) {
 			const granade = this.granades[i];
@@ -283,7 +269,7 @@ export default class Game {
 					for (let i = 0; i < granade.fragmentCount; i++) {
 						const angle = i * shiftAngle;
 						fragments.push(
-							Bullet.makeFragment(++this.numberOfBullets, granade, this.map, this.players, angle)
+							this.bulletFactory.createFragment(granade, this.map, this.players, angle)
 						);
 					}
 					this.bullets = [ ...this.bullets, ...this.shuffleFragments(fragments) ];
@@ -325,85 +311,10 @@ export default class Game {
 
 		//player move
 		for (const player of this.players) {
-			player.move();
-
-			//hammer move
-			if (player.inventory.activeItem instanceof Hammer) player.inventory.activeItem.move();
-
+			player.loop();
 			//zone damage
-			if (!this.zone.isPointIn(new Point(player.getCenterX(), player.getCenterY()))) {
+			if (!this.zone.playertIn(player)) {
 				player.acceptHit(this.zone.getDamage());
-			}
-
-			//left click
-			if (player.mouseControll.left) {
-				if (player.inventory.activeItem === Weapon.Hand) {
-					player.hit();
-				}
-				if (
-					(player.inventory.activeItem instanceof Pistol ||
-						player.inventory.activeItem instanceof Machinegun ||
-						player.inventory.activeItem instanceof Shotgun ||
-						player.inventory.activeItem instanceof Rifle) &&
-					player.inventory.activeItem.ready()
-				) {
-					player.inventory.activeItem.fire();
-					if (!(player.inventory.activeItem instanceof Shotgun)) {
-						this.bullets.push(
-							Bullet.makeBullet(
-								++this.numberOfBullets,
-								player,
-								player.inventory.activeItem,
-								this.map,
-								this.players
-							)
-						);
-					}
-
-					if (player.inventory.activeItem instanceof Shotgun) {
-						let shotgunSpray = -12;
-						for (let i = 0; i < 7; i++) {
-							shotgunSpray += 3;
-							this.bullets.push(
-								Bullet.makeBullet(
-									++this.numberOfBullets,
-									player,
-									player.inventory.activeItem,
-									this.map,
-									this.players,
-									shotgunSpray
-								)
-							);
-						}
-					}
-
-					if (!(player.inventory.activeItem instanceof Machinegun)) player.mouseControll.left = false;
-				}
-
-				if (player.inventory.activeItem instanceof Hammer) {
-					if (player.inventory.activeItem.ready()) {
-						player.inventory.activeItem.hit();
-						player.mouseControll.left = false;
-					}
-				}
-
-				if (player.inventory.activeItem === Weapon.Granade) {
-					if (player.hands[1].throwReady()) {
-						player.throw();
-						this.granades.push(
-							new Granade(player.hands[1], player.mouseControll.x, player.mouseControll.y)
-						);
-						player.mouseControll.left = false;
-					}
-				}
-
-				if (player.inventory.activeItem === Weapon.Smoke) {
-					if (player.hands[1].throwReady()) {
-						player.throw();
-						this.granades.push(new Smoke(player.hands[1], player.mouseControll.x, player.mouseControll.y));
-						player.mouseControll.left = false;
-					}
-				}
 			}
 		}
 		this.clientsUpdate();
@@ -465,10 +376,12 @@ export default class Game {
 						if (
 							(playerNow.w === Weapon.Hand ||
 								playerNow.w === Weapon.Smoke ||
-								playerNow.w === Weapon.Granade) &&
+								playerNow.w === Weapon.Granade ||
+								playerNow.w === Weapon.Medkit) &&
 							(playerBefore.w !== Weapon.Hand &&
 								playerBefore.w !== Weapon.Smoke &&
-								playerBefore.w !== Weapon.Granade)
+								playerBefore.w !== Weapon.Granade &&
+								playerBefore.w !== Weapon.Medkit)
 						) {
 							playerNow.h = 1;
 						}
@@ -563,18 +476,18 @@ export default class Game {
 
 		//emit
 		for (const player of this.players) {
-			player.socket.emit(
-				'u',
-				new Snapshot(
-					dateNow,
-					playerSnapshotsOptimalization,
-					bulletSnapshots,
-					granadeSnapshots,
-					smokeCloudSnapshots,
-					zoneSnapshotOptimalization,
-					lootSnapshotsOptimalization
-				)
+			const myPlayerSnapshot = new MyPlayerSnapshot(player);
+			const snapshot = new Snapshot(
+				dateNow,
+				playerSnapshotsOptimalization,
+				bulletSnapshots,
+				granadeSnapshots,
+				smokeCloudSnapshots,
+				zoneSnapshotOptimalization,
+				lootSnapshotsOptimalization
 			);
+			snapshot.i = myPlayerSnapshot;
+			player.socket.emit('u', snapshot);
 		}
 
 		//delete !active loot

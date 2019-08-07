@@ -48,9 +48,11 @@ interface RectObject {
 }
 
 export default class View {
+	private snapshotManager: SnapshotManager;
 	private gameScreen: HTMLCanvasElement;
 	private editorScreen: HTMLCanvasElement;
 	private mapScreen: HTMLCanvasElement;
+	private loadingScreen: HTMLCanvasElement;
 	private helperScreen: HTMLCanvasElement;
 	private ctxGame: CanvasRenderingContext2D;
 	private ctxMap: CanvasRenderingContext2D;
@@ -68,6 +70,7 @@ export default class View {
 	private cursorSVG: HTMLImageElement;
 	private granadeSVG: HTMLImageElement;
 	private smokeSVG: HTMLImageElement;
+	private medkitSVG: HTMLImageElement;
 	private smokeCloudSVG: HTMLImageElement;
 	private loadingProgresSVG: HTMLImageElement;
 	private loadingCircleSVG: HTMLImageElement;
@@ -95,13 +98,13 @@ export default class View {
 
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
+	private finalResolutionAdjustment: number = 1;
 	private screenCenterX: number;
 	private screenCenterY: number;
 	private map: Map;
 	private bullets: Bullet[];
 	private mouse: Mouse;
-	private myPlayerCenterX: number = 0;
-	private myPlayerCenterY: number = 0;
+	private myPlayer: Player;
 
 	private serverClientSync: ServerClientSync;
 	private myHtmlElements: MyHtmlElements;
@@ -109,6 +112,8 @@ export default class View {
 	private colors: Colors;
 	private bulletLines: BulletLine[] = [];
 	private collisionPoints: CollisionPoints;
+
+	private takeLootText: string = '';
 
 	private outerCircle = {
 		x: 0,
@@ -130,8 +135,10 @@ export default class View {
 		waterTerrainData: WaterTerrainData,
 		serverClientSync: ServerClientSync,
 		myHtmlElements: MyHtmlElements,
-		collisionPoints: CollisionPoints
+		collisionPoints: CollisionPoints,
+		snapshotManager: SnapshotManager
 	) {
+		this.snapshotManager = snapshotManager;
 		this.colors = new Colors();
 		this.serverClientSync = serverClientSync;
 		this.myHtmlElements = myHtmlElements;
@@ -191,6 +198,9 @@ export default class View {
 
 		this.smokeSVG = new Image();
 		this.smokeSVG.src = 'img/smoke.svg';
+
+		this.medkitSVG = new Image();
+		this.medkitSVG.src = 'img/medkit.svg';
 
 		this.smokeCloudSVG = new Image();
 		this.smokeCloudSVG.src = 'img/smokeCloud.svg';
@@ -260,14 +270,20 @@ export default class View {
 		const mapSize = Math.floor((window.innerWidth / 5 + window.innerHeight / 5) / 2);
 		this.mapScreen.width = mapSize;
 		this.mapScreen.height = mapSize;
-		this.mapScreen.style.right = Math.floor(mapSize / 5).toString() + 'px';
+		this.mapScreen.style.left = Math.floor(mapSize / 5).toString() + 'px';
 		this.mapScreen.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
 		el.zoneSVG.setAttribute('width', window.innerWidth.toString());
 		el.zoneSVG.setAttribute('height', window.innerHeight.toString());
-		el.mapZoneSVG.style.right = Math.floor(mapSize / 5).toString() + 'px';
+		el.mapZoneSVG.style.left = Math.floor(mapSize / 5).toString() + 'px';
 		el.mapZoneSVG.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
 		el.mapZoneSVG.setAttribute('width', mapSize.toString());
 		el.mapZoneSVG.setAttribute('height', mapSize.toString());
+
+		el.mapContainer.style.left = Math.floor(mapSize / 5).toString() + 'px';
+		el.mapContainer.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
+		el.mapContainer.style.width = (mapSize + 10).toString() + 'px';
+		el.mapContainer.style.height = (mapSize + 10).toString() + 'px';
+
 		this.screenCenterX = window.innerWidth / 2;
 		this.screenCenterY = window.innerHeight / 2;
 		this.changeResolutionAdjustment();
@@ -287,10 +303,10 @@ export default class View {
 		else {
 			y = point.y - this.screenCenterY;
 		}
-		x /= this.resolutionAdjustment;
-		y /= this.resolutionAdjustment;
-		x += this.myPlayerCenterX;
-		y += this.myPlayerCenterY;
+		x /= this.finalResolutionAdjustment;
+		y /= this.finalResolutionAdjustment;
+		x += this.myPlayer.getCenterX();
+		y += this.myPlayer.getCenterY();
 		return new Point(x, y);
 	}
 
@@ -391,10 +407,13 @@ export default class View {
 		}
 		//player
 		{
-			const playerSize = blockSize / 3;
-			const x = this.myPlayerCenterX * sizeReduction - playerSize / 2;
-			const y = this.myPlayerCenterY * sizeReduction - playerSize / 2;
-			ctx.drawImage(this.playerSVG, x, y, playerSize, playerSize);
+			const playerSize = this.mapScreen.width / 40;
+			const x = this.myPlayer.getCenterX() * sizeReduction - playerSize / 2;
+			const y = this.myPlayer.getCenterY() * sizeReduction - playerSize / 2;
+			ctx.beginPath();
+			ctx.arc(x, y, playerSize, 0, 2 * Math.PI);
+			ctx.fillStyle = '#FF7B00';
+			ctx.fill();
 		}
 		//zone
 		{
@@ -635,13 +654,25 @@ export default class View {
 		}
 	}
 
-	drawGame(snapshotManager: SnapshotManager, myPlayerId: number): void {
-		const betweenSnapshots = snapshotManager.betweenSnapshots;
-		const players = snapshotManager.players;
-		if (!betweenSnapshots) return;
+	drawGame(myPlayerId: number): void {
+		const betweenSnapshot = this.snapshotManager.betweenSnapshot;
+		const players = this.snapshotManager.players;
+		if (!betweenSnapshot) return;
+		//my player
+		if (!this.myPlayer) {
+			for (const player of players) {
+				if (player.id === myPlayerId) {
+					this.myPlayer = player;
+					break;
+				}
+			}
+		}
+		if (!this.myPlayer) return;
+
+		this.drawMap();
+
 		const ctx = this.ctxGame;
 		const el = this.myHtmlElements;
-		this.drawMap();
 
 		//clear canvas
 		ctx.clearRect(0, 0, this.gameScreen.width, this.gameScreen.height);
@@ -649,14 +680,6 @@ export default class View {
 		//water
 		ctx.fillStyle = this.colors.water;
 		ctx.fillRect(0, 0, this.gameScreen.width, this.gameScreen.height);
-
-		//center of my player
-		for (const player of players) {
-			if (player.id === myPlayerId) {
-				this.myPlayerCenterX = player.getCenterX();
-				this.myPlayerCenterY = player.getCenterY();
-			}
-		}
 
 		//grass blocks
 		ctx.fillStyle = this.colors.grass;
@@ -767,7 +790,7 @@ export default class View {
 		}
 
 		//loot
-		for (const loot of betweenSnapshots.l) {
+		for (const loot of betweenSnapshot.l) {
 			const { x, y, size, isOnScreen } = this.howToDraw(loot);
 			let lootSVG;
 			switch (loot.type) {
@@ -955,7 +978,8 @@ export default class View {
 			if (
 				player.getWeapon() === Weapon.Hand ||
 				player.getWeapon() === Weapon.Granade ||
-				player.getWeapon() === Weapon.Smoke
+				player.getWeapon() === Weapon.Smoke ||
+				player.getWeapon() === Weapon.Medkit
 			) {
 				for (let i = 0; i < 2; i++) {
 					const { x, y, size, isOnScreen } = this.howToDraw({
@@ -978,8 +1002,13 @@ export default class View {
 							ctx.fillRect(x, y, size, size);
 						}
 
-						//granade || smoke in hand
-						if ((player.getWeapon() === Weapon.Granade || player.getWeapon() === Weapon.Smoke) && i === 1) {
+						//granade || smoke || medkit in hand
+						if (
+							(player.getWeapon() === Weapon.Granade ||
+								player.getWeapon() === Weapon.Smoke ||
+								player.getWeapon() === Weapon.Medkit) &&
+							i === 1
+						) {
 							const granadeShiftAngle = 30;
 							const playerAngle = player.getAngle();
 							const shiftZ = player.hands[1].radius;
@@ -1000,8 +1029,11 @@ export default class View {
 								ctx.rotate((playerAngle - granadeShiftAngle) * Math.PI / 180);
 								let SVG;
 								if (player.getWeapon() === Weapon.Granade) SVG = this.granadeSVG;
-
 								if (player.getWeapon() === Weapon.Smoke) SVG = this.smokeSVG;
+								if (player.getWeapon() === Weapon.Medkit) {
+									SVG = this.medkitSVG;
+									console.log('medkit');
+								}
 								ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
 								ctx.restore();
 							}
@@ -1032,7 +1064,7 @@ export default class View {
 		}
 
 		//granades
-		for (const granade of betweenSnapshots.g) {
+		for (const granade of betweenSnapshot.g) {
 			const granadeSize = 30 * granade.b;
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: granade.x - granadeSize / 2,
@@ -1056,7 +1088,7 @@ export default class View {
 
 		//bullets
 		ctx.fillStyle = this.colors.bullet;
-		for (const bullet of betweenSnapshots.b) {
+		for (const bullet of betweenSnapshot.b) {
 			/*
 			//bullet point
 			const { x, y, size, isOnScreen } = this.howToDraw({
@@ -1150,7 +1182,7 @@ export default class View {
 		}
 
 		//smokes
-		for (const smoke of betweenSnapshots.s) {
+		for (const smoke of betweenSnapshot.s) {
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: smoke.x - smoke.s / 2,
 				y: smoke.y - smoke.s / 2,
@@ -1171,9 +1203,9 @@ export default class View {
 		this.outerCircle.y = betweenSnapshots.z.oY;
 		this.outerCircle.radius = betweenSnapshots.z.oR;
 		*/
-		this.outerCircle.x = snapshotManager.zone.outerCircle.getCenterX();
-		this.outerCircle.y = snapshotManager.zone.outerCircle.getCenterY();
-		this.outerCircle.radius = snapshotManager.zone.outerCircle.getRadius();
+		this.outerCircle.x = this.snapshotManager.zone.outerCircle.getCenterX();
+		this.outerCircle.y = this.snapshotManager.zone.outerCircle.getCenterY();
+		this.outerCircle.radius = this.snapshotManager.zone.outerCircle.getRadius();
 
 		const { x, y } = this.howToDraw({
 			x: this.outerCircle.x,
@@ -1181,7 +1213,7 @@ export default class View {
 			size: 1
 		});
 
-		const outerRadius = this.outerCircle.radius * this.resolutionAdjustment;
+		const outerRadius = this.outerCircle.radius * this.finalResolutionAdjustment;
 
 		/*
 		//circle
@@ -1208,9 +1240,9 @@ export default class View {
 			this.innerCircle.y = betweenSnapshots.z.iY;
 			this.innerCircle.radius = betweenSnapshots.z.iR;
 			*/
-			this.innerCircle.x = snapshotManager.zone.innerCircle.getCenterX();
-			this.innerCircle.y = snapshotManager.zone.innerCircle.getCenterY();
-			this.innerCircle.radius = snapshotManager.zone.innerCircle.getRadius();
+			this.innerCircle.x = this.snapshotManager.zone.innerCircle.getCenterX();
+			this.innerCircle.y = this.snapshotManager.zone.innerCircle.getCenterY();
+			this.innerCircle.radius = this.snapshotManager.zone.innerCircle.getRadius();
 
 			/*
 			const { x, y } = this.howToDraw({
@@ -1218,7 +1250,7 @@ export default class View {
 				y: newerSnapshot.z.iY,
 				size: 1
 			});
-			const innerRadius = newerSnapshot.z.iR * this.resolutionAdjustment;
+			const innerRadius = newerSnapshot.z.iR * this.finalResolutionAdjustment;
 			ctx.beginPath();
 			ctx.arc(x, y, innerRadius, 0, 2 * Math.PI);
 			ctx.strokeStyle = 'green';
@@ -1234,14 +1266,14 @@ export default class View {
 			let row = 30;
 			let rowMultiple = 0;
 			//ctx.fillText('snapshots: ' + this.snapshots.length, x, row * ++rowMultiple);
-			ctx.fillText('newerSnapshots: ' + snapshotManager.sumaNewer, x, row * ++rowMultiple);
+			ctx.fillText('newerSnapshots: ' + this.snapshotManager.sumaNewer, x, row * ++rowMultiple);
 			ctx.fillText('ping: ' + this.serverClientSync.getPing(), x, row * ++rowMultiple);
 			ctx.fillText('timeDiference: ' + this.serverClientSync.getTimeDiference(), x, row * ++rowMultiple);
 			ctx.fillText('drawDelay: ' + this.serverClientSync.getDrawDelay(), x, row * ++rowMultiple);
-			if (!snapshotManager.olderExists) {
+			if (!this.snapshotManager.olderExists) {
 				ctx.fillText('olderSnapshot missing', x, row * ++rowMultiple);
 			}
-			if (!snapshotManager.newerExists) {
+			if (!this.snapshotManager.newerExists) {
 				ctx.fillText('newerSnapshot missing', x, row * ++rowMultiple);
 			}
 		}
@@ -1257,23 +1289,153 @@ export default class View {
 			size * this.resolutionAdjustment
 		);
 		*/
+
+		//healthBar
+		el.healthBar.in.style.width = betweenSnapshot.i.h + '%';
+
+		//loading
+		const progres = Math.round(betweenSnapshot.i.l / betweenSnapshot.i.lE * 100);
+		const seconds = Math.round((betweenSnapshot.i.lE - betweenSnapshot.i.l) / 1000 * 10) / 10;
+		if (seconds) {
+			el.loading.main.style.display = 'block';
+			el.loading.text.style.display = 'block';
+			el.loading.text.textContent = betweenSnapshot.i.lT;
+			let secondsString = seconds.toString();
+			switch (secondsString) {
+				case '0':
+					secondsString = ' 0.0';
+					break;
+				case '1':
+					secondsString = ' 1.0';
+					break;
+				case '2':
+					secondsString = ' 2.0';
+					break;
+				case '3':
+					secondsString = ' 3.0';
+					break;
+				case '4':
+					secondsString = ' 4.0';
+					break;
+				case '5':
+					secondsString = ' 5.0';
+					break;
+			}
+			el.loading.counter.textContent = secondsString;
+			el.loading.circle.setAttribute('stroke-dasharray', progres + ', 100');
+		}
+		else {
+			el.loading.main.style.display = 'none';
+			el.loading.text.style.display = 'none';
+		}
+
+		//take loot info
+		this.takeLootInfo();
+		el.takeLoot.textContent = this.takeLootText;
+
+		//items
+		el.items.redAmmo.textContent = this.snapshotManager.betweenSnapshot.i.r.toString();
+		el.items.greenAmmo.textContent = this.snapshotManager.betweenSnapshot.i.g.toString();
+		el.items.blueAmmo.textContent = this.snapshotManager.betweenSnapshot.i.b.toString();
+		el.items.orangeAmmo.textContent = this.snapshotManager.betweenSnapshot.i.o.toString();
+
+		el.items.item1in.textContent = this.itemName(this.snapshotManager.betweenSnapshot.i.i1);
+		el.items.item2in.textContent = this.itemName(this.snapshotManager.betweenSnapshot.i.i2);
+		el.items.item3in.textContent = this.itemName(this.snapshotManager.betweenSnapshot.i.i3);
+		el.items.item4in.textContent =
+			this.itemName(this.snapshotManager.betweenSnapshot.i.i4) + ' ' + this.snapshotManager.betweenSnapshot.i.s4;
+		el.items.item5in.textContent =
+			this.itemName(this.snapshotManager.betweenSnapshot.i.i5) + ' ' + this.snapshotManager.betweenSnapshot.i.s5;
+
+		//active weapon
+		this.activeItem(this.snapshotManager.betweenSnapshot.i.i1, el.items.item1);
+		this.activeItem(this.snapshotManager.betweenSnapshot.i.i2, el.items.item2);
+		this.activeItem(this.snapshotManager.betweenSnapshot.i.i3, el.items.item3);
+		this.activeItem(this.snapshotManager.betweenSnapshot.i.i4, el.items.item4);
+		this.activeItem(this.snapshotManager.betweenSnapshot.i.i5, el.items.item5);
+
+		//activeGunAmmo
+		let ammo = '';
+		if (
+			this.myPlayer.getWeapon() === Weapon.Pistol ||
+			this.myPlayer.getWeapon() === Weapon.Rifle ||
+			this.myPlayer.getWeapon() === Weapon.Machinegun ||
+			this.myPlayer.getWeapon() === Weapon.Shotgun
+		) {
+			ammo = betweenSnapshot.i.a.toString();
+		}
+		else if (this.myPlayer.getWeapon() === Weapon.Hand || this.myPlayer.getWeapon() === Weapon.Hammer) {
+			ammo = '∞';
+		}
+		else if (this.myPlayer.getWeapon() === Weapon.Granade || this.myPlayer.getWeapon() === Weapon.Smoke) {
+			ammo = '?';
+		}
+		else if (this.myPlayer.getWeapon() === Weapon.Medkit) {
+			ammo = betweenSnapshot.i.i5.toString();
+		}
+		el.activeGunAmmo.textContent = ammo;
+	}
+
+	private activeItem(item: Weapon, element: HTMLElement): void {
+		if (this.myPlayer.getWeapon() === item) {
+			element.classList.add('active');
+		}
+		else {
+			element.classList.remove('active');
+		}
+	}
+
+	private itemName(item: any): string {
+		let weaponName: string = '';
+		if (item === Weapon.Pistol) weaponName = 'Pistol';
+		if (item === Weapon.Rifle) weaponName = 'Rifle';
+		if (item === Weapon.Machinegun) weaponName = 'Machinegun';
+		if (item === Weapon.Shotgun) weaponName = 'Shotgun';
+		if (item === Weapon.Granade) weaponName = 'Granade';
+		if (item === Weapon.Smoke) weaponName = 'Smoke';
+		if (item === Weapon.Hand) weaponName = 'Hands';
+		if (item === Weapon.Hammer) weaponName = 'Hammer';
+		if (item === Weapon.Medkit) weaponName = 'Medkit';
+		return weaponName;
+	}
+
+	private takeLootInfo(): void {
+		this.takeLootText = '';
+		if (!this.snapshotManager.betweenSnapshot) return;
+		if (this.snapshotManager.betweenSnapshot.i.l !== 0) return;
+
+		for (const loot of this.snapshotManager.betweenSnapshot.l) {
+			const x = this.myPlayer.getCenterX() - (loot.x + loot.size / 2);
+			const y = this.myPlayer.getCenterY() - (loot.y + loot.size / 2);
+			const distance = Math.sqrt(x * x + y * y);
+			const lootAndPlayerRadius = this.snapshotManager.players[0].radius + loot.size / 2;
+			if (distance < lootAndPlayerRadius) {
+				this.takeLootText = 'Take loot (E)';
+				return;
+			}
+		}
 	}
 
 	private howToDraw(gameObject: RoundObject | RectObject | RectangleObstacle | RoundObstacle): DrawData {
+		this.finalResolutionAdjustment = this.resolutionAdjustment;
+		//scope
+		if (this.snapshotManager.betweenSnapshot.i.s === 2) this.finalResolutionAdjustment /= 1.2;
+		else if (this.snapshotManager.betweenSnapshot.i.s === 4) this.finalResolutionAdjustment /= 1.4;
+		else if (this.snapshotManager.betweenSnapshot.i.s === 6) this.finalResolutionAdjustment /= 1.6;
 		//size
 		let size = 0;
 		let width = 0;
 		let height = 0;
 		//round or square
 		if ((<RoundObject>gameObject).size) {
-			size = (<RoundObject>gameObject).size * this.resolutionAdjustment;
+			size = (<RoundObject>gameObject).size * this.finalResolutionAdjustment;
 			width = size;
 			height = size;
 		}
 		else {
 			//rect
-			width = (<RectObject>gameObject).width * this.resolutionAdjustment;
-			height = (<RectObject>gameObject).height * this.resolutionAdjustment;
+			width = (<RectObject>gameObject).width * this.finalResolutionAdjustment;
+			height = (<RectObject>gameObject).height * this.finalResolutionAdjustment;
 		}
 		//animate shift
 		let animateShiftX = 0;
@@ -1285,9 +1447,11 @@ export default class View {
 		}
 		//positions on screen
 		const x =
-			this.screenCenterX + (gameObject.x + animateShiftX - this.myPlayerCenterX) * this.resolutionAdjustment;
+			this.screenCenterX +
+			(gameObject.x + animateShiftX - this.myPlayer.getCenterX()) * this.finalResolutionAdjustment;
 		const y =
-			this.screenCenterY + (gameObject.y + animateShiftY - this.myPlayerCenterY) * this.resolutionAdjustment;
+			this.screenCenterY +
+			(gameObject.y + animateShiftY - this.myPlayer.getCenterY()) * this.finalResolutionAdjustment;
 		//Is is on the screen?
 		let isOnScreen = true;
 		if (x > this.gameScreen.width || x < -width || y > this.gameScreen.height || y < -height) {

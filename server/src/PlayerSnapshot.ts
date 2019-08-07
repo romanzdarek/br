@@ -51,6 +51,7 @@ export default class PlayerSnapshot {
 		if (player.inventory.activeItem instanceof Rifle) this.w = Weapon.Rifle;
 		if (player.inventory.activeItem === Weapon.Granade) this.w = Weapon.Granade;
 		if (player.inventory.activeItem === Weapon.Smoke) this.w = Weapon.Smoke;
+		if (player.inventory.activeItem === Weapon.Medkit) this.w = Weapon.Medkit;
 		if (player.inventory.activeItem instanceof Hammer) {
 			this.w = Weapon.Hammer;
 			this.m = player.inventory.activeItem.getAngle();
