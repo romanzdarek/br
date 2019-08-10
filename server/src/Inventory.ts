@@ -33,7 +33,7 @@ export default class Inventory {
 	orangeAmmo: number = 0;
 
 	vest: boolean = false;
-	scope: number = 0;
+	scope: number = 1;
 
 	private maxAmmo: number = 100;
 
@@ -390,7 +390,7 @@ export default class Inventory {
 		}
 		//take scope
 		if (loot.type === LootType.Scope2 || loot.type === LootType.Scope4 || loot.type === LootType.Scope6) {
-			if (this.scope !== 0) {
+			if (this.scope !== 1) {
 				//throw loot
 				let scopeType: LootType;
 				switch (this.scope) {

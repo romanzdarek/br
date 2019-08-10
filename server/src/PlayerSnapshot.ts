@@ -14,6 +14,8 @@ export default class PlayerSnapshot {
 	readonly i: number;
 	x: number;
 	y: number;
+	//live
+	l: number;
 	//angle
 	a: number;
 	//active weapon
@@ -43,6 +45,9 @@ export default class PlayerSnapshot {
 		this.x = Math.round(player.getX() * afterComma) / afterComma;
 		this.y = Math.round(player.getY() * afterComma) / afterComma;
 		this.a = player.getAngle();
+
+		this.l = 1;
+		if (!player.isActive()) this.l = 0;
 
 		if (player.inventory.activeItem === Weapon.Hand) this.w = Weapon.Hand;
 		if (player.inventory.activeItem instanceof Pistol) this.w = Weapon.Pistol;

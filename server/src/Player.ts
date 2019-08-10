@@ -46,7 +46,7 @@ export class Player {
 	private goAroundObstacleMaxCalls: number = 10;
 	private health: number = 100;
 	private collisionPoints: CollisionPoints;
-	private bulletFacory: BulletFactory;
+	private bulletFactory: BulletFactory;
 
 	private controll = {
 		up: false,
@@ -90,7 +90,7 @@ export class Player {
 		this.granades = granades;
 		const hammer = new Hammer(this, players, map, collisionPoints);
 		this.inventory = new Inventory(this, loot, hammer);
-		this.bulletFacory = bulletFactory;
+		this.bulletFactory = bulletFactory;
 	}
 
 	healing(healthPoints: number): void {
@@ -159,12 +159,14 @@ export class Player {
 		}
 	}
 
-	mouseController(button: string, position: Point): void {
+	mouseController(button: string, position?: Point): void {
 		switch (button) {
 			case 'l':
 				this.mouseControll.left = true;
-				this.mouseControll.x = position.x;
-				this.mouseControll.y = position.y;
+				if (position) {
+					this.mouseControll.x = position.x;
+					this.mouseControll.y = position.y;
+				}
 				break;
 			case 'm':
 				break;
@@ -267,57 +269,57 @@ export class Player {
 			if (this.inventory.activeItem === Weapon.Hand) {
 				this.hit();
 			}
-			if (
+			else if (
 				(this.inventory.activeItem instanceof Pistol ||
 					this.inventory.activeItem instanceof Machinegun ||
 					this.inventory.activeItem instanceof Shotgun ||
 					this.inventory.activeItem instanceof Rifle) &&
 				(this.inventory.activeItem.ready() && this.inventory.ready())
 			) {
-				this.inventory.activeItem.fire();
-				if (!(this.inventory.activeItem instanceof Shotgun)) {
-					this.bullets.push(
-						this.bulletFacory.createBullet(this, this.inventory.activeItem, this.map, this.players)
-					);
-				}
-
 				if (this.inventory.activeItem instanceof Shotgun) {
 					let shotgunSpray = -12;
 					for (let i = 0; i < 7; i++) {
 						shotgunSpray += 3;
 						this.bullets.push(
-							this.bulletFacory.createBullet(this, this.inventory.activeItem, this.map, this.players, shotgunSpray)
+							this.bulletFactory.createBullet(
+								this,
+								this.inventory.activeItem,
+								this.map,
+								this.players,
+								shotgunSpray
+							)
 						);
 					}
 				}
-
+				else {
+					this.bullets.push(
+						this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players)
+					);
+				}
+				this.inventory.activeItem.fire();
 				if (!(this.inventory.activeItem instanceof Machinegun)) this.mouseControll.left = false;
 			}
-
-			if (this.inventory.activeItem instanceof Hammer) {
+			else if (this.inventory.activeItem instanceof Hammer) {
 				if (this.inventory.activeItem.ready()) {
 					this.inventory.activeItem.hit();
 					this.mouseControll.left = false;
 				}
 			}
-
-			if (this.inventory.activeItem === Weapon.Granade) {
+			else if (this.inventory.activeItem === Weapon.Granade) {
 				if (this.hands[1].throwReady()) {
 					this.throw();
 					this.granades.push(new Granade(this.hands[1], this.mouseControll.x, this.mouseControll.y));
 					this.mouseControll.left = false;
 				}
 			}
-
-			if (this.inventory.activeItem === Weapon.Smoke) {
+			else if (this.inventory.activeItem === Weapon.Smoke) {
 				if (this.hands[1].throwReady()) {
 					this.throw();
 					this.granades.push(new Smoke(this.hands[1], this.mouseControll.x, this.mouseControll.y));
 					this.mouseControll.left = false;
 				}
 			}
-
-			if (this.inventory.activeItem === Weapon.Medkit) {
+			else if (this.inventory.activeItem === Weapon.Medkit) {
 				this.inventory.heal();
 				this.mouseControll.left = false;
 			}

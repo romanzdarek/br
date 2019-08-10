@@ -116,6 +116,7 @@ export class Controller {
 		//startGame
 		this.socket.on('startGame', (mapData: MapData) => {
 			this.model.map.openMap(mapData);
+			this.model.gameStart();
 			el.close(el.lobbyMenu.main);
 		});
 
@@ -268,14 +269,18 @@ export class Controller {
 	}
 
 	private mouseController(): void {
+		//deny right click menu
 		document.addEventListener('contextmenu', function(e) {
 			e.preventDefault();
 		});
+		//deny middle button
 		document.addEventListener('mousedown', function(e) {
 			if (e.which === 2) e.preventDefault();
 		});
 
+		//player angle
 		this.myHtmlElements.transparentLayer.addEventListener('mousemove', (e: MouseEvent) => {
+			if (!this.model.gameActive()) return;
 			if (e.x == undefined) {
 				this.mouse.x = this.canvas.width / 2;
 				this.mouse.y = this.canvas.height / 2;
@@ -293,13 +298,23 @@ export class Controller {
 			}
 		});
 		this.myHtmlElements.transparentLayer.addEventListener('mousedown', (e: MouseEvent) => {
+			if (!this.model.gameActive()) return;
 			this.mouse.left = true;
 			const clickPoint = new Point(e.clientX, e.clientY);
 			const serverPosition = this.model.view.calculateServerPosition(clickPoint);
-			//TODO optimalization: send click position only if i have granade or smoke...
-			this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
+			//send click position only if i have granade or smoke...
+			if (
+				this.model.view.myPlayer.getWeapon() === Weapon.Granade ||
+				this.model.view.myPlayer.getWeapon() === Weapon.Smoke
+			) {
+				this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
+			}
+			else {
+				this.socket.emit('m', this.model.getGameId(), 'l');
+			}
 		});
 		this.myHtmlElements.transparentLayer.addEventListener('mouseup', (e: MouseEvent) => {
+			if (!this.model.gameActive()) return;
 			this.mouse.left = false;
 			this.socket.emit('m', this.model.getGameId(), '-l');
 		});
@@ -338,6 +353,7 @@ export class Controller {
 
 	private keysController(): void {
 		document.addEventListener('keydown', (e: KeyboardEvent) => {
+			if (!this.model.gameActive()) return;
 			switch (e.code) {
 				case 'KeyW':
 					if (!this.keys.w) this.socket.emit('c', this.model.getGameId(), 'u');
@@ -400,6 +416,7 @@ export class Controller {
 		});
 
 		document.addEventListener('keyup', (e: KeyboardEvent) => {
+			if (!this.model.gameActive()) return;
 			switch (e.code) {
 				case 'KeyW':
 					if (this.keys.w) this.socket.emit('c', this.model.getGameId(), '-u');

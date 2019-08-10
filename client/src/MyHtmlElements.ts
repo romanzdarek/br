@@ -11,6 +11,7 @@ export default class MyHtmlElements {
 	readonly takeLoot: HTMLElement;
 	readonly transparentLayer: HTMLElement;
 	readonly activeGunAmmo: HTMLElement;
+	readonly alive: HTMLElement;
 
 	//<div id="healthBar"><div id="healthBarIn"></div></div>
 	readonly healthBar = {
@@ -32,7 +33,9 @@ export default class MyHtmlElements {
 		item2in: document.getElementById('item2').getElementsByTagName('span')[0],
 		item3in: document.getElementById('item3').getElementsByTagName('span')[0],
 		item4in: document.getElementById('item4').getElementsByTagName('span')[0],
-		item5in: document.getElementById('item5').getElementsByTagName('span')[0]
+		item5in: document.getElementById('item5').getElementsByTagName('span')[0],
+		item1Ammo: document.getElementById('item1Ammo'),
+		item2Ammo: document.getElementById('item2Ammo')
 	};
 
 	readonly editor = {
@@ -232,6 +235,7 @@ export default class MyHtmlElements {
 		this.transparentLayer = document.getElementById('transparentLayer');
 		this.activeGunAmmo = document.getElementById('activeGunAmmo');
 		this.mapContainer = document.getElementById('mapContainer');
+		this.alive = document.getElementById('alive');
 	}
 
 	close(...elements: HTMLElement[]): void {

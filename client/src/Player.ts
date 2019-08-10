@@ -6,6 +6,7 @@ export default class Player {
 	readonly id: number;
 	readonly size: number;
 	readonly radius: number;
+	private live: boolean = true;
 	private x: number;
 	private y: number;
 	private angle: number;
@@ -24,6 +25,14 @@ export default class Player {
 		this.radius = this.size / 2;
 		this.hands.push(new Hand(playerSnapshot.lX, playerSnapshot.lY, playerSnapshot.hSize));
 		this.hands.push(new Hand(playerSnapshot.rX, playerSnapshot.rY, playerSnapshot.hSize));
+	}
+
+	die():void{
+		this.live = false;
+	}
+
+	alive(): boolean{
+		return this.live;
 	}
 
 	setX(x: number): void {

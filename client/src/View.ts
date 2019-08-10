@@ -24,6 +24,7 @@ import ZoneSnapshot from './ZoneSnapshot';
 import SnapshotManager from './SnapshotManager';
 import { PlayerOld } from './PlayerOld';
 import { LootType } from './LootType';
+import Scope from './Scope';
 
 type DrawData = {
 	x: number;
@@ -48,6 +49,7 @@ interface RectObject {
 }
 
 export default class View {
+	private scope: Scope;
 	private snapshotManager: SnapshotManager;
 	private gameScreen: HTMLCanvasElement;
 	private editorScreen: HTMLCanvasElement;
@@ -104,7 +106,7 @@ export default class View {
 	private map: Map;
 	private bullets: Bullet[];
 	private mouse: Mouse;
-	private myPlayer: Player;
+	myPlayer: Player;
 
 	private serverClientSync: ServerClientSync;
 	private myHtmlElements: MyHtmlElements;
@@ -138,6 +140,7 @@ export default class View {
 		collisionPoints: CollisionPoints,
 		snapshotManager: SnapshotManager
 	) {
+		this.scope = new Scope();
 		this.snapshotManager = snapshotManager;
 		this.colors = new Colors();
 		this.serverClientSync = serverClientSync;
@@ -265,28 +268,32 @@ export default class View {
 
 	screenResize(): void {
 		const el = this.myHtmlElements;
+		//gameScreen
 		this.gameScreen.width = window.innerWidth;
 		this.gameScreen.height = window.innerHeight;
+		el.zoneSVG.setAttribute('width', window.innerWidth.toString());
+		el.zoneSVG.setAttribute('height', window.innerHeight.toString());
+		//mapScreen
 		const mapSize = Math.floor((window.innerWidth / 5 + window.innerHeight / 5) / 2);
 		this.mapScreen.width = mapSize;
 		this.mapScreen.height = mapSize;
-		this.mapScreen.style.left = Math.floor(mapSize / 5).toString() + 'px';
-		this.mapScreen.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
-		el.zoneSVG.setAttribute('width', window.innerWidth.toString());
-		el.zoneSVG.setAttribute('height', window.innerHeight.toString());
-		el.mapZoneSVG.style.left = Math.floor(mapSize / 5).toString() + 'px';
-		el.mapZoneSVG.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
 		el.mapZoneSVG.setAttribute('width', mapSize.toString());
 		el.mapZoneSVG.setAttribute('height', mapSize.toString());
-
-		el.mapContainer.style.left = Math.floor(mapSize / 5).toString() + 'px';
-		el.mapContainer.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
 		el.mapContainer.style.width = (mapSize + 10).toString() + 'px';
 		el.mapContainer.style.height = (mapSize + 10).toString() + 'px';
-
+		//center
 		this.screenCenterX = window.innerWidth / 2;
 		this.screenCenterY = window.innerHeight / 2;
 		this.changeResolutionAdjustment();
+
+		//this.mapScreen.style.left = Math.floor(mapSize / 5).toString() + 'px';
+		//this.mapScreen.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
+
+		//el.mapZoneSVG.style.left = Math.floor(mapSize / 5).toString() + 'px';
+		//el.mapZoneSVG.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
+
+		//el.mapContainer.style.left = Math.floor(mapSize / 5).toString() + 'px';
+		//el.mapContainer.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
 	}
 
 	calculateServerPosition(point: Point): Point {
@@ -668,6 +675,10 @@ export default class View {
 			}
 		}
 		if (!this.myPlayer) return;
+
+		//scope
+		this.scope.setScope(this.snapshotManager.betweenSnapshot.i.s);
+		this.finalResolutionAdjustment = this.scope.getFinalResolutionAdjustment(this.resolutionAdjustment);
 
 		this.drawMap();
 
@@ -1086,40 +1097,27 @@ export default class View {
 			}
 		}
 
-		//bullets
-		ctx.fillStyle = this.colors.bullet;
+		//bullet points
+		ctx.fillStyle = 'orange';
+		console.log(betweenSnapshot.b);
 		for (const bullet of betweenSnapshot.b) {
-			/*
 			//bullet point
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: bullet.x,
 				y: bullet.y,
-				size: 1
+				size: 3
 			});
 			if (isOnScreen) {
-				ctx.fillRect(x, y, size, size);
+				ctx.fillRect(
+					x - 1.5 * this.finalResolutionAdjustment,
+					y - 1.5 * this.finalResolutionAdjustment,
+					size,
+					size
+				);
 			}
-			*/
-
-			//////////////////  bullet lines
-			{
-				let thereIsLine = false;
-				//set end
-				for (const line of this.bulletLines) {
-					if (line.id === bullet.id) {
-						line.setEnd(bullet.x, bullet.y);
-						thereIsLine = true;
-						break;
-					}
-				}
-				//create line
-				if (!thereIsLine) {
-					const newLine = new BulletLine(bullet.id, bullet.x, bullet.y);
-					this.bulletLines.push(newLine);
-				}
-			}
-			//////////////////  bullet lines
 		}
+
+		this.createBulletLines();
 		//draw bullet lines
 		for (const line of this.bulletLines) {
 			for (const partLine of line.parts) {
@@ -1146,12 +1144,6 @@ export default class View {
 					ctx.restore();
 					partLine.increaseAge();
 				}
-			}
-		}
-		//delete bullet lines
-		for (let i = this.bulletLines.length - 1; i >= 0; i--) {
-			if (!this.bulletLines[i].isActive()) {
-				this.bulletLines.splice(i, 1);
 			}
 		}
 
@@ -1264,7 +1256,7 @@ export default class View {
 			ctx.fillStyle = this.colors.text;
 			const x = 15;
 			let row = 30;
-			let rowMultiple = 0;
+			let rowMultiple = 8;
 			//ctx.fillText('snapshots: ' + this.snapshots.length, x, row * ++rowMultiple);
 			ctx.fillText('newerSnapshots: ' + this.snapshotManager.sumaNewer, x, row * ++rowMultiple);
 			ctx.fillText('ping: ' + this.serverClientSync.getPing(), x, row * ++rowMultiple);
@@ -1341,11 +1333,19 @@ export default class View {
 
 		el.items.item1in.textContent = this.itemName(this.snapshotManager.betweenSnapshot.i.i1);
 		el.items.item2in.textContent = this.itemName(this.snapshotManager.betweenSnapshot.i.i2);
+		//ammo color
+		this.itemAmmoColor(1, this.snapshotManager.betweenSnapshot.i.i1);
+		this.itemAmmoColor(2, this.snapshotManager.betweenSnapshot.i.i2);
 		el.items.item3in.textContent = this.itemName(this.snapshotManager.betweenSnapshot.i.i3);
-		el.items.item4in.textContent =
-			this.itemName(this.snapshotManager.betweenSnapshot.i.i4) + ' ' + this.snapshotManager.betweenSnapshot.i.s4;
-		el.items.item5in.textContent =
-			this.itemName(this.snapshotManager.betweenSnapshot.i.i5) + ' ' + this.snapshotManager.betweenSnapshot.i.s5;
+		let item4Text = this.itemName(this.snapshotManager.betweenSnapshot.i.i4);
+		const item4Count = this.snapshotManager.betweenSnapshot.i.s4;
+		if (item4Text) item4Text += ' ' + item4Count;
+		el.items.item4in.textContent = item4Text;
+
+		let item5Text = this.itemName(this.snapshotManager.betweenSnapshot.i.i5);
+		const item5Count = this.snapshotManager.betweenSnapshot.i.s5;
+		if (item5Text) item5Text += ' ' + item5Count;
+		el.items.item5in.textContent = item5Text;
 
 		//active weapon
 		this.activeItem(this.snapshotManager.betweenSnapshot.i.i1, el.items.item1);
@@ -1368,12 +1368,41 @@ export default class View {
 			ammo = '∞';
 		}
 		else if (this.myPlayer.getWeapon() === Weapon.Granade || this.myPlayer.getWeapon() === Weapon.Smoke) {
-			ammo = '?';
+			ammo = item4Count.toString();
 		}
 		else if (this.myPlayer.getWeapon() === Weapon.Medkit) {
-			ammo = betweenSnapshot.i.i5.toString();
+			ammo = item5Count.toString();
 		}
 		el.activeGunAmmo.textContent = ammo;
+
+		//alive
+		let count = 0;
+		for (const player of this.snapshotManager.players) {
+			if (player.alive()) count++;
+		}
+		el.alive.textContent = count.toString();
+	}
+
+	private createBulletLines(): void {
+		for (const bullet of this.snapshotManager.betweenSnapshot.b) {
+			let thereIsLine = false;
+			//set end in line
+			for (const line of this.bulletLines) {
+				if (line.id === bullet.id) {
+					line.setEnd(bullet.x, bullet.y);
+					thereIsLine = true;
+					break;
+				}
+			}
+			//create new line
+			if (!thereIsLine) this.bulletLines.push(new BulletLine(bullet.id, bullet.x, bullet.y));
+		}
+		//delete old bullet lines
+		for (let i = this.bulletLines.length - 1; i >= 0; i--) {
+			if (!this.bulletLines[i].isActive()) {
+				this.bulletLines.splice(i, 1);
+			}
+		}
 	}
 
 	private activeItem(item: Weapon, element: HTMLElement): void {
@@ -1383,6 +1412,32 @@ export default class View {
 		else {
 			element.classList.remove('active');
 		}
+	}
+
+	private itemAmmoColor(item: number, weapon: Weapon): void {
+		let el;
+		if (item === 1) {
+			el = this.myHtmlElements.items.item1Ammo;
+		}
+		else if (item === 2) {
+			el = this.myHtmlElements.items.item2Ammo;
+		}
+		let background = 'transparent';
+		switch (weapon) {
+			case Weapon.Pistol:
+				background = 'orange';
+				break;
+			case Weapon.Machinegun:
+				background = 'blue';
+				break;
+			case Weapon.Rifle:
+				background = 'Green';
+				break;
+			case Weapon.Shotgun:
+				background = 'red';
+				break;
+		}
+		if (el) el.style.background = background;
 	}
 
 	private itemName(item: any): string {
@@ -1410,18 +1465,20 @@ export default class View {
 			const distance = Math.sqrt(x * x + y * y);
 			const lootAndPlayerRadius = this.snapshotManager.players[0].radius + loot.size / 2;
 			if (distance < lootAndPlayerRadius) {
-				this.takeLootText = 'Take loot (E)';
+				this.takeLootText = 'Take (E)';
 				return;
 			}
 		}
 	}
 
 	private howToDraw(gameObject: RoundObject | RectObject | RectangleObstacle | RoundObstacle): DrawData {
+		/*
 		this.finalResolutionAdjustment = this.resolutionAdjustment;
 		//scope
 		if (this.snapshotManager.betweenSnapshot.i.s === 2) this.finalResolutionAdjustment /= 1.2;
 		else if (this.snapshotManager.betweenSnapshot.i.s === 4) this.finalResolutionAdjustment /= 1.4;
 		else if (this.snapshotManager.betweenSnapshot.i.s === 6) this.finalResolutionAdjustment /= 1.6;
+		*/
 		//size
 		let size = 0;
 		let width = 0;

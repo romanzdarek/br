@@ -13,6 +13,7 @@ import CollisionPoints from './CollisionPoints';
 import SnapshotManager from './SnapshotManager';
 
 export default class Model {
+	private gameRun: boolean = false;
 	private gameId: number = -1;
 	private playerId: number = -1;
 	private name: string;
@@ -111,6 +112,13 @@ export default class Model {
 		console.log('playerId:', playerId);
 	}
 
+	gameStart(): void {
+		this.gameRun = true;
+	}
+
+	gameActive(): boolean {
+		return this.gameRun;
+	}
 	private loop(): void {
 		//repeat
 		requestAnimationFrame(() => {
@@ -124,6 +132,6 @@ export default class Model {
 			this.view.drawEditor(this.editor);
 		}
 		this.snapshotManager.createBetweenSnapshot();
-		this.view.drawGame(this.playerId);
+		if (this.gameRun) this.view.drawGame(this.playerId);
 	}
 }

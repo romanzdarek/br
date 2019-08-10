@@ -268,11 +268,9 @@ export default class Game {
 					const fragments = [];
 					for (let i = 0; i < granade.fragmentCount; i++) {
 						const angle = i * shiftAngle;
-						fragments.push(
-							this.bulletFactory.createFragment(granade, this.map, this.players, angle)
-						);
+						fragments.push(this.bulletFactory.createFragment(granade, this.map, this.players, angle));
 					}
-					this.bullets = [ ...this.bullets, ...this.shuffleFragments(fragments) ];
+					this.bullets.push(...this.shuffleFragments(fragments));
 				}
 				//create smoke clouds
 				if (granade instanceof Smoke) {
@@ -296,7 +294,7 @@ export default class Game {
 				this.smokeClouds.splice(i, 1);
 			}
 		}
-
+		
 		//move and delete bullets
 		for (let i = this.bullets.length - 1; i >= 0; i--) {
 			const bullet = this.bullets[i];
@@ -393,6 +391,7 @@ export default class Game {
 						if (playerNow.m === playerBefore.m) delete playerNow.m;
 						if (playerNow.w === playerBefore.w) delete playerNow.w;
 						if (playerNow.size === playerBefore.size) delete playerNow.size;
+						if (playerNow.l === playerBefore.l) delete playerNow.l;
 						//hands
 						if (playerNow.hSize === playerBefore.hSize) delete playerNow.hSize;
 						if (playerNow.lX === playerBefore.lX) delete playerNow.lX;
@@ -417,7 +416,8 @@ export default class Game {
 				!player.hasOwnProperty('lX') &&
 				!player.hasOwnProperty('lY') &&
 				!player.hasOwnProperty('rX') &&
-				!player.hasOwnProperty('rY')
+				!player.hasOwnProperty('rY') &&
+				!player.hasOwnProperty('l')
 			) {
 				playerSnapshotsOptimalization.splice(i, 1);
 			}

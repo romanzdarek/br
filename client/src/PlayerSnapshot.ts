@@ -5,6 +5,8 @@ export default interface PlayerSnapshot {
 	readonly i: number;
 	x?: number;
 	y?: number;
+	//live
+	l?:number;
 	//angle
 	a?: number;
 	//hammer angle

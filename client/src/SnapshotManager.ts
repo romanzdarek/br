@@ -139,6 +139,7 @@ export default class SnapshotManager {
 				if (!lastSnapshotPlayer.hasOwnProperty('w')) lastSnapshotPlayer.w = previousSnapshotPlayer.w;
 				if (!lastSnapshotPlayer.hasOwnProperty('x')) lastSnapshotPlayer.x = previousSnapshotPlayer.x;
 				if (!lastSnapshotPlayer.hasOwnProperty('y')) lastSnapshotPlayer.y = previousSnapshotPlayer.y;
+				if (!lastSnapshotPlayer.hasOwnProperty('l')) lastSnapshotPlayer.l = previousSnapshotPlayer.l;
 				//hands
 				if (!lastSnapshotPlayer.hasOwnProperty('hSize'))
 					lastSnapshotPlayer.hSize = previousSnapshotPlayer.hSize;
@@ -176,30 +177,6 @@ export default class SnapshotManager {
 		lastSnapshotPlayers.sort((a: PlayerSnapshot, b: PlayerSnapshot) => {
 			return a.i - b.i;
 		});
-
-		////////////////////////////////
-		/*
-		const missingPlayers = [];
-		for (let i = 0; i < this.numberOfPlayers; i++) {
-			let playerExists = false;
-			for (const player of lastSnapshotPlayers) {
-				if (player.i === i) {
-					playerExists = true;
-					break;
-				}
-			}
-			if (!playerExists) {
-				missingPlayers.push(i);
-			}
-		}
-		for (const missingPlayerIndex of missingPlayers) {
-			lastSnapshotPlayers.push(previousSnapshotPlayers[missingPlayerIndex]);
-		}
-		//sort by id!
-		lastSnapshotPlayers.sort((a: PlayerSnapshot, b: PlayerSnapshot) => {
-			return a.i - b.i;
-		});
-		*/
 	}
 
 	//1. urcime si cas pred nejakou dobou a budeme hledat snimky hry pred timto a za timto bodem (ServerClientSync class)
@@ -371,6 +348,7 @@ export default class SnapshotManager {
 					playerInstance.setAngle(playerSnapshot.a);
 					playerInstance.setWeapon(playerSnapshot.w);
 					playerInstance.setHammerAngle(playerSnapshot.m);
+					if (playerSnapshot.l === 0) playerInstance.die();
 					//hands
 					playerInstance.hands[0].setX(playerSnapshot.lX);
 					playerInstance.hands[0].setY(playerSnapshot.lY);

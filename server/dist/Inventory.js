@@ -24,7 +24,7 @@ class Inventory {
         this.greenAmmo = 0;
         this.orangeAmmo = 0;
         this.vest = false;
-        this.scope = 0;
+        this.scope = 1;
         this.maxAmmo = 100;
         this.loadingStart = 0;
         this.loadingNow = 0;
@@ -377,7 +377,7 @@ class Inventory {
         }
         //take scope
         if (loot.type === LootType_1.LootType.Scope2 || loot.type === LootType_1.LootType.Scope4 || loot.type === LootType_1.LootType.Scope6) {
-            if (this.scope !== 0) {
+            if (this.scope !== 1) {
                 //throw loot
                 let scopeType;
                 switch (this.scope) {
