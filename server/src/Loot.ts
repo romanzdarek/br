@@ -7,8 +7,8 @@ export default class Loot {
 
 	constructor() {}
 
-	createLootItem(x: number, y: number, type: LootType, bullets: number = 0): void {
-		this.lootItems.push(new LootItem(this.lootId++, x, y, type, bullets));
+	createLootItem(x: number, y: number, type: LootType, quantity: number = 1): void {
+		this.lootItems.push(new LootItem(this.lootId++, x, y, type, quantity));
 	}
 
 	createMainLootItems(): void {
@@ -23,7 +23,10 @@ export default class Loot {
 		this.createLootItem(x++ * shift, y++ * shift, LootType.Hammer);
 
 		this.createLootItem(x++ * shift, y++ * shift, LootType.Granade);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Granade);
 
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Smoke);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Smoke);
 		this.createLootItem(x++ * shift, y++ * shift, LootType.Smoke);
 
 		this.createLootItem(x++ * shift, y++ * shift, LootType.RedAmmo, 30);
@@ -31,15 +34,15 @@ export default class Loot {
 		this.createLootItem(x++ * shift, y++ * shift, LootType.GreenAmmo, 30);
 		this.createLootItem(x++ * shift, y++ * shift, LootType.OrangeAmmo, 30);
 
-		this.createLootItem(x++ * shift, y++ * shift, LootType.Vest, 30);
-		this.createLootItem(x++ * shift, y++ * shift, LootType.Vest, 30);
-		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit, 30);
-		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit, 30);
-		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit, 30);
-		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit, 30);
-		this.createLootItem(x++ * shift, y++ * shift, LootType.Scope2, 30);
-		this.createLootItem(x++ * shift, y++ * shift, LootType.Scope4, 30);
-		this.createLootItem(x++ * shift, y++ * shift, LootType.Scope6, 30);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Vest);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Vest);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Medkit);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Scope2);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Scope4);
+		this.createLootItem(x++ * shift, y++ * shift, LootType.Scope6);
 	}
 
 	/*

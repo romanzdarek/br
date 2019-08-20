@@ -227,45 +227,6 @@ export class Controller {
 
 			//this.model.snapshotManager.addSnapshot(snapshot);
 		});
-
-		//update map
-		this.socket.on('m', (mapObject, serverTime, data) => {
-			const updateTime =
-				this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - serverTime);
-			//walls
-			if (mapObject === 'w') {
-				for (const wall of this.model.map.rectangleObstacles) {
-					if (wall.id === data.id) {
-						setTimeout(() => {
-							wall.update(data.opacity);
-						}, updateTime);
-						break;
-					}
-				}
-			}
-			//rounds
-			if (mapObject === 'r') {
-				for (const round of this.model.map.impassableRoundObstacles) {
-					if (round.id === data.id) {
-						setTimeout(() => {
-							round.update(data.opacity);
-						}, updateTime);
-						break;
-					}
-				}
-			}
-			//bushes
-			if (mapObject === 'b') {
-				for (const round of this.model.map.bushes) {
-					if (round.id === data.id) {
-						setTimeout(() => {
-							round.update(data.opacity);
-						}, updateTime);
-						break;
-					}
-				}
-			}
-		});
 	}
 
 	private mouseController(): void {

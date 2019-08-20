@@ -8,6 +8,7 @@ import Hammer from './Hammer';
 import Gun from './Gun';
 
 export default class MyPlayerSnapshot {
+	id: number;
 	//health
 	h: number;
 	//inventory
@@ -40,6 +41,7 @@ export default class MyPlayerSnapshot {
 	lT: string;
 
 	constructor(player: Player) {
+		this.id = player.id;
 		this.h = player.getHealth();
 		if (player.inventory.item1 instanceof Pistol) this.i1 = Weapon.Pistol;
 		else if (player.inventory.item1 instanceof Machinegun) this.i1 = Weapon.Machinegun;
@@ -58,21 +60,13 @@ export default class MyPlayerSnapshot {
 
 		this.s4 = 0;
 		this.i4 = Weapon.Empty;
-		if (player.inventory.item4[0] === Weapon.Granade) {
+		if (player.inventory.item4 === Weapon.Granade) {
 			this.i4 = Weapon.Granade;
-			let nates = 0;
-			for (const granade of player.inventory.item4) {
-				if (granade === Weapon.Granade) nates++;
-			}
-			this.s4 = nates;
+			this.s4 = player.inventory.item4GranadeCount;
 		}
-		else if (player.inventory.item4[0] === Weapon.Smoke) {
+		else if (player.inventory.item4 === Weapon.Smoke) {
 			this.i4 = Weapon.Smoke;
-			let nates = 0;
-			for (const smoke of player.inventory.item4) {
-				if (smoke === Weapon.Smoke) nates++;
-			}
-			this.s4 = nates;
+			this.s4 = player.inventory.item4SmokeCount;
 		}
 
 		if (player.inventory.item5) {

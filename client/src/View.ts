@@ -54,13 +54,11 @@ export default class View {
 	private gameScreen: HTMLCanvasElement;
 	private editorScreen: HTMLCanvasElement;
 	private mapScreen: HTMLCanvasElement;
-	private loadingScreen: HTMLCanvasElement;
 	private helperScreen: HTMLCanvasElement;
 	private ctxGame: CanvasRenderingContext2D;
 	private ctxMap: CanvasRenderingContext2D;
 	private ctxEditor: CanvasRenderingContext2D;
-	private playerSVG: HTMLImageElement;
-	private playerHandSVG: HTMLImageElement;
+
 	private bushSVG: HTMLImageElement;
 	private rockSVG: HTMLImageElement;
 	private treeSVG: HTMLImageElement;
@@ -104,7 +102,6 @@ export default class View {
 	private screenCenterX: number;
 	private screenCenterY: number;
 	private map: Map;
-	private bullets: Bullet[];
 	private mouse: Mouse;
 	myPlayer: Player;
 
@@ -117,22 +114,8 @@ export default class View {
 
 	private takeLootText: string = '';
 
-	private outerCircle = {
-		x: 0,
-		y: 0,
-		radius: 0,
-		opacity: 0.4,
-		opacityDirection: 1
-	};
-	private innerCircle = {
-		x: 0,
-		y: 0,
-		radius: 0
-	};
-
 	constructor(
 		map: Map,
-		bullets: Bullet[],
 		mouse: Mouse,
 		waterTerrainData: WaterTerrainData,
 		serverClientSync: ServerClientSync,
@@ -147,7 +130,6 @@ export default class View {
 		this.myHtmlElements = myHtmlElements;
 		this.map = map;
 		this.collisionPoints = collisionPoints;
-		this.bullets = bullets;
 		this.mouse = mouse;
 		this.gameScreen = <HTMLCanvasElement>this.myHtmlElements.gameScreen;
 		this.editorScreen = <HTMLCanvasElement>this.myHtmlElements.editor.screen;
@@ -156,12 +138,6 @@ export default class View {
 		this.ctxGame = this.gameScreen.getContext('2d');
 		this.ctxMap = this.mapScreen.getContext('2d');
 		this.ctxEditor = this.editorScreen.getContext('2d');
-
-		this.playerSVG = new Image();
-		this.playerSVG.src = 'img/player.svg';
-
-		this.playerHandSVG = new Image();
-		this.playerHandSVG.src = 'img/hand.svg';
 
 		this.bushSVG = new Image();
 		this.bushSVG.src = 'img/bush.svg';
@@ -285,15 +261,6 @@ export default class View {
 		this.screenCenterX = window.innerWidth / 2;
 		this.screenCenterY = window.innerHeight / 2;
 		this.changeResolutionAdjustment();
-
-		//this.mapScreen.style.left = Math.floor(mapSize / 5).toString() + 'px';
-		//this.mapScreen.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
-
-		//el.mapZoneSVG.style.left = Math.floor(mapSize / 5).toString() + 'px';
-		//el.mapZoneSVG.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
-
-		//el.mapContainer.style.left = Math.floor(mapSize / 5).toString() + 'px';
-		//el.mapContainer.style.bottom = Math.floor(mapSize / 5).toString() + 'px';
 	}
 
 	calculateServerPosition(point: Point): Point {
@@ -368,7 +335,6 @@ export default class View {
 		if (typeof Worker !== 'undefined') {
 			const worker = new Worker('workerFindWater.js');
 			worker.onmessage = (e) => {
-				//console.log(new Date().getTime() - e.data.time, e.data);
 				this.waterTerrainData.setData(e.data.type, e.data.data);
 			};
 			const data = ctx.getImageData(0, 0, this.waterTrianglePNG.width, this.waterTrianglePNG.height).data;
@@ -419,39 +385,29 @@ export default class View {
 			const y = this.myPlayer.getCenterY() * sizeReduction - playerSize / 2;
 			ctx.beginPath();
 			ctx.arc(x, y, playerSize, 0, 2 * Math.PI);
-			ctx.fillStyle = '#FF7B00';
+			ctx.fillStyle = this.colors.player;
 			ctx.fill();
 		}
 		//zone
+		//inner
 		{
-			if (this.innerCircle.radius && this.outerCircle.radius) {
-				//inner
-				{
-					const x = this.innerCircle.x * sizeReduction;
-					const y = this.innerCircle.y * sizeReduction;
-					const radius = this.innerCircle.radius * sizeReduction;
-					ctx.beginPath();
-					ctx.arc(x, y, radius, 0, 2 * Math.PI);
-					ctx.strokeStyle = 'green';
-					ctx.stroke();
-				}
-				//outer
-				{
-					const x = this.outerCircle.x * sizeReduction;
-					const y = this.outerCircle.y * sizeReduction;
-					const radius = this.outerCircle.radius * sizeReduction;
-					/*
-					ctx.beginPath();
-					ctx.arc(x, y, radius, 0, 2 * Math.PI);
-					ctx.strokeStyle = 'red';
-					ctx.stroke();
-					*/
-					//SVG change
-					el.mapZoneCircle.setAttribute('r', radius.toString());
-					el.mapZoneCircle.setAttribute('cx', x.toString());
-					el.mapZoneCircle.setAttribute('cy', y.toString());
-				}
-			}
+			const x = this.snapshotManager.zone.innerCircle.getCenterX() * sizeReduction;
+			const y = this.snapshotManager.zone.innerCircle.getCenterY() * sizeReduction;
+			const radius = this.snapshotManager.zone.innerCircle.getRadius() * sizeReduction;
+			ctx.beginPath();
+			ctx.arc(x, y, radius, 0, 2 * Math.PI);
+			ctx.strokeStyle = 'green';
+			ctx.stroke();
+		}
+		//outer
+		{
+			const x = this.snapshotManager.zone.outerCircle.getCenterX() * sizeReduction;
+			const y = this.snapshotManager.zone.outerCircle.getCenterY() * sizeReduction;
+			const radius = this.snapshotManager.zone.outerCircle.getRadius() * sizeReduction;
+			//SVG change
+			el.mapZoneCircle.setAttribute('r', radius.toString());
+			el.mapZoneCircle.setAttribute('cx', x.toString());
+			el.mapZoneCircle.setAttribute('cy', y.toString());
 		}
 	}
 
@@ -734,6 +690,7 @@ export default class View {
 
 		//mapGrid
 		ctx.fillStyle = this.colors.blockFrame;
+		const size2 = 1 * this.resolutionAdjustment;
 		for (const block of this.map.blocks) {
 			//top
 			if (block.y === 0) {
@@ -742,7 +699,7 @@ export default class View {
 					y: block.y,
 					size: blockSize
 				});
-				if (isOnScreen) ctx.fillRect(x, y, size, 1);
+				if (isOnScreen) ctx.fillRect(x, y, size, size2);
 			}
 			//bottom
 			{
@@ -751,7 +708,7 @@ export default class View {
 					y: block.y + blockSize,
 					size: blockSize
 				});
-				if (isOnScreen) ctx.fillRect(x, y, size, 1);
+				if (isOnScreen) ctx.fillRect(x, y, size, size2);
 			}
 			//left
 			if (block.x === 0) {
@@ -760,7 +717,7 @@ export default class View {
 					y: block.y,
 					size: blockSize
 				});
-				if (isOnScreen) ctx.fillRect(x, y, 1, size);
+				if (isOnScreen) ctx.fillRect(x, y, size2, size);
 			}
 			//right
 			{
@@ -769,7 +726,7 @@ export default class View {
 					y: block.y,
 					size: blockSize
 				});
-				if (isOnScreen) ctx.fillRect(x, y, 1, size);
+				if (isOnScreen) ctx.fillRect(x, y, size2, size);
 			}
 		}
 
@@ -891,7 +848,6 @@ export default class View {
 					ctx.restore();
 				}
 			}
-
 			//machinegun
 			if (player.getWeapon() === Weapon.Machinegun) {
 				const gunSize = 200;
@@ -911,7 +867,6 @@ export default class View {
 					ctx.restore();
 				}
 			}
-
 			//shotgun
 			if (player.getWeapon() === Weapon.Shotgun) {
 				const gunSize = 200;
@@ -931,7 +886,6 @@ export default class View {
 					ctx.restore();
 				}
 			}
-
 			//rifle
 			if (player.getWeapon() === Weapon.Rifle) {
 				const gunSize = 200;
@@ -951,7 +905,6 @@ export default class View {
 					ctx.restore();
 				}
 			}
-
 			//hammer
 			if (player.getWeapon() === Weapon.Hammer) {
 				const gunSize = 200;
@@ -969,7 +922,6 @@ export default class View {
 					ctx.rotate(player.getHammerAngle() * Math.PI / 180);
 					ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
-
 					if (this.collisionPoints.isReady()) {
 						//collisionPoints
 						ctx.fillStyle = this.colors.collisionPoint;
@@ -999,10 +951,20 @@ export default class View {
 						size: player.hands[i].size
 					});
 					if (isOnScreen) {
-						ctx.save();
-						ctx.drawImage(this.playerHandSVG, x, y, size, size);
-						ctx.restore();
+						const radius = size / 2;
+						//hand border
+						ctx.beginPath();
+						ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
+						ctx.fillStyle = this.colors.handBorder;
+						ctx.fill();
+						//hand
+						const radiusHand = radius * 0.9;
+						ctx.beginPath();
+						ctx.arc(x + radius, y + radius, radiusHand, 0, 2 * Math.PI);
+						ctx.fillStyle = this.colors.hand;
+						ctx.fill();
 						//hand collisionPoints
+						/*
 						ctx.fillStyle = this.colors.collisionPoint;
 						for (const point of this.collisionPoints.hand) {
 							const { x, y, size } = this.howToDraw({
@@ -1012,7 +974,7 @@ export default class View {
 							});
 							ctx.fillRect(x, y, size, size);
 						}
-
+						*/
 						//granade || smoke || medkit in hand
 						if (
 							(player.getWeapon() === Weapon.Granade ||
@@ -1041,10 +1003,7 @@ export default class View {
 								let SVG;
 								if (player.getWeapon() === Weapon.Granade) SVG = this.granadeSVG;
 								if (player.getWeapon() === Weapon.Smoke) SVG = this.smokeSVG;
-								if (player.getWeapon() === Weapon.Medkit) {
-									SVG = this.medkitSVG;
-									console.log('medkit');
-								}
+								if (player.getWeapon() === Weapon.Medkit) SVG = this.medkitSVG;
 								ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
 								ctx.restore();
 							}
@@ -1060,8 +1019,22 @@ export default class View {
 				size: player.size
 			});
 			if (isOnScreen) {
-				ctx.drawImage(this.playerSVG, x, y, size, size);
+				//vest
+				const radius = size / 2;
+				ctx.beginPath();
+				ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
+				let colorVest = this.colors.handBorder;
+				if (this.snapshotManager.betweenSnapshot.i.v) colorVest = this.colors.vest;
+				ctx.fillStyle = colorVest;
+				ctx.fill();
+				//body
+				let bodyRadius = radius * 0.95;
+				ctx.beginPath();
+				ctx.arc(x + radius, y + radius, bodyRadius, 0, 2 * Math.PI);
+				ctx.fillStyle = this.colors.player;
+				ctx.fill();
 				//collisionPoints
+				/*
 				ctx.fillStyle = this.colors.collisionPoint;
 				for (const point of this.collisionPoints.body) {
 					const { x, y, size } = this.howToDraw({
@@ -1071,6 +1044,7 @@ export default class View {
 					});
 					ctx.fillRect(x, y, size, size);
 				}
+				*/
 			}
 		}
 
@@ -1099,7 +1073,6 @@ export default class View {
 
 		//bullet points
 		ctx.fillStyle = 'orange';
-		console.log(betweenSnapshot.b);
 		for (const bullet of betweenSnapshot.b) {
 			//bullet point
 			const { x, y, size, isOnScreen } = this.howToDraw({
@@ -1189,66 +1162,15 @@ export default class View {
 		}
 
 		//zone
-		//outer circle
-		/*
-		this.outerCircle.x = betweenSnapshots.z.oX;
-		this.outerCircle.y = betweenSnapshots.z.oY;
-		this.outerCircle.radius = betweenSnapshots.z.oR;
-		*/
-		this.outerCircle.x = this.snapshotManager.zone.outerCircle.getCenterX();
-		this.outerCircle.y = this.snapshotManager.zone.outerCircle.getCenterY();
-		this.outerCircle.radius = this.snapshotManager.zone.outerCircle.getRadius();
-
-		const { x, y } = this.howToDraw({
-			x: this.outerCircle.x,
-			y: this.outerCircle.y,
-			size: 1
+		const { x, y, size: outerRadius } = this.howToDraw({
+			x: this.snapshotManager.zone.outerCircle.getCenterX(),
+			y: this.snapshotManager.zone.outerCircle.getCenterY(),
+			size: this.snapshotManager.zone.outerCircle.getRadius()
 		});
 
-		const outerRadius = this.outerCircle.radius * this.finalResolutionAdjustment;
-
-		/*
-		//circle
-		ctx.beginPath();
-		ctx.arc(x, y, outerRadius, 0, 2 * Math.PI);
-		ctx.strokeStyle = 'red';
-		ctx.stroke();
-		*/
-
-		//SVG change opacity
-		let change = 0.003;
-		if (this.outerCircle.opacity > 0.6) this.outerCircle.opacityDirection = -1;
-		if (this.outerCircle.opacity < 0.2) this.outerCircle.opacityDirection = 1;
-		this.outerCircle.opacity += change * this.outerCircle.opacityDirection;
 		el.zoneCircle.setAttribute('r', outerRadius.toString());
 		el.zoneCircle.setAttribute('cx', x.toString());
 		el.zoneCircle.setAttribute('cy', y.toString());
-		el.zoneRect.setAttribute('opacity', this.outerCircle.opacity.toString());
-
-		{
-			//inner circle
-			/*
-			this.innerCircle.x = betweenSnapshots.z.iX;
-			this.innerCircle.y = betweenSnapshots.z.iY;
-			this.innerCircle.radius = betweenSnapshots.z.iR;
-			*/
-			this.innerCircle.x = this.snapshotManager.zone.innerCircle.getCenterX();
-			this.innerCircle.y = this.snapshotManager.zone.innerCircle.getCenterY();
-			this.innerCircle.radius = this.snapshotManager.zone.innerCircle.getRadius();
-
-			/*
-			const { x, y } = this.howToDraw({
-				x: newerSnapshot.z.iX,
-				y: newerSnapshot.z.iY,
-				size: 1
-			});
-			const innerRadius = newerSnapshot.z.iR * this.finalResolutionAdjustment;
-			ctx.beginPath();
-			ctx.arc(x, y, innerRadius, 0, 2 * Math.PI);
-			ctx.strokeStyle = 'green';
-			ctx.stroke();
-			*/
-		}
 
 		//info
 		{
@@ -1269,18 +1191,6 @@ export default class View {
 				ctx.fillText('newerSnapshot missing', x, row * ++rowMultiple);
 			}
 		}
-
-		//cursor
-		/*
-		const size = 35;
-		ctx.drawImage(
-			this.cursorSVG,
-			this.mouse.x - size * this.resolutionAdjustment / 2,
-			this.mouse.y - size * this.resolutionAdjustment / 2,
-			size * this.resolutionAdjustment,
-			size * this.resolutionAdjustment
-		);
-		*/
 
 		//healthBar
 		el.healthBar.in.style.width = betweenSnapshot.i.h + '%';
@@ -1324,7 +1234,6 @@ export default class View {
 		//take loot info
 		this.takeLootInfo();
 		el.takeLoot.textContent = this.takeLootText;
-
 		//items
 		el.items.redAmmo.textContent = this.snapshotManager.betweenSnapshot.i.r.toString();
 		el.items.greenAmmo.textContent = this.snapshotManager.betweenSnapshot.i.g.toString();
@@ -1381,6 +1290,24 @@ export default class View {
 			if (player.alive()) count++;
 		}
 		el.alive.textContent = count.toString();
+
+		//top items
+		let display = 'none';
+		if (this.snapshotManager.betweenSnapshot.i.s !== 1) display = 'block';
+		el.items.scope.style.display = display;
+		display = 'none';
+		if (this.snapshotManager.betweenSnapshot.i.v) display = 'block';
+		el.items.vest.style.display = display;
+
+		//messages
+		this.snapshotManager.messageManager();
+		el.messages.innerHTML = '';
+		for (let i = this.snapshotManager.messages.length - 1; i >= 0; i--) {
+			const message = this.snapshotManager.messages[i];
+			const element = document.createElement('p');
+			element.textContent = message.text;
+			el.messages.appendChild(element);
+		}
 	}
 
 	private createBulletLines(): void {

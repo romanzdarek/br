@@ -25,10 +25,12 @@ export default abstract class RectangleObstacle {
 	nullChanged(): void {
 		this.changed = false;
 	}
-
+	
+	/*
 	getChangedData(): any {
 		return { id: this.id, opacity: this.opacity };
 	}
+	*/
 
 	isPointIn(point: Point): boolean {
 		const { x, y } = point;

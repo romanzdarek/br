@@ -2,6 +2,7 @@ import CollisionPoints from './CollisionPoints';
 import Point from './Point';
 import Map from './Map';
 import { Player } from './Player';
+import { Weapon } from './Weapon';
 
 export default class Hammer {
 	private angle: number = 0;
@@ -89,7 +90,7 @@ export default class Hammer {
 			}
 			for (const player of this.players) {
 				if (!this.hitObjects.includes(player) && player.isActive() && player.isPointIn(collisionPoint)) {
-					player.acceptHit(3);
+					player.acceptHit(34, this.player, Weapon.Hammer);
 					this.hitObjects.push(player);
 				}
 			}

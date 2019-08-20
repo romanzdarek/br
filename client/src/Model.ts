@@ -23,7 +23,6 @@ export default class Model {
 	private keys: Keys;
 	private mouse: Mouse;
 	map: Map;
-	private bullets: Bullet[] = [];
 	private serverClientSync: ServerClientSync;
 	snapshotManager: SnapshotManager;
 	private myHtmlElements: MyHtmlElements;
@@ -40,9 +39,9 @@ export default class Model {
 	) {
 		this.socket = socket;
 		this.serverClientSync = serverClientSync;
-		this.snapshotManager = new SnapshotManager(serverClientSync);
 		this.waterTerrainData = new WaterTerrainData();
 		this.map = new Map(this.waterTerrainData);
+		this.snapshotManager = new SnapshotManager(serverClientSync, this.map);
 		//this.player = new Player(this.map);
 		this.keys = keys;
 		this.mouse = mouse;
@@ -51,7 +50,6 @@ export default class Model {
 		this.collisionPoints = new CollisionPoints();
 		this.view = new View(
 			this.map,
-			this.bullets,
 			this.mouse,
 			this.waterTerrainData,
 			this.serverClientSync,

@@ -6,10 +6,16 @@ import Zone from './Zone';
 import ZoneSnapshot from './ZoneSnapshot';
 import LootSnapshot from './LootSnapshot';
 import { Weapon } from './Weapon';
+import ObstacleSnapshot from './ObstacleSnapshot';
+import Map from './Map';
+import MyPlayerSnapshot from './MyPlayerSnapshot';
+import Message from './Message';
 
 export default class SnapshotManager {
 	private serverClientSync: ServerClientSync;
 	private snapshots: Snapshot[] = [];
+	private map: Map;
+	messages: Message[] = [];
 	betweenSnapshot: Snapshot | null;
 	players: Player[] = [];
 	zone: Zone;
@@ -19,9 +25,24 @@ export default class SnapshotManager {
 	olderExists: boolean = false;
 	sumaNewer: number = 0;
 
-	constructor(serverClientSync: ServerClientSync) {
+	constructor(serverClientSync: ServerClientSync, map: Map) {
 		this.serverClientSync = serverClientSync;
 		this.zone = new Zone();
+		this.map = map;
+	}
+
+	messageManager(): void {
+		//delete old messages
+		const viewTime = 1000 * 5;
+		for (let i = this.messages.length - 1; i >= 0; i--) {
+			const message = this.messages[i];
+			if (message.time + viewTime < Date.now()) this.messages.splice(i, 1);
+		}
+		//max 5 messages
+		if (this.messages.length > 5) {
+			const cut = this.messages.length - 5;
+			this.messages.splice(0, cut);
+		}
 	}
 
 	addSnapshot(snapshot: Snapshot): void {
@@ -31,8 +52,19 @@ export default class SnapshotManager {
 			this.completeSnapshot(this.snapshots[this.snapshots.length - 2], snapshot);
 		}
 
-		//update zone
-		this.updateZone(snapshot);
+		//add message
+		if (snapshot.m) {
+			for (const message of snapshot.m) {
+				const updateDelay =
+					this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
+				setTimeout(() => {
+					this.messages.push(new Message(Date.now(), message));
+				}, updateDelay);
+			}
+		}
+
+		//update map
+		this.updateMap(snapshot);
 
 		//delete old snapshots
 		if (this.snapshots.length > 50) {
@@ -40,46 +72,112 @@ export default class SnapshotManager {
 		}
 	}
 
-	private updateZone(snapshot: Snapshot): void {
-		const zoneSnapshot = snapshot.z;
-		const updateTime = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
+	private updateMap(snapshot: Snapshot): void {
+		const obsacleSnapshots = snapshot.o;
+		const updateDelay = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
+		for (const obstacleSnapshot of obsacleSnapshots) {
+			switch (obstacleSnapshot.t) {
+				case 'w':
+					for (const obstacle of this.map.rectangleObstacles) {
+						if (obstacle.id === obstacleSnapshot.i) {
+							setTimeout(() => {
+								obstacle.update(obstacleSnapshot.o);
+							}, updateDelay);
+							break;
+						}
+					}
+					break;
+				case 'r':
+					for (const obstacle of this.map.rocks) {
+						if (obstacle.id === obstacleSnapshot.i) {
+							setTimeout(() => {
+								obstacle.update(obstacleSnapshot.o);
+							}, updateDelay);
+							break;
+						}
+					}
+					break;
+				case 't':
+					for (const obstacle of this.map.trees) {
+						if (obstacle.id === obstacleSnapshot.i) {
+							setTimeout(() => {
+								obstacle.update(obstacleSnapshot.o);
+							}, updateDelay);
+							break;
+						}
+					}
+					break;
+				case 'b':
+					for (const obstacle of this.map.bushes) {
+						if (obstacle.id === obstacleSnapshot.i) {
+							setTimeout(() => {
+								obstacle.update(obstacleSnapshot.o);
+							}, updateDelay);
+							break;
+						}
+					}
+					break;
+			}
+		}
+	}
+
+	private updateZone(): void {
+		if (!this.betweenSnapshot) return;
+		const zoneSnapshot = this.betweenSnapshot.z;
 		//inner
-		if (zoneSnapshot.hasOwnProperty('iR')) {
-			setTimeout(() => {
-				this.zone.innerCircle.setRadius(zoneSnapshot.iR);
-			}, updateTime);
-		}
-		if (zoneSnapshot.hasOwnProperty('iX')) {
-			setTimeout(() => {
-				this.zone.innerCircle.setCenterX(zoneSnapshot.iX);
-			}, updateTime);
-		}
-		if (zoneSnapshot.hasOwnProperty('iY')) {
-			setTimeout(() => {
-				this.zone.innerCircle.setCenterY(zoneSnapshot.iY);
-			}, updateTime);
-		}
+		this.zone.innerCircle.setRadius(zoneSnapshot.iR);
+		this.zone.innerCircle.setCenterX(zoneSnapshot.iX);
+		this.zone.innerCircle.setCenterY(zoneSnapshot.iY);
 		//outer
-		if (zoneSnapshot.hasOwnProperty('oR')) {
-			setTimeout(() => {
-				this.zone.outerCircle.setRadius(zoneSnapshot.oR);
-			}, updateTime);
-		}
-		if (zoneSnapshot.hasOwnProperty('oX')) {
-			setTimeout(() => {
-				this.zone.outerCircle.setCenterX(zoneSnapshot.oX);
-			}, updateTime);
-		}
-		if (zoneSnapshot.hasOwnProperty('oY')) {
-			setTimeout(() => {
-				this.zone.outerCircle.setCenterY(zoneSnapshot.oY);
-			}, updateTime);
-		}
+		this.zone.outerCircle.setRadius(zoneSnapshot.oR);
+		this.zone.outerCircle.setCenterX(zoneSnapshot.oX);
+		this.zone.outerCircle.setCenterY(zoneSnapshot.oY);
 	}
 
 	private completeSnapshot(previousSnapshot: Snapshot, lastSnapshot: Snapshot): void {
 		this.completePlayerSnapshots(previousSnapshot.p, lastSnapshot.p);
+		this.completeMyPlayerSnapshot(previousSnapshot.i, lastSnapshot.i);
 		this.completeLootSnapshots(previousSnapshot.l, lastSnapshot.l);
+		this.completeZoneSnapshot(previousSnapshot.z, lastSnapshot.z);
+	}
+
+	private completeMyPlayerSnapshot(
+		previousMyPlayerSnapshot: MyPlayerSnapshot,
+		lastMyPlayerSnapshot: MyPlayerSnapshot
+	): void {
+		if (!lastMyPlayerSnapshot.hasOwnProperty('h')) lastMyPlayerSnapshot.h = previousMyPlayerSnapshot.h;
+
+		if (!lastMyPlayerSnapshot.hasOwnProperty('i1')) lastMyPlayerSnapshot.i1 = previousMyPlayerSnapshot.i1;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('i2')) lastMyPlayerSnapshot.i2 = previousMyPlayerSnapshot.i2;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('i3')) lastMyPlayerSnapshot.i3 = previousMyPlayerSnapshot.i3;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('i4')) lastMyPlayerSnapshot.i4 = previousMyPlayerSnapshot.i4;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('i5')) lastMyPlayerSnapshot.i5 = previousMyPlayerSnapshot.i5;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('s4')) lastMyPlayerSnapshot.s4 = previousMyPlayerSnapshot.s4;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('s5')) lastMyPlayerSnapshot.s5 = previousMyPlayerSnapshot.s5;
+
+		if (!lastMyPlayerSnapshot.hasOwnProperty('a')) lastMyPlayerSnapshot.a = previousMyPlayerSnapshot.a;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('aM')) lastMyPlayerSnapshot.aM = previousMyPlayerSnapshot.aM;
+
+		if (!lastMyPlayerSnapshot.hasOwnProperty('r')) lastMyPlayerSnapshot.r = previousMyPlayerSnapshot.r;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('g')) lastMyPlayerSnapshot.g = previousMyPlayerSnapshot.g;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('b')) lastMyPlayerSnapshot.b = previousMyPlayerSnapshot.b;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('o')) lastMyPlayerSnapshot.o = previousMyPlayerSnapshot.o;
+
+		if (!lastMyPlayerSnapshot.hasOwnProperty('s')) lastMyPlayerSnapshot.s = previousMyPlayerSnapshot.s;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('v')) lastMyPlayerSnapshot.v = previousMyPlayerSnapshot.v;
+
+		if (!lastMyPlayerSnapshot.hasOwnProperty('l')) lastMyPlayerSnapshot.l = previousMyPlayerSnapshot.l;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('lE')) lastMyPlayerSnapshot.lE = previousMyPlayerSnapshot.lE;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('lT')) lastMyPlayerSnapshot.lT = previousMyPlayerSnapshot.lT;
+	}
+
+	private completeZoneSnapshot(previousZoneSnapshot: ZoneSnapshot, lastZoneSnapshot: ZoneSnapshot): void {
+		if (!lastZoneSnapshot.hasOwnProperty('iX')) lastZoneSnapshot.iX = previousZoneSnapshot.iX;
+		if (!lastZoneSnapshot.hasOwnProperty('iY')) lastZoneSnapshot.iY = previousZoneSnapshot.iY;
+		if (!lastZoneSnapshot.hasOwnProperty('iR')) lastZoneSnapshot.iR = previousZoneSnapshot.iR;
+		if (!lastZoneSnapshot.hasOwnProperty('oX')) lastZoneSnapshot.oX = previousZoneSnapshot.oX;
+		if (!lastZoneSnapshot.hasOwnProperty('oY')) lastZoneSnapshot.oY = previousZoneSnapshot.oY;
+		if (!lastZoneSnapshot.hasOwnProperty('oR')) lastZoneSnapshot.oR = previousZoneSnapshot.oR;
 	}
 
 	private completeLootSnapshots(previousSnapshotLoots: LootSnapshot[], lastSnapshotLoots: LootSnapshot[]): void {
@@ -242,7 +340,8 @@ export default class SnapshotManager {
 					g: [],
 					s: [],
 					z: { ...copyFrom.z },
-					l: []
+					l: [],
+					o: []
 				};
 
 				for (const player of copyFrom.p) {
@@ -314,26 +413,25 @@ export default class SnapshotManager {
 				}
 
 				//zone
-				/*
-				this.betweenSnapshots.z.oR = this.positionBetweenSnapshots(
+				this.betweenSnapshot.z.oR = this.positionBetweenSnapshots(
 					olderSnapshot.z.oR,
 					newerSnapshot.z.oR,
 					percentShift
 				);
-				this.betweenSnapshots.z.oX = this.positionBetweenSnapshots(
+				this.betweenSnapshot.z.oX = this.positionBetweenSnapshots(
 					olderSnapshot.z.oX,
 					newerSnapshot.z.oX,
 					percentShift
 				);
-				this.betweenSnapshots.z.oY = this.positionBetweenSnapshots(
+				this.betweenSnapshot.z.oY = this.positionBetweenSnapshots(
 					olderSnapshot.z.oY,
 					newerSnapshot.z.oY,
 					percentShift
-                );
-                */
+				);
 			}
 		}
 		this.updatePlayers();
+		this.updateZone();
 	}
 
 	private updatePlayers(): void {

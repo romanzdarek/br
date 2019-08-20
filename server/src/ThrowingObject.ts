@@ -1,9 +1,11 @@
 import Hand from './hand';
+import { Player } from './Player';
 
 export default class ThrowingObject {
 	private x: number;
 	private y: number;
 	private aboveGround: number = 1;
+	player: Player;
 
 	private angle: number = 0;
 	private angleShift: number = 10;
@@ -15,7 +17,8 @@ export default class ThrowingObject {
     private steps: number;
     private countdown: number = 100;
 
-	constructor(hand: Hand, targetX: number, targetY: number, range: number = 80) {
+	constructor(player: Player, hand: Hand, targetX: number, targetY: number, range: number = 80) {
+		this.player = player
 		this.x = hand.getCenterX();
 		this.y = hand.getCenterY();
 		//triangle

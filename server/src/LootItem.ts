@@ -1,5 +1,10 @@
 import { Player } from './Player';
 import { LootType } from './LootType';
+import Loot from './Loot';
+import Map from './Map';
+import RectangleObstacle from './RectangleObstacle';
+import RoundObstacle from './RoundObstacle';
+import Tree from './Tree';
 
 export default class LootItem {
 	readonly id: number;
@@ -9,17 +14,16 @@ export default class LootItem {
 	private x: number;
 	private y: number;
 	private active: boolean = true;
-	private direction: number = 1;
-	readonly bullets: number;
+	readonly quantity: number;
 
-	constructor(id: number, x: number, y: number, type: LootType, bullets: number) {
+	constructor(id: number, x: number, y: number, type: LootType, quantity: number) {
 		this.id = id;
 		this.x = x;
 		this.y = y;
 		this.type = type;
-		this.size = 80;
+		this.size = 60;
 		this.radius = this.size / 2;
-		this.bullets = bullets;
+		this.quantity = quantity;
 	}
 
 	isPlayerIn(player: Player): boolean {
@@ -50,10 +54,103 @@ export default class LootItem {
 		return this.y + this.radius;
 	}
 
-	move(): void {
-		this.x += 5 * this.direction;
-		if (this.x > 1000) this.direction = -1;
-		if (this.x < 0) this.direction = 1;
+	private calcAngle(objectCenterX: number, objectCenterY: number): number {
+		let x = this.getCenterX() - objectCenterX;
+		let y = this.getCenterY() - objectCenterY;
+		if (x === 0) x += 0.1;
+		if (y === 0) y -= 0.1;
+		//atangens
+		let angle = Math.abs(Math.atan(x / y) * 180 / Math.PI);
+		let finalAngle = 0;
+		//1..2..3..4.. Q; 0 - 90, 90 - 180...
+		//1
+		if (objectCenterX >= this.getCenterX() && objectCenterY < this.getCenterY()) {
+			finalAngle = angle;
+		}
+		else if (objectCenterX >= this.getCenterX() && objectCenterY >= this.getCenterY()) {
+			//2
+			finalAngle = 180 - angle;
+		}
+		else if (objectCenterX < this.getCenterX() && objectCenterY >= this.getCenterY()) {
+			//3
+			finalAngle = 180 + angle;
+		}
+		else if (objectCenterX < this.getCenterX() && objectCenterY < this.getCenterY()) {
+			//4
+			finalAngle = 360 - angle;
+		}
+		finalAngle = Math.round(finalAngle);
+		//random change
+		const change = Math.floor(Math.random() * 30);
+		let direction = 1;
+		if (Math.round(Math.random())) direction = -1;
+		finalAngle = finalAngle + direction * change;
+		if (finalAngle > 359) finalAngle = finalAngle - 360;
+		return finalAngle;
+	}
+
+	move(lootItems: LootItem[], map: Map): void {
+		for (const lootItem of lootItems) {
+			if (lootItem === this) continue;
+			if (this.objectIn(lootItem)) {
+				const angle = this.calcAngle(lootItem.getCenterX(), lootItem.getCenterY());
+				this.shift(angle, map);
+			}
+		}
+		for (const object of map.rocks) {
+			if (object.isActive() && this.objectIn(object)) {
+				const angle = this.calcAngle(object.getCenterX(), object.getCenterY());
+				this.shift(angle, map);
+			}
+		}
+		for (const object of map.trees) {
+			if (object.isActive() && this.objectIn(object)) {
+				const angle = this.calcAngle(object.getCenterX(), object.getCenterY());
+				this.shift(angle, map);
+			}
+		}
+		for (const object of map.rectangleObstacles) {
+			if (object.isActive() && this.objectIn(object)) {
+				const angle = this.calcAngle(object.x + object.width / 2, object.y + object.height / 2);
+				this.shift(angle, map);
+			}
+		}
+	}
+
+	private shift(angle: number, map: Map): void {
+		const shiftZ = 1.2;
+		let shiftX = Math.sin(angle * Math.PI / 180) * shiftZ;
+		let shiftY = Math.cos(angle * Math.PI / 180) * shiftZ;
+		this.x -= shiftX;
+		this.y += shiftY;
+
+		//map border
+		if (this.x < 0) this.x = 0;
+		if (this.y < 0) this.y = 0;
+		if (this.x + this.size > map.getSize()) this.x = map.getSize() - this.size;
+		if (this.y + this.size > map.getSize()) this.y = map.getSize() - this.size;
+	}
+
+	private objectIn(object: LootItem | RectangleObstacle | RoundObstacle): boolean {
+		//triangle
+		let objectRadius, objectCenterX, objectCenterY;
+		if (object instanceof LootItem || object instanceof RoundObstacle) {
+			objectRadius = object.radius;
+			if (object instanceof Tree) objectRadius = object.treeTrankRadius;
+			objectCenterX = object.getCenterX();
+			objectCenterY = object.getCenterY();
+		}
+		else if (object instanceof RectangleObstacle) {
+			objectRadius = object.width / 2;
+			objectCenterX = object.x + object.width / 2;
+			objectCenterY = object.y + object.height / 2;
+		}
+
+		const x = this.getCenterX() - objectCenterX;
+		const y = this.getCenterY() - objectCenterY;
+		const radius = Math.sqrt(x * x + y * y);
+		const gap = 20;
+		return radius < objectRadius + this.radius + gap;
 	}
 
 	take(): void {

@@ -30,7 +30,7 @@ export class Player {
 	readonly name: string;
 	static readonly size: number = 80;
 	static readonly radius: number = Player.size / 2;
-	readonly speed: number = 6;
+	readonly speed: number = 10; //6
 	private x: number = 0;
 	private y: number = 0;
 	private angle: number = 0;
@@ -47,6 +47,7 @@ export class Player {
 	private health: number = 100;
 	private collisionPoints: CollisionPoints;
 	private bulletFactory: BulletFactory;
+	private killMessages: string[];
 
 	private controll = {
 		up: false,
@@ -75,7 +76,8 @@ export class Player {
 		bullets: Bullet[],
 		granades: ThrowingObject[],
 		loot: Loot,
-		bulletFactory: BulletFactory
+		bulletFactory: BulletFactory,
+		killMessages: string[]
 	) {
 		this.id = id;
 		this.socket = socket;
@@ -91,6 +93,7 @@ export class Player {
 		const hammer = new Hammer(this, players, map, collisionPoints);
 		this.inventory = new Inventory(this, loot, hammer);
 		this.bulletFactory = bulletFactory;
+		this.killMessages = killMessages;
 	}
 
 	healing(healthPoints: number): void {
@@ -107,21 +110,52 @@ export class Player {
 		return false;
 	}
 
-	acceptHit(power: number): void {
+	acceptHit(power: number, attacker?: Player, weapon?: Weapon): void {
 		if (this.inventory.vest) power /= 2;
 		this.health -= power;
 		this.health = Math.round(this.health * 10) / 10;
-		if (!this.isActive()) this.die();
+		if (!this.isActive()) this.die(attacker, weapon);
 	}
 
 	isActive(): boolean {
 		return this.health > 0;
 	}
 
-	private die(): void {
-		this.x = 0;
-		this.y = 0;
+	private die(attacker?: Player, weapon?: Weapon): void {
+		this.inventory.throwAllLoot();
+		this.x = 100;
+		this.y = 100;
 		this.health = 100;
+
+		let message = 'zona killed ' + this.name;
+		if (attacker && weapon) {
+			let weaponName = '';
+			switch (weapon) {
+				case Weapon.Hammer:
+					weaponName = 'hammer';
+					break;
+				case Weapon.Hand:
+					weaponName = 'hand';
+					break;
+				case Weapon.Pistol:
+					weaponName = 'pistol';
+					break;
+				case Weapon.Rifle:
+					weaponName = 'rifle';
+					break;
+				case Weapon.Shotgun:
+					weaponName = 'shotgun';
+					break;
+				case Weapon.Machinegun:
+					weaponName = 'machinegun';
+					break;
+				case Weapon.Granade:
+					weaponName = 'granade';
+					break;
+			}
+			message = attacker.name + ' killed ' + this.name + ' with ' + weaponName;
+		}
+		this.killMessages.push(message);
 	}
 
 	keyController(key: string): void {
@@ -308,14 +342,14 @@ export class Player {
 			else if (this.inventory.activeItem === Weapon.Granade) {
 				if (this.hands[1].throwReady()) {
 					this.throw();
-					this.granades.push(new Granade(this.hands[1], this.mouseControll.x, this.mouseControll.y));
+					this.granades.push(new Granade(this, this.hands[1], this.mouseControll.x, this.mouseControll.y));
 					this.mouseControll.left = false;
 				}
 			}
 			else if (this.inventory.activeItem === Weapon.Smoke) {
 				if (this.hands[1].throwReady()) {
 					this.throw();
-					this.granades.push(new Smoke(this.hands[1], this.mouseControll.x, this.mouseControll.y));
+					this.granades.push(new Smoke(this, this.hands[1], this.mouseControll.x, this.mouseControll.y));
 					this.mouseControll.left = false;
 				}
 			}
@@ -382,14 +416,7 @@ export class Player {
 			//i want to go this way...
 			this.shiftOnPosition(shiftX, shiftY);
 		}
-		if (
-			this.inventory.activeItem === Weapon.Hand ||
-			this.inventory.activeItem === Weapon.Granade ||
-			this.inventory.activeItem === Weapon.Smoke ||
-			this.inventory.activeItem === Weapon.Medkit
-		) {
-			this.changeHandsPosition();
-		}
+		this.changeHandsPosition();
 	}
 
 	private reload(): void {

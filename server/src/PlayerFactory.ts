@@ -17,7 +17,8 @@ export default class PlayerFactory {
 		bullets: Bullet[],
 		granades: ThrowingObject[],
 		loot: Loot,
-		bulletFacory: BulletFactory
+		bulletFacory: BulletFactory,
+		killmessages: string[]
 	): Player {
 		return new Player(
 			this.playerId++,
@@ -29,7 +30,8 @@ export default class PlayerFactory {
 			bullets,
 			granades,
 			loot,
-			bulletFacory
+			bulletFacory,
+			killmessages
 		);
 	}
 }

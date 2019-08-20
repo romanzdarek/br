@@ -2,9 +2,10 @@ import Map from './Map';
 import Point from './Point';
 import { Player } from './Player';
 import CollisionPoints from './CollisionPoints';
+import { Weapon } from './Weapon';
 
 export default class Hand {
-	static readonly size: number = 40;
+	static readonly size: number = 35;
 	static readonly radius: number = Hand.size / 2;
 	private x: number = 0;
 	private y: number = 0;
@@ -58,79 +59,79 @@ export default class Hand {
 			switch (this.hitTimer) {
 				case 20:
 					shiftAngle -= 4;
-					playerAndHandDistance += 2;
+					playerAndHandDistance += 3;
 					break;
 				case 19:
 					shiftAngle -= 8;
-					playerAndHandDistance += 4;
+					playerAndHandDistance += 6;
 					break;
 				case 18:
 					shiftAngle -= 12;
-					playerAndHandDistance += 6;
+					playerAndHandDistance += 9;
 					break;
 				case 17:
 					shiftAngle -= 16;
-					playerAndHandDistance += 8;
+					playerAndHandDistance += 12;
 					break;
 				case 16:
 					shiftAngle -= 20;
-					playerAndHandDistance += 10;
+					playerAndHandDistance += 15;
 					break;
 				case 15:
 					shiftAngle -= 24;
-					playerAndHandDistance += 12;
+					playerAndHandDistance += 18;
 					break;
 				case 14:
 					shiftAngle -= 28;
-					playerAndHandDistance += 14;
+					playerAndHandDistance += 21;
 					break;
 				case 13:
 					shiftAngle -= 32;
-					playerAndHandDistance += 16;
+					playerAndHandDistance += 24;
 					break;
 				case 12:
 					shiftAngle -= 36;
-					playerAndHandDistance += 18;
+					playerAndHandDistance += 27;
 					break;
 				case 11:
 					shiftAngle -= 40;
-					playerAndHandDistance += 20;
+					playerAndHandDistance += 30;
 					break;
 				case 10:
 					shiftAngle -= 36;
-					playerAndHandDistance += 18;
+					playerAndHandDistance += 27;
 					break;
 				case 9:
 					shiftAngle -= 32;
-					playerAndHandDistance += 16;
+					playerAndHandDistance += 24;
 					break;
 				case 8:
 					shiftAngle -= 28;
-					playerAndHandDistance += 14;
+					playerAndHandDistance += 21;
 					break;
 				case 7:
 					shiftAngle -= 24;
-					playerAndHandDistance += 12;
+					playerAndHandDistance += 18;
 					break;
 				case 6:
 					shiftAngle -= 20;
-					playerAndHandDistance += 10;
+					playerAndHandDistance += 15;
 					break;
 				case 5:
 					shiftAngle -= 16;
-					playerAndHandDistance += 8;
+					playerAndHandDistance += 12;
 					break;
 				case 4:
 					shiftAngle -= 12;
-					playerAndHandDistance += 6;
+					playerAndHandDistance += 9;
 					break;
 				case 3:
 					shiftAngle -= 8;
-					playerAndHandDistance += 4;
+					playerAndHandDistance += 6;
 					break;
 				case 2:
 					shiftAngle -= 4;
-					playerAndHandDistance += 2;
+					playerAndHandDistance += 3;
 					break;
 				case 1:
 					shiftAngle -= 0;
@@ -144,80 +145,80 @@ export default class Hand {
 		if (this.throwTimer > this.throwTimerReady) {
 			switch (this.throwTimer) {
 				case 20:
-					shiftAngle -= 4;
-					playerAndHandDistance += 2;
+					shiftAngle -= 2;
+					playerAndHandDistance += 3;
 					break;
 				case 19:
-					shiftAngle -= 8;
-					playerAndHandDistance += 4;
+					shiftAngle -= 4;
+					playerAndHandDistance += 6;
 					break;
 				case 18:
-					shiftAngle -= 12;
-					playerAndHandDistance += 6;
+					shiftAngle -= 6;
+					playerAndHandDistance += 9;
 					break;
 				case 17:
-					shiftAngle -= 16;
-					playerAndHandDistance += 8;
+					shiftAngle -= 8;
+					playerAndHandDistance += 12;
 					break;
 				case 16:
-					shiftAngle -= 20;
-					playerAndHandDistance += 10;
+					shiftAngle -= 10;
+					playerAndHandDistance += 15;
 					break;
 				case 15:
-					shiftAngle -= 24;
-					playerAndHandDistance += 12;
+					shiftAngle -= 12;
+					playerAndHandDistance += 18;
 					break;
 				case 14:
-					shiftAngle -= 28;
-					playerAndHandDistance += 14;
+					shiftAngle -= 14;
+					playerAndHandDistance += 21;
 					break;
 				case 13:
-					shiftAngle -= 32;
-					playerAndHandDistance += 16;
+					shiftAngle -= 16;
+					playerAndHandDistance += 24;
 					break;
 				case 12:
-					shiftAngle -= 36;
-					playerAndHandDistance += 18;
+					shiftAngle -= 18;
+					playerAndHandDistance += 27;
 					break;
 				case 11:
-					shiftAngle -= 40;
-					playerAndHandDistance += 20;
+					shiftAngle -= 20;
+					playerAndHandDistance += 30;
 					break;
 				case 10:
-					shiftAngle -= 36;
-					playerAndHandDistance += 18;
+					shiftAngle -= 18;
+					playerAndHandDistance += 27;
 					break;
 				case 9:
-					shiftAngle -= 32;
-					playerAndHandDistance += 16;
+					shiftAngle -= 16;
+					playerAndHandDistance += 24;
 					break;
 				case 8:
-					shiftAngle -= 28;
-					playerAndHandDistance += 14;
+					shiftAngle -= 14;
+					playerAndHandDistance += 21;
 					break;
 				case 7:
-					shiftAngle -= 24;
-					playerAndHandDistance += 12;
+					shiftAngle -= 12;
+					playerAndHandDistance += 18;
 					break;
 				case 6:
-					shiftAngle -= 20;
-					playerAndHandDistance += 10;
+					shiftAngle -= 10;
+					playerAndHandDistance += 15;
 					break;
 				case 5:
-					shiftAngle -= 16;
-					playerAndHandDistance += 8;
+					shiftAngle -= 8;
+					playerAndHandDistance += 12;
 					break;
 				case 4:
-					shiftAngle -= 12;
-					playerAndHandDistance += 6;
+					shiftAngle -= 6;
+					playerAndHandDistance += 9;
 					break;
 				case 3:
-					shiftAngle -= 8;
-					playerAndHandDistance += 4;
+					shiftAngle -= 4;
+					playerAndHandDistance += 6;
 					break;
 				case 2:
-					shiftAngle -= 4;
-					playerAndHandDistance += 2;
+					shiftAngle -= 2;
+					playerAndHandDistance += 3;
 					break;
 				case 1:
 					shiftAngle -= 0;
@@ -259,7 +260,7 @@ export default class Hand {
 				const y = this.getCenterY() - player.getCenterY();
 				const distance = Math.sqrt(x * x + y * y);
 				if (distance < playerAndHandRadius) {
-					player.acceptHit(1);
+					player.acceptHit(25, this.player, Weapon.Hand);
 					this.hitObjects.push(player);
 				}
 			}

@@ -4,11 +4,17 @@ import { Player } from './Player';
 import Gun from './Gun';
 import Granade from './Granade';
 import Bush from './Bush';
+import { Weapon } from './Weapon';
+import Pistol from './Pistol';
+import Rifle from './Rifle';
+import Shotgun from './Shotgun';
+import Machinegun from './Machinegun';
 
 export default class Bullet {
 	readonly id: number;
 	readonly size: number = 1;
 	readonly range: number;
+	readonly weapon: Weapon;
 	private x: number = 0;
 	private y: number = 0;
 	private angle: number = 0;
@@ -17,12 +23,22 @@ export default class Bullet {
 	private distance: number = 0;
 	private active: boolean = true;
 	private map: Map;
+	private player: Player;
 	private players: Player[] = [];
 	private hitBushes: Bush[] = [];
 
-	private constructor(id: number, range: number) {
+	private constructor(id: number, range: number, gun?: Gun) {
 		this.id = id;
 		this.range = range;
+		if (!gun) {
+			this.weapon = Weapon.Granade;
+		}
+		else {
+			if (gun instanceof Pistol) this.weapon = Weapon.Pistol;
+			if (gun instanceof Rifle) this.weapon = Weapon.Rifle;
+			if (gun instanceof Shotgun) this.weapon = Weapon.Shotgun;
+			if (gun instanceof Machinegun) this.weapon = Weapon.Machinegun;
+		}
 	}
 
 	//constructor
@@ -35,9 +51,10 @@ export default class Bullet {
 		shiftAngle: number = 0
 	): Bullet {
 		const bulletRange = Math.floor(Math.random() * 3) + gun.range;
-		const instance = new Bullet(id, bulletRange);
+		const instance = new Bullet(id, bulletRange, gun);
 		instance.map = map;
 		instance.players = players;
+		instance.player = player;
 		instance.x = player.getCenterX();
 		instance.y = player.getCenterY();
 		//spray
@@ -71,11 +88,19 @@ export default class Bullet {
 	}
 
 	//constructor
-	static createFragment(id: number, granade: Granade, map: Map, players: Player[], shiftAngle: number): Bullet {
+	static createFragment(
+		id: number,
+		player: Player,
+		granade: Granade,
+		map: Map,
+		players: Player[],
+		shiftAngle: number
+	): Bullet {
 		const fragmentRange = Math.floor(Math.random() * granade.fragmentRange) + granade.fragmentRange / 3;
 		const instance = new Bullet(id, fragmentRange);
 		instance.map = map;
 		instance.players = players;
+		instance.player = player;
 		instance.x = granade.getX();
 		instance.y = granade.getY();
 		//spray
@@ -139,7 +164,7 @@ export default class Bullet {
 		if (this.active) {
 			for (const player of this.players) {
 				if (player.isActive() && player.isPointIn(bulletPoint)) {
-					player.acceptHit(1);
+					player.acceptHit(1, this.player, this.weapon);
 					this.active = false;
 					return true;
 				}

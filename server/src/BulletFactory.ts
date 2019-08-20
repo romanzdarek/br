@@ -14,6 +14,6 @@ export default class BulletFactory {
     }
     
     createFragment(granade: Granade, map: Map, players: Player[], shiftAngle): Bullet {
-        return Bullet.createFragment(this.bulletId++, granade, map, players, shiftAngle);
+        return Bullet.createFragment(this.bulletId++, granade.player, granade, map, players, shiftAngle);
 	}
 }

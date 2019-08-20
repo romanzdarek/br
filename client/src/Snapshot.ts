@@ -5,6 +5,7 @@ import SmokeCloudSnapshot from './SmokeCloudSnapshot';
 import ZoneSnapshot from './ZoneSnapshot';
 import LootSnapshot from './LootSnapshot';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
+import ObstacleSnapshot from './ObstacleSnapshot';
 
 export type Snapshot = {
 	t: number;
@@ -15,4 +16,7 @@ export type Snapshot = {
 	s: SmokeCloudSnapshot[];
 	z: ZoneSnapshot;
 	l: LootSnapshot[];
+	o: ObstacleSnapshot[];
+	//messages
+	m?:string[];
 };

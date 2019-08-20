@@ -30,6 +30,7 @@ import Loot from './Loot';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import PlayerFactory from './PlayerFactory';
 import BulletFactory from './BulletFactory';
+import ObstacleSnapshot from './ObstacleSnapshot';
 
 export default class Game {
 	private map: Map;
@@ -47,6 +48,8 @@ export default class Game {
 	private maxRandomPositionAttempts: number = 1000;
 	private playerFactory: PlayerFactory;
 	private bulletFactory: BulletFactory;
+	private previousMyPlayerSnapshots: MyPlayerSnapshot[];
+	private killMessages: string[] = [];
 
 	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints, mapData: MapData) {
 		this.collisionPoints = collisionPoints;
@@ -135,7 +138,8 @@ export default class Game {
 			this.bullets,
 			this.granades,
 			this.loot,
-			this.bulletFactory
+			this.bulletFactory,
+			this.killMessages
 		);
 		this.setRandomPosition(newPlayer);
 		this.players.push(newPlayer);
@@ -250,7 +254,7 @@ export default class Game {
 
 		//move loot
 		for (const loot of this.loot.lootItems) {
-			loot.move();
+			loot.move(this.loot.lootItems, this.map);
 		}
 
 		//move granades
@@ -294,7 +298,7 @@ export default class Game {
 				this.smokeClouds.splice(i, 1);
 			}
 		}
-		
+
 		//move and delete bullets
 		for (let i = this.bullets.length - 1; i >= 0; i--) {
 			const bullet = this.bullets[i];
@@ -325,13 +329,13 @@ export default class Game {
 		for (const loot of this.loot.lootItems) {
 			lootSnapshots.push(new LootSnapshot(loot));
 		}
-		//loots  snapshots copy for optimalization
+		//loot snapshots copy for optimalization
 		const lootSnapshotsOptimalization: LootSnapshot[] = [];
 		for (const loot of this.loot.lootItems) {
 			lootSnapshotsOptimalization.push(new LootSnapshot(loot));
 		}
 
-		//granades
+		//granades & smokes
 		const granadeSnapshots: ThrowingObjectSnapshot[] = [];
 		for (const granade of this.granades) {
 			granadeSnapshots.push(new ThrowingObjectSnapshot(granade));
@@ -343,7 +347,7 @@ export default class Game {
 			bulletSnapshots.push(new BulletSnapshot(bullet));
 		}
 
-		//smokes
+		//smoke clouds
 		const smokeCloudSnapshots: SmokeCloudSnapshot[] = [];
 		for (const smokeCloud of this.smokeClouds) {
 			smokeCloudSnapshots.push(new SmokeCloudSnapshot(smokeCloud));
@@ -358,6 +362,7 @@ export default class Game {
 		for (const player of this.players) {
 			playerSnapshots.push(new PlayerSnapshot(player));
 		}
+
 		//players snapshots copy for optimalization
 		let playerSnapshotsOptimalization: PlayerSnapshot[] = [];
 		for (const player of this.players) {
@@ -370,7 +375,7 @@ export default class Game {
 			if (this.previousSnapshot) {
 				for (const playerBefore of this.previousSnapshot.p) {
 					if (playerNow.i === playerBefore.i) {
-						//for deny hands beetween snapshot
+						//for deny create beetween snapshot for hands
 						if (
 							(playerNow.w === Weapon.Hand ||
 								playerNow.w === Weapon.Smoke ||
@@ -438,20 +443,20 @@ export default class Game {
 					}
 				}
 			}
-			//delete empty objects snapshots
+			//delete empty loot snapshots
 			for (let i = lootSnapshotsOptimalization.length - 1; i >= 0; i--) {
 				const loot = lootSnapshotsOptimalization[i];
 				if (
 					!loot.hasOwnProperty('x') &&
 					!loot.hasOwnProperty('y') &&
 					!loot.hasOwnProperty('size') &&
-					!loot.hasOwnProperty('type')
+					!loot.hasOwnProperty('type') &&
+					!loot.hasOwnProperty('del')
 				) {
 					lootSnapshotsOptimalization.splice(i, 1);
 				}
 			}
 		}
-		//+++++++++++++++++++
 
 		//zone
 		if (this.previousSnapshot) {
@@ -463,6 +468,28 @@ export default class Game {
 			if (this.previousSnapshot.z.oY === zoneSnapshot.oY) delete zoneSnapshotOptimalization.oY;
 		}
 
+		//change obstacles
+		const obstacleSnapshots = [];
+		//map objects
+		for (const obstacle of this.map.rectangleObstacles) {
+			if (obstacle.getChanged()) {
+				obstacle.nullChanged();
+				obstacleSnapshots.push(new ObstacleSnapshot(obstacle));
+			}
+		}
+		for (const obstacle of this.map.impassableRoundObstacles) {
+			if (obstacle.getChanged()) {
+				obstacle.nullChanged();
+				obstacleSnapshots.push(new ObstacleSnapshot(obstacle));
+			}
+		}
+		for (const obstacle of this.map.bushes) {
+			if (obstacle.getChanged()) {
+				obstacle.nullChanged();
+				obstacleSnapshots.push(new ObstacleSnapshot(obstacle));
+			}
+		}
+
 		//save this snapshot
 		this.previousSnapshot = new Snapshot(
 			dateNow,
@@ -471,12 +498,46 @@ export default class Game {
 			granadeSnapshots,
 			smokeCloudSnapshots,
 			zoneSnapshot,
-			lootSnapshots
+			lootSnapshots,
+			obstacleSnapshots,
+			[ ...this.killMessages ]
 		);
 
-		//emit
+		//emit changes
 		for (const player of this.players) {
-			const myPlayerSnapshot = new MyPlayerSnapshot(player);
+			const lastMyPlayerSnapshot = new MyPlayerSnapshot(player);
+			//delete same values
+			if (this.previousMyPlayerSnapshots) {
+				for (const previousMyPlayerSnapshot of this.previousMyPlayerSnapshots) {
+					if (previousMyPlayerSnapshot.id === lastMyPlayerSnapshot.id) {
+						if (previousMyPlayerSnapshot.h === lastMyPlayerSnapshot.h) delete lastMyPlayerSnapshot.h;
+						if (previousMyPlayerSnapshot.i1 === lastMyPlayerSnapshot.i1) delete lastMyPlayerSnapshot.i1;
+						if (previousMyPlayerSnapshot.i2 === lastMyPlayerSnapshot.i2) delete lastMyPlayerSnapshot.i2;
+						if (previousMyPlayerSnapshot.i3 === lastMyPlayerSnapshot.i3) delete lastMyPlayerSnapshot.i3;
+						if (previousMyPlayerSnapshot.i4 === lastMyPlayerSnapshot.i4) delete lastMyPlayerSnapshot.i4;
+						if (previousMyPlayerSnapshot.i5 === lastMyPlayerSnapshot.i5) delete lastMyPlayerSnapshot.i5;
+						if (previousMyPlayerSnapshot.s4 === lastMyPlayerSnapshot.s4) delete lastMyPlayerSnapshot.s4;
+						if (previousMyPlayerSnapshot.s5 === lastMyPlayerSnapshot.s5) delete lastMyPlayerSnapshot.s5;
+
+						if (previousMyPlayerSnapshot.r === lastMyPlayerSnapshot.r) delete lastMyPlayerSnapshot.r;
+						if (previousMyPlayerSnapshot.g === lastMyPlayerSnapshot.g) delete lastMyPlayerSnapshot.g;
+						if (previousMyPlayerSnapshot.b === lastMyPlayerSnapshot.b) delete lastMyPlayerSnapshot.b;
+						if (previousMyPlayerSnapshot.o === lastMyPlayerSnapshot.o) delete lastMyPlayerSnapshot.o;
+
+						if (previousMyPlayerSnapshot.a === lastMyPlayerSnapshot.a) delete lastMyPlayerSnapshot.a;
+						if (previousMyPlayerSnapshot.aM === lastMyPlayerSnapshot.aM) delete lastMyPlayerSnapshot.aM;
+
+						if (previousMyPlayerSnapshot.s === lastMyPlayerSnapshot.s) delete lastMyPlayerSnapshot.s;
+						if (previousMyPlayerSnapshot.v === lastMyPlayerSnapshot.v) delete lastMyPlayerSnapshot.v;
+
+						if (previousMyPlayerSnapshot.l === lastMyPlayerSnapshot.l) delete lastMyPlayerSnapshot.l;
+						if (previousMyPlayerSnapshot.lE === lastMyPlayerSnapshot.lE) delete lastMyPlayerSnapshot.lE;
+						if (previousMyPlayerSnapshot.lT === lastMyPlayerSnapshot.lT) delete lastMyPlayerSnapshot.lT;
+					}
+				}
+			}
+			delete lastMyPlayerSnapshot.id;
+
 			const snapshot = new Snapshot(
 				dateNow,
 				playerSnapshotsOptimalization,
@@ -484,10 +545,21 @@ export default class Game {
 				granadeSnapshots,
 				smokeCloudSnapshots,
 				zoneSnapshotOptimalization,
-				lootSnapshotsOptimalization
+				lootSnapshotsOptimalization,
+				obstacleSnapshots,
+				[ ...this.killMessages ],
+				lastMyPlayerSnapshot
 			);
-			snapshot.i = myPlayerSnapshot;
 			player.socket.emit('u', snapshot);
+		}
+
+		//clear messages
+		this.killMessages.splice(0, this.killMessages.length);
+
+		//save 'previous' myPlayerSnapshot
+		this.previousMyPlayerSnapshots = [];
+		for (const player of this.players) {
+			this.previousMyPlayerSnapshots.push(new MyPlayerSnapshot(player));
 		}
 
 		//delete !active loot
@@ -498,32 +570,6 @@ export default class Game {
 				lootSnapshots.splice(i, 1);
 				//from this.loots
 				this.loot.lootItems.splice(i, 1);
-			}
-		}
-
-		//map objects
-		for (const wall of this.map.rectangleObstacles) {
-			if (wall.getChanged()) {
-				wall.nullChanged();
-				for (const player of this.players) {
-					player.socket.emit('m', 'w', dateNow, wall.getChangedData());
-				}
-			}
-		}
-		for (const round of this.map.impassableRoundObstacles) {
-			if (round.getChanged()) {
-				round.nullChanged();
-				for (const player of this.players) {
-					player.socket.emit('m', 'r', dateNow, round.getChangedData());
-				}
-			}
-		}
-		for (const bush of this.map.bushes) {
-			if (bush.getChanged()) {
-				bush.nullChanged();
-				for (const player of this.players) {
-					player.socket.emit('m', 'b', dateNow, bush.getChangedData());
-				}
 			}
 		}
 	}
