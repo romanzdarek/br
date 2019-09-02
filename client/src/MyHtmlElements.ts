@@ -2,6 +2,7 @@ export default class MyHtmlElements {
 	readonly gameScreen: HTMLElement;
 	readonly mapScreen: HTMLElement;
 	readonly mapContainer: HTMLElement;
+	readonly zoneTimer: HTMLElement;
 	readonly helperScreen: HTMLElement;
 	readonly zoneSVG: HTMLElement;
 	readonly zoneCircle: HTMLElement;
@@ -39,8 +40,7 @@ export default class MyHtmlElements {
 		item2Ammo: document.getElementById('item2Ammo'),
 		scope: document.getElementById('scope'),
 		scopeSVG: document.getElementById('scope').getElementsByTagName('img')[0],
-		vest: document.getElementById('vest'),
-
+		vest: document.getElementById('vest')
 	};
 
 	readonly editor = {
@@ -72,6 +72,11 @@ export default class MyHtmlElements {
 		<button id="mapEditorMenuClose">Close editor</button>
 	</div>
 	*/
+
+	readonly gameOverMenu = {
+		main: document.getElementById('gameOverMenu'),
+		back: document.getElementById('gameOverMenu')
+	};
 
 	readonly mapEditorMenu = {
 		main: document.getElementById('mapEditorMenu'),
@@ -242,6 +247,7 @@ export default class MyHtmlElements {
 		this.mapContainer = document.getElementById('mapContainer');
 		this.alive = document.getElementById('alive');
 		this.messages = document.getElementById('messages');
+		this.zoneTimer = document.getElementById('zoneTimer');
 	}
 
 	close(...elements: HTMLElement[]): void {

@@ -113,8 +113,13 @@ export default class Model {
 	}
 
 	private loop(): void {
-		for (const game of this.games) {
-			if (game && game.isActive()) game.loop();
+		for (let i = this.games.length - 1; i > 0; i--) {
+			const game = this.games[i];
+			if (game && game.isActive()) {
+				game.loop();
+				//delete game
+				if (game.isEnd()) delete this.games[i];
+			}
 		}
 	}
 }

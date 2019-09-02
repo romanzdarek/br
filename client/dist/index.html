@@ -24,6 +24,7 @@
 		canvas#gameScreen{
 			cursor: none;
 		}
+		
 		#mapContainer{
 			border-radius: 10px;
 			position: absolute;
@@ -31,6 +32,19 @@
 			left:20px;
 			z-index: 5;
 			background: rgba(128, 128, 128, 0.5);
+		}
+		#zoneTimer{
+			z-index: 8;
+			position:relative;
+			top:-60px;
+			margin: auto;
+			height: 40px;
+			border-radius: 10px;
+			background: rgba(128, 128, 128, 0.5);
+			color:white;
+			font-size: 130%;
+			line-height: 40px;
+			text-align: center;
 		}
 		svg#mapZoneSVG{
 			border-radius: 10px;
@@ -351,7 +365,8 @@
 		<p>PlayerASD killed playerERZ with Hand</p>
 	</div>
 
-	<div id="mapContainer"></div>
+	<div id="mapContainer"><div id="zoneTimer"></div></div>
+
 	<canvas id="mapScreen" width="1" height="1"></canvas>
 	<svg id="mapZoneSVG" width="0" height="0">
 		<mask id="mapMaskSVG">
@@ -479,6 +494,11 @@
         <p>Move: <b>A, W, S, D</b>.</p>
         <p>Hit / Shoot: <b>Mouse</b>.</p>
         <button id="controlsMenuBack">Back</button>
+	</div>
+
+	<div class="menu" id="gameOverMenu">
+        <h1>You win!</h1>
+        <button id="gameOverMenuBack">Main menu</button>
 	</div>
 	
 	<div class="menu" id="alertMenu">

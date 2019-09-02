@@ -24,7 +24,6 @@ import ThrowingObject from './ThrowingObject';
 import BulletFactory from './BulletFactory';
 
 export class Player {
-	private static numberOfplayers: number = 0;
 	socket: SocketIO.Socket;
 	readonly id: number;
 	readonly name: string;
@@ -48,6 +47,8 @@ export class Player {
 	private collisionPoints: CollisionPoints;
 	private bulletFactory: BulletFactory;
 	private killMessages: string[];
+	private randomPositionAttempts: number = 0;
+	private maxRandomPositionAttempts: number = 100;
 
 	private controll = {
 		up: false,
@@ -94,6 +95,68 @@ export class Player {
 		this.inventory = new Inventory(this, loot, hammer);
 		this.bulletFactory = bulletFactory;
 		this.killMessages = killMessages;
+		this.setRandomPosition();
+	}
+
+	private setRandomPosition(): void {
+		const randomX = Math.floor(Math.random() * (this.map.getSize() - Player.size));
+		const randomY = Math.floor(Math.random() * (this.map.getSize() - Player.size));
+		this.setX(randomX);
+		this.setY(randomY);
+		if (this.randomPositionCollision()) {
+			this.randomPositionAttempts++;
+			if (this.randomPositionAttempts < this.maxRandomPositionAttempts) this.setRandomPosition();
+		}
+	}
+
+	private randomPositionCollision(): boolean {
+		//walls
+		for (const wall of this.map.rectangleObstacles) {
+			if (this.playerInObstacle(wall)) return true;
+		}
+
+		//rounds
+		for (const round of this.map.impassableRoundObstacles) {
+			if (this.playerInObstacle(round)) return true;
+		}
+
+		//players
+		for (const player of this.players) {
+			if (this.playerInObstacle(player)) return true;
+		}
+		return false;
+	}
+
+	private playerInObstacle(object: Player | RoundObstacle | RectangleObstacle): boolean {
+		let x = 0,
+			y = 0,
+			width = 0,
+			height = 0;
+		if (object instanceof RectangleObstacle) {
+			width = object.width;
+			height = object.height;
+			x = object.x;
+			y = object.y;
+		}
+		if (object instanceof RoundObstacle) {
+			width = object.size;
+			height = object.size;
+			x = object.x;
+			y = object.y;
+		}
+		if (object instanceof Player) {
+			width = Player.size;
+			height = Player.size;
+			x = object.getX();
+			y = object.getY();
+		}
+		//object in object
+		if (x + width >= this.x && x <= this.x + Player.size && this.y + Player.size >= y && this.y <= y + height) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
 	healing(healthPoints: number): void {
@@ -123,9 +186,8 @@ export class Player {
 
 	private die(attacker?: Player, weapon?: Weapon): void {
 		this.inventory.throwAllLoot();
-		this.x = 100;
-		this.y = 100;
-		this.health = 100;
+		this.x = -10000;
+		//this.health = 100;
 
 		let message = 'zona killed ' + this.name;
 		if (attacker && weapon) {

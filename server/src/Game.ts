@@ -44,8 +44,7 @@ export default class Game {
 	private granades: ThrowingObject[] = [];
 	private collisionPoints: CollisionPoints;
 	private active: boolean = false;
-	private randomPositionAttempts: number = 0;
-	private maxRandomPositionAttempts: number = 1000;
+	private endingTimer: number = -1;
 	private playerFactory: PlayerFactory;
 	private bulletFactory: BulletFactory;
 	private previousMyPlayerSnapshots: MyPlayerSnapshot[];
@@ -56,10 +55,40 @@ export default class Game {
 		this.mapData = mapData;
 		this.map = new Map(waterTerrainData, mapData);
 		this.zone = new Zone(this.map);
-		this.loot = new Loot();
-		this.loot.createMainLootItems();
+		this.loot = new Loot(this.map);
 		this.playerFactory = new PlayerFactory();
 		this.bulletFactory = new BulletFactory();
+	}
+
+	isEnd(): boolean {
+		return this.endingTimer === 0;
+	}
+
+	private gameOver(): boolean {
+		let state = false;
+		let activePlayers = 0;
+		let lastActivePlayer;
+		for (const player of this.players) {
+			if (player.isActive()) {
+				activePlayers++;
+				lastActivePlayer = player;
+			}
+		}
+		//last player win
+		if (activePlayers === 1 && this.endingTimer === -1) {
+			lastActivePlayer.socket.emit('winner');
+			state = true;
+		}
+		//no one win
+		if (activePlayers === 0) {
+			state = true;
+		}
+		//ending
+		if (state && this.endingTimer === -1) {
+			this.endingTimer = 60 * 3;
+		}
+		if (this.endingTimer > 0) this.endingTimer--;
+		return state;
 	}
 
 	private updateListOfPlayers(): void {
@@ -93,6 +122,7 @@ export default class Game {
 			if (this.players[0].socket === socket) {
 				this.active = true;
 				this.zone.start();
+				this.loot.createMainLootItems(this.players.length);
 				//start clients
 				for (const player of this.players) {
 					player.socket.emit('startGame', this.mapData);
@@ -141,7 +171,6 @@ export default class Game {
 			this.bulletFactory,
 			this.killMessages
 		);
-		this.setRandomPosition(newPlayer);
 		this.players.push(newPlayer);
 		//send it to the client
 		this.updateListOfPlayers();
@@ -160,95 +189,10 @@ export default class Game {
 		return shuffleFragments;
 	}
 
-	private setRandomPosition(gameObject: Player): void {
-		const randomX = Math.floor(Math.random() * (this.map.getSize() - Player.size));
-		const randomY = Math.floor(Math.random() * (this.map.getSize() - Player.size));
-		gameObject.setX(randomX);
-		gameObject.setY(randomY);
-		if (this.randomPositionCollision(gameObject)) {
-			this.randomPositionAttempts++;
-			if (this.randomPositionAttempts < this.maxRandomPositionAttempts) this.setRandomPosition(gameObject);
-		}
-	}
-
-	private randomPositionCollision(gameObject: Player): boolean {
-		//walls
-		for (const wall of this.map.rectangleObstacles) {
-			if (this.isObjectInObject(gameObject, wall)) return true;
-		}
-
-		//rounds
-		for (const round of this.map.impassableRoundObstacles) {
-			if (this.isObjectInObject(gameObject, round)) return true;
-		}
-
-		//players
-		for (const player of this.players) {
-			if (this.isObjectInObject(gameObject, player)) return true;
-		}
-		return false;
-	}
-
-	private isObjectInObject(
-		object1: Player | RoundObstacle | RectangleObstacle,
-		object2: Player | RoundObstacle | RectangleObstacle
-	): boolean {
-		let x1 = 0,
-			y1 = 0,
-			width1 = 0,
-			height1 = 0,
-			x2 = 0,
-			y2 = 0,
-			width2 = 0,
-			height2 = 0;
-		//1
-		if (object1 instanceof RectangleObstacle) {
-			width1 = object1.width;
-			height1 = object1.height;
-			x1 = object1.x;
-			y1 = object1.y;
-		}
-		if (object1 instanceof RoundObstacle) {
-			width1 = object1.size;
-			height1 = object1.size;
-			x1 = object1.x;
-			y1 = object1.y;
-		}
-		if (object1 instanceof Player) {
-			width1 = Player.size;
-			height1 = Player.size;
-			x1 = object1.getX();
-			y1 = object1.getY();
-		}
-		//2
-		if (object2 instanceof RectangleObstacle) {
-			width2 = object2.width;
-			height2 = object2.height;
-			x2 = object2.x;
-			y2 = object2.y;
-		}
-		if (object2 instanceof RoundObstacle) {
-			width2 = object2.size;
-			height2 = object2.size;
-			x2 = object2.x;
-			y2 = object2.y;
-		}
-		if (object2 instanceof Player) {
-			width2 = Player.size;
-			height2 = Player.size;
-			x2 = object2.getX();
-			y2 = object2.getY();
-		}
-		//object in object
-		if (x1 + width1 >= x2 && x1 <= x2 + width2 && y1 + height1 >= y2 && y1 <= y2 + height2) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
 	loop(): void {
+		//ending
+		if (this.gameOver()) this.endingTimer--;
+
 		//zone move
 		this.zone.move();
 
@@ -319,6 +263,7 @@ export default class Game {
 				player.acceptHit(this.zone.getDamage());
 			}
 		}
+
 		this.clientsUpdate();
 	}
 
@@ -466,6 +411,7 @@ export default class Game {
 			if (this.previousSnapshot.z.oR === zoneSnapshot.oR) delete zoneSnapshotOptimalization.oR;
 			if (this.previousSnapshot.z.oX === zoneSnapshot.oX) delete zoneSnapshotOptimalization.oX;
 			if (this.previousSnapshot.z.oY === zoneSnapshot.oY) delete zoneSnapshotOptimalization.oY;
+			if (this.previousSnapshot.z.d === zoneSnapshot.d) delete zoneSnapshotOptimalization.d;
 		}
 
 		//change obstacles

@@ -493,7 +493,12 @@ export default class Inventory {
 						if (this.item2 instanceof Shotgun) lootType = LootType.Shotgun;
 						if (this.item2 instanceof Rifle) lootType = LootType.Rifle;
 					}
-					this.loot.createLootItem(this.player.getX(), this.player.getY(), lootType, bulletsInGun);
+					this.loot.createLootItem(
+						this.player.getCenterX(),
+						this.player.getCenterY(),
+						lootType,
+						bulletsInGun
+					);
 				}
 				if (this.item2 === null) {
 					itemPosition = 2;
@@ -510,7 +515,7 @@ export default class Inventory {
 			//take hammer
 			//throw hammer
 			if (this.item3 instanceof Hammer || this.item33 instanceof Hammer) {
-				this.loot.createLootItem(this.player.getX(), this.player.getY(), LootType.Hammer);
+				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.Hammer);
 			}
 			this.item3 = this.hammer;
 			this.item33 = Weapon.Hand;
@@ -532,8 +537,8 @@ export default class Inventory {
 			//granade
 			if (this.item4GranadeCount > this.item4Max) {
 				this.loot.createLootItem(
-					this.player.getX(),
-					this.player.getY(),
+					this.player.getCenterX(),
+					this.player.getCenterY(),
 					LootType.Granade,
 					this.item4GranadeCount - this.item4Max
 				);
@@ -542,8 +547,8 @@ export default class Inventory {
 			//smoke
 			if (this.item4SmokeCount > this.item4Max) {
 				this.loot.createLootItem(
-					this.player.getX(),
-					this.player.getY(),
+					this.player.getCenterX(),
+					this.player.getCenterY(),
 					LootType.Smoke,
 					this.item4SmokeCount - this.item4Max
 				);
@@ -557,7 +562,12 @@ export default class Inventory {
 				const newLootBullets = this.greenAmmo - this.maxAmmo;
 				this.greenAmmo = this.maxAmmo;
 				//throw loot
-				this.loot.createLootItem(this.player.getX(), this.player.getY(), LootType.GreenAmmo, newLootBullets);
+				this.loot.createLootItem(
+					this.player.getCenterX(),
+					this.player.getCenterY(),
+					LootType.GreenAmmo,
+					newLootBullets
+				);
 			}
 		}
 		else if (loot.type === LootType.RedAmmo) {
@@ -566,7 +576,12 @@ export default class Inventory {
 				const newLootBullets = this.redAmmo - this.maxAmmo;
 				this.redAmmo = this.maxAmmo;
 				//throw loot
-				this.loot.createLootItem(this.player.getX(), this.player.getY(), LootType.RedAmmo, newLootBullets);
+				this.loot.createLootItem(
+					this.player.getCenterX(),
+					this.player.getCenterY(),
+					LootType.RedAmmo,
+					newLootBullets
+				);
 			}
 		}
 		else if (loot.type === LootType.BlueAmmo) {
@@ -575,7 +590,12 @@ export default class Inventory {
 				const newLootBullets = this.blueAmmo - this.maxAmmo;
 				this.blueAmmo = this.maxAmmo;
 				//throw loot
-				this.loot.createLootItem(this.player.getX(), this.player.getY(), LootType.BlueAmmo, newLootBullets);
+				this.loot.createLootItem(
+					this.player.getCenterX(),
+					this.player.getCenterY(),
+					LootType.BlueAmmo,
+					newLootBullets
+				);
 			}
 		}
 		else if (loot.type === LootType.OrangeAmmo) {
@@ -584,14 +604,19 @@ export default class Inventory {
 				const newLootBullets = this.orangeAmmo - this.maxAmmo;
 				this.orangeAmmo = this.maxAmmo;
 				//throw loot
-				this.loot.createLootItem(this.player.getX(), this.player.getY(), LootType.OrangeAmmo, newLootBullets);
+				this.loot.createLootItem(
+					this.player.getCenterX(),
+					this.player.getCenterY(),
+					LootType.OrangeAmmo,
+					newLootBullets
+				);
 			}
 		}
 		else if (loot.type === LootType.Vest) {
 			//take vest
 			if (this.vest) {
 				//throw loot
-				this.loot.createLootItem(this.player.getX(), this.player.getY(), LootType.Vest);
+				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.Vest);
 			}
 			else {
 				this.vest = true;
@@ -603,7 +628,12 @@ export default class Inventory {
 			//throw loot
 			if (this.item5 > this.item5Max) {
 				const throwCount = this.item5 - this.item5Max;
-				this.loot.createLootItem(this.player.getX(), this.player.getY(), LootType.Medkit, throwCount);
+				this.loot.createLootItem(
+					this.player.getCenterX(),
+					this.player.getCenterY(),
+					LootType.Medkit,
+					throwCount
+				);
 				this.item5 = this.item5Max;
 			}
 		}
@@ -623,7 +653,7 @@ export default class Inventory {
 						scopeType = LootType.Scope6;
 						break;
 				}
-				this.loot.createLootItem(this.player.getX(), this.player.getY(), scopeType);
+				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), scopeType);
 			}
 			switch (loot.type) {
 				case LootType.Scope2:

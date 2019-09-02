@@ -7,4 +7,6 @@ export default interface ZoneSnapshot {
 	oX: number;
 	oY: number;
 	oR: number;
+	//delay
+	d: number;
 };

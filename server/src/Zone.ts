@@ -6,8 +6,8 @@ import { Player } from './Player';
 export default class Zone {
 	innerCircle: ZoneCircle;
 	outerCircle: ZoneCircle;
-	private createZoneTime: number | null = null;
-	private moveZoneDelay: number = 1000 * 10;
+	createZoneTime: number | null = null;
+	moveZoneDelay: number = 1000 * 10;
 	private damage: number = 0.1;
 	private damageIncrease: number = 0.01;
 

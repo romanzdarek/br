@@ -16,13 +16,13 @@ export default class LootItem {
 	private active: boolean = true;
 	readonly quantity: number;
 
-	constructor(id: number, x: number, y: number, type: LootType, quantity: number) {
+	constructor(id: number, centerX: number, centerY: number, type: LootType, quantity: number) {
 		this.id = id;
-		this.x = x;
-		this.y = y;
-		this.type = type;
 		this.size = 60;
 		this.radius = this.size / 2;
+		this.x = centerX - this.radius;
+		this.y = centerY - this.radius;
+		this.type = type;
 		this.quantity = quantity;
 	}
 
@@ -36,6 +36,14 @@ export default class LootItem {
 
 	isActive(): boolean {
 		return this.active;
+	}
+
+	setX(x: number): void {
+		this.x = x;
+	}
+
+	setY(y: number): void {
+		this.y = y;
 	}
 
 	getX(): number {
@@ -118,7 +126,7 @@ export default class LootItem {
 	}
 
 	private shift(angle: number, map: Map): void {
-		const shiftZ = 1.2;
+		const shiftZ = 5 * Math.random();
 		let shiftX = Math.sin(angle * Math.PI / 180) * shiftZ;
 		let shiftY = Math.cos(angle * Math.PI / 180) * shiftZ;
 		this.x -= shiftX;
@@ -145,7 +153,6 @@ export default class LootItem {
 			objectCenterX = object.x + object.width / 2;
 			objectCenterY = object.y + object.height / 2;
 		}
-
 		const x = this.getCenterX() - objectCenterX;
 		const y = this.getCenterY() - objectCenterY;
 		const radius = Math.sqrt(x * x + y * y);

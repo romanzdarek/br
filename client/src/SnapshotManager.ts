@@ -139,6 +139,8 @@ export default class SnapshotManager {
 		this.completeMyPlayerSnapshot(previousSnapshot.i, lastSnapshot.i);
 		this.completeLootSnapshots(previousSnapshot.l, lastSnapshot.l);
 		this.completeZoneSnapshot(previousSnapshot.z, lastSnapshot.z);
+		//zone delay
+		if (!lastSnapshot.z.hasOwnProperty('d')) lastSnapshot.z.d = previousSnapshot.z.d;
 	}
 
 	private completeMyPlayerSnapshot(

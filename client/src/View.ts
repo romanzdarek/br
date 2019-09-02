@@ -1308,6 +1308,18 @@ export default class View {
 			element.textContent = message.text;
 			el.messages.appendChild(element);
 		}
+
+		//zone time
+		if (this.snapshotManager.betweenSnapshot.z.hasOwnProperty('d')) {
+			let text = '';
+			if (this.snapshotManager.betweenSnapshot.z.d > 0) {
+				text += this.snapshotManager.betweenSnapshot.z.d;
+			}
+			else {
+				text = 'Zone is moving!';
+			}
+			el.zoneTimer.innerText = text;
+		}
 	}
 
 	private createBulletLines(): void {

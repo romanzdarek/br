@@ -113,6 +113,13 @@ export class Controller {
 	private socketController(): void {
 		const el = this.myHtmlElements;
 
+		//gameOver
+		this.socket.on('winner', () => {
+			setTimeout(() => {
+				el.open(el.gameOverMenu.main);
+			}, 1000);
+		});
+
 		//startGame
 		this.socket.on('startGame', (mapData: MapData) => {
 			this.model.map.openMap(mapData);
@@ -407,6 +414,12 @@ export class Controller {
 
 	private menuController(): void {
 		const el = this.myHtmlElements;
+		//+++++++++++++ GAME OVER MENU
+		el.gameOverMenu.back.addEventListener('click', () => {
+			el.close(el.gameOverMenu.main);
+			el.open(el.mainMenu.main);
+		});
+
 		//+++++++++++++ MAP SIZE MENU
 		//mapSize ok button
 		el.mapSizeMenu.ok.addEventListener('click', () => {
