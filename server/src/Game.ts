@@ -31,6 +31,7 @@ import MyPlayerSnapshot from './MyPlayerSnapshot';
 import PlayerFactory from './PlayerFactory';
 import BulletFactory from './BulletFactory';
 import ObstacleSnapshot from './ObstacleSnapshot';
+import PlayerStats from './PlayerStats';
 
 export default class Game {
 	private map: Map;
@@ -67,7 +68,7 @@ export default class Game {
 	private gameOver(): boolean {
 		let state = false;
 		let activePlayers = 0;
-		let lastActivePlayer;
+		let lastActivePlayer: Player;
 		for (const player of this.players) {
 			if (player.isActive()) {
 				activePlayers++;
@@ -75,8 +76,16 @@ export default class Game {
 			}
 		}
 		//last player win
-		if (activePlayers === 1 && this.endingTimer === -1) {
-			lastActivePlayer.socket.emit('winner');
+		if (this.players.length > 1 && activePlayers === 1 && this.endingTimer === -1) {
+			lastActivePlayer.win();
+			const { kills, damageDealt, damageTaken, survive } = lastActivePlayer.getStats();
+			const stats: PlayerStats = {
+				kills,
+				damageDealt: Math.round(damageDealt),
+				damageTaken: Math.round(damageTaken),
+				survive: Math.round(survive)
+			};
+			lastActivePlayer.socket.emit('winner', stats);
 			state = true;
 		}
 		//no one win
@@ -124,7 +133,9 @@ export default class Game {
 				this.zone.start();
 				this.loot.createMainLootItems(this.players.length);
 				//start clients
+				const startTime = Date.now();
 				for (const player of this.players) {
+					player.setStartTime(startTime);
 					player.socket.emit('startGame', this.mapData);
 				}
 			}
@@ -257,7 +268,7 @@ export default class Game {
 
 		//player move
 		for (const player of this.players) {
-			player.loop();
+			if (player.isActive()) player.loop();
 			//zone damage
 			if (!this.zone.playertIn(player)) {
 				player.acceptHit(this.zone.getDamage());
@@ -451,7 +462,21 @@ export default class Game {
 
 		//emit changes
 		for (const player of this.players) {
-			const lastMyPlayerSnapshot = new MyPlayerSnapshot(player);
+			//spectacle
+			const myPlayerId = player.id;
+			let myOrSpectaclePlayer = player;
+			let spectacleId = -1;
+			let spectacleName = '';
+			if (player.getSpectacle()) {
+				spectacleId = player.spectaclePlayer().id;
+				myOrSpectaclePlayer = player.spectaclePlayer();
+				spectacleName = player.spectaclePlayer().name;
+			}
+			const lastMyPlayerSnapshot = new MyPlayerSnapshot(myOrSpectaclePlayer);
+			lastMyPlayerSnapshot.spectacle = spectacleId;
+			lastMyPlayerSnapshot.spectacleName = spectacleName;
+			lastMyPlayerSnapshot.id = myPlayerId;
+
 			//delete same values
 			if (this.previousMyPlayerSnapshots) {
 				for (const previousMyPlayerSnapshot of this.previousMyPlayerSnapshots) {
@@ -479,6 +504,12 @@ export default class Game {
 						if (previousMyPlayerSnapshot.l === lastMyPlayerSnapshot.l) delete lastMyPlayerSnapshot.l;
 						if (previousMyPlayerSnapshot.lE === lastMyPlayerSnapshot.lE) delete lastMyPlayerSnapshot.lE;
 						if (previousMyPlayerSnapshot.lT === lastMyPlayerSnapshot.lT) delete lastMyPlayerSnapshot.lT;
+
+						if (previousMyPlayerSnapshot.ai === lastMyPlayerSnapshot.ai) delete lastMyPlayerSnapshot.ai;
+
+						if (previousMyPlayerSnapshot.spectacleName === lastMyPlayerSnapshot.spectacleName) delete lastMyPlayerSnapshot.spectacleName;
+						if (previousMyPlayerSnapshot.spectacle === lastMyPlayerSnapshot.spectacle)
+							delete lastMyPlayerSnapshot.spectacle;
 					}
 				}
 			}
@@ -496,7 +527,7 @@ export default class Game {
 				[ ...this.killMessages ],
 				lastMyPlayerSnapshot
 			);
-			player.socket.emit('u', snapshot);
+			if (player.socket) player.socket.emit('u', snapshot);
 		}
 
 		//clear messages
@@ -505,7 +536,20 @@ export default class Game {
 		//save 'previous' myPlayerSnapshot
 		this.previousMyPlayerSnapshots = [];
 		for (const player of this.players) {
-			this.previousMyPlayerSnapshots.push(new MyPlayerSnapshot(player));
+			const myPlayerId = player.id;
+			let myOrSpectaclePlayer = player;
+			let spectacleId = -1;
+			let spectacleName = '';
+			if (player.getSpectacle()) {
+				spectacleId = player.spectaclePlayer().id;
+				myOrSpectaclePlayer = player.spectaclePlayer();
+				spectacleName = player.spectaclePlayer().name;
+			}
+			const myPlayerOrSpectacleSnapshot = new MyPlayerSnapshot(myOrSpectaclePlayer);
+			myPlayerOrSpectacleSnapshot.spectacle = spectacleId;
+			myPlayerOrSpectacleSnapshot.id = myPlayerId;
+			myPlayerOrSpectacleSnapshot.spectacleName = spectacleName;
+			this.previousMyPlayerSnapshots.push(myPlayerOrSpectacleSnapshot);
 		}
 
 		//delete !active loot

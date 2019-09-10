@@ -22,9 +22,13 @@ import Smoke from './Smoke';
 import Granade from './Granade';
 import ThrowingObject from './ThrowingObject';
 import BulletFactory from './BulletFactory';
+import PlayerStats from './PlayerStats';
 
 export class Player {
-	socket: SocketIO.Socket;
+	socket: SocketIO.Socket | null;
+	private spectacle: boolean = false;
+	spectacleThatPlayer: Player | null = null;
+	private startTime: number;
 	readonly id: number;
 	readonly name: string;
 	static readonly size: number = 80;
@@ -49,6 +53,8 @@ export class Player {
 	private killMessages: string[];
 	private randomPositionAttempts: number = 0;
 	private maxRandomPositionAttempts: number = 100;
+	private winner: boolean = false;
+	private died: boolean = false;
 
 	private controll = {
 		up: false,
@@ -65,6 +71,13 @@ export class Player {
 		right: false,
 		x: 0,
 		y: 0
+	};
+
+	private stats: PlayerStats = {
+		kills: 0,
+		damageTaken: 0,
+		damageDealt: 0,
+		survive: 0
 	};
 
 	constructor(
@@ -98,6 +111,22 @@ export class Player {
 		this.setRandomPosition();
 	}
 
+	leaveGame(): void {
+		this.socket = null;
+	}
+
+	getStats(): PlayerStats {
+		return { ...this.stats };
+	}
+
+	startSpectacle(): void {
+		this.spectacle = true;
+	}
+
+	getSpectacle(): boolean {
+		return this.spectacle;
+	}
+
 	private setRandomPosition(): void {
 		const randomX = Math.floor(Math.random() * (this.map.getSize() - Player.size));
 		const randomY = Math.floor(Math.random() * (this.map.getSize() - Player.size));
@@ -107,6 +136,11 @@ export class Player {
 			this.randomPositionAttempts++;
 			if (this.randomPositionAttempts < this.maxRandomPositionAttempts) this.setRandomPosition();
 		}
+	}
+
+	win(): void {
+		this.winner = true;
+		this.stats.survive = (Date.now() - this.startTime) / 1000;
 	}
 
 	private randomPositionCollision(): boolean {
@@ -173,11 +207,50 @@ export class Player {
 		return false;
 	}
 
+	spectaclePlayer(): Player {
+		if (this.spectacleThatPlayer.isActive()) {
+			return this.spectacleThatPlayer;
+		}
+		else {
+			let alive = 0;
+			for (const player of this.players) {
+				if (player.isActive()) alive++;
+			}
+			if (alive) this.spectacleThatPlayer = this.spectacleThatPlayer.spectaclePlayer();
+			return this.spectacleThatPlayer;
+		}
+	}
+
 	acceptHit(power: number, attacker?: Player, weapon?: Weapon): void {
 		if (this.inventory.vest) power /= 2;
+		const healthBefore = this.health;
 		this.health -= power;
 		this.health = Math.round(this.health * 10) / 10;
-		if (!this.isActive()) this.die(attacker, weapon);
+		if (this.health < 0) this.health = 0;
+		const damage = healthBefore - this.health;
+		this.stats.damageTaken += damage;
+		let playerDied = false;
+		if (!this.isActive()) {
+			this.stats.survive = (Date.now() - this.startTime) / 1000;
+			playerDied = true;
+			this.die(attacker, weapon);
+			if (attacker) {
+				this.spectacleThatPlayer = attacker;
+			}
+			else {
+				let activePlayer;
+				for (const player of this.players) {
+					if (player.isActive()) {
+						activePlayer = player;
+						break;
+					}
+				}
+				if (activePlayer) this.spectacleThatPlayer = activePlayer;
+				else this.spectacleThatPlayer = this;
+			}
+		}
+		if (attacker) attacker.stats.damageDealt += damage;
+		if (attacker && playerDied) attacker.stats.kills++;
 	}
 
 	isActive(): boolean {
@@ -185,10 +258,9 @@ export class Player {
 	}
 
 	private die(attacker?: Player, weapon?: Weapon): void {
+		if (this.winner || this.died) return;
+		this.died = true;
 		this.inventory.throwAllLoot();
-		this.x = -10000;
-		//this.health = 100;
-
 		let message = 'zona killed ' + this.name;
 		if (attacker && weapon) {
 			let weaponName = '';
@@ -218,6 +290,14 @@ export class Player {
 			message = attacker.name + ' killed ' + this.name + ' with ' + weaponName;
 		}
 		this.killMessages.push(message);
+		const { kills, damageDealt, damageTaken, survive } = this.getStats();
+		const stats: PlayerStats = {
+			kills,
+			damageDealt: Math.round(damageDealt),
+			damageTaken: Math.round(damageTaken),
+			survive: Math.round(survive)
+		};
+		this.socket.emit('loser', stats);
 	}
 
 	keyController(key: string): void {
@@ -313,6 +393,14 @@ export class Player {
 
 	getHealth(): number {
 		return this.health;
+	}
+
+	setStartTime(time: number): void {
+		this.startTime = time;
+	}
+
+	getStartTime(): number {
+		return this.startTime;
 	}
 
 	hit(): void {

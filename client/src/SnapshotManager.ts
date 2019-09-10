@@ -31,6 +31,12 @@ export default class SnapshotManager {
 		this.map = map;
 	}
 
+	reset(): void {
+		this.snapshots.splice(0, this.snapshots.length);
+		this.betweenSnapshot = null;
+		this.players.splice(0, this.players.length);
+	}
+
 	messageManager(): void {
 		//delete old messages
 		const viewTime = 1000 * 5;
@@ -171,6 +177,9 @@ export default class SnapshotManager {
 		if (!lastMyPlayerSnapshot.hasOwnProperty('l')) lastMyPlayerSnapshot.l = previousMyPlayerSnapshot.l;
 		if (!lastMyPlayerSnapshot.hasOwnProperty('lE')) lastMyPlayerSnapshot.lE = previousMyPlayerSnapshot.lE;
 		if (!lastMyPlayerSnapshot.hasOwnProperty('lT')) lastMyPlayerSnapshot.lT = previousMyPlayerSnapshot.lT;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('spectacle')) lastMyPlayerSnapshot.spectacle = previousMyPlayerSnapshot.spectacle;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('spectacleName')) lastMyPlayerSnapshot.spectacleName = previousMyPlayerSnapshot.spectacleName;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('ai')) lastMyPlayerSnapshot.ai = previousMyPlayerSnapshot.ai;
 	}
 
 	private completeZoneSnapshot(previousZoneSnapshot: ZoneSnapshot, lastZoneSnapshot: ZoneSnapshot): void {

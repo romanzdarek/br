@@ -180,7 +180,7 @@
 			margin-left: -40px;
 			display: none;
 		}
-		#loadingText, #takeLoot{
+		#loadingText, #takeLoot, #spectacle{
 			font-size: 200%;
 			text-align: center;
 			line-height: 50px;
@@ -415,6 +415,7 @@
 	</svg>
 	<div id="loadingText"></div>
 	<div id="takeLoot"></div>
+	<div id="spectacle"></div>
 	<div id="transparentLayer"></div>
 	
 	<div class="menu" id="mainMenu">
@@ -497,7 +498,11 @@
 	</div>
 
 	<div class="menu" id="gameOverMenu">
-        <h1>You win!</h1>
+		<h1 id="gameOverMenuH1">You win!</h1>
+		<div id="gameOverMenuStats">
+			
+		</div>
+		<button id="gameOverMenuSpectacle">Spectacle</button>
         <button id="gameOverMenuBack">Main menu</button>
 	</div>
 	

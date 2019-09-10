@@ -29,6 +29,16 @@ export default class Map {
 		this.waterTerrainData = waterTerrainData;
 	}
 
+	reset():void{
+	this.blocks.splice(0,this.blocks.length)
+	this.terrain.splice(0,this.terrain.length)
+	this.impassableRoundObstacles.splice(0,this.impassableRoundObstacles.length)
+	this.bushes.splice(0,this.bushes.length)
+	this.trees.splice(0,this.trees.length)
+	this.rocks.splice(0,this.rocks.length)
+	this.rectangleObstacles.splice(0,this.rectangleObstacles.length)
+	}
+
 	getSize(): number {
 		return this.size;
 	}

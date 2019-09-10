@@ -25,6 +25,7 @@ import SnapshotManager from './SnapshotManager';
 import { PlayerOld } from './PlayerOld';
 import { LootType } from './LootType';
 import Scope from './Scope';
+import PlayerStats from './PlayerStats';
 
 type DrawData = {
 	x: number;
@@ -95,6 +96,8 @@ export default class View {
 	private scope2LootSVG: HTMLImageElement;
 	private scope4LootSVG: HTMLImageElement;
 	private scope6LootSVG: HTMLImageElement;
+
+	private deadPlayer: HTMLImageElement;
 
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
@@ -228,6 +231,9 @@ export default class View {
 		this.scope6LootSVG = new Image();
 		this.scope6LootSVG.src = 'img/scope6Loot.svg';
 
+		this.deadPlayer = new Image();
+		this.deadPlayer.src = 'img/deadPlayer.svg';
+
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
 
@@ -240,6 +246,10 @@ export default class View {
 			//this.waterTerrainData.write();
 		};
 		this.screenResize();
+	}
+
+	reset(): void {
+		this.myPlayer = null;
 	}
 
 	screenResize(): void {
@@ -621,13 +631,17 @@ export default class View {
 		const betweenSnapshot = this.snapshotManager.betweenSnapshot;
 		const players = this.snapshotManager.players;
 		if (!betweenSnapshot) return;
-		//my player
-		if (!this.myPlayer) {
-			for (const player of players) {
-				if (player.id === myPlayerId) {
-					this.myPlayer = player;
-					break;
-				}
+		//spectacle
+		if (betweenSnapshot.i.spectacle !== -1) {
+			myPlayerId = betweenSnapshot.i.spectacle;
+			console.log('spectacle ' + myPlayerId);
+		}
+
+		//my player or spectacle
+		for (const player of players) {
+			if (player.id === myPlayerId) {
+				this.myPlayer = player;
+				break;
 			}
 		}
 		if (!this.myPlayer) return;
@@ -757,6 +771,19 @@ export default class View {
 			}
 		}
 
+		//dead players
+		for (const player of players) {
+			if (player.alive()) continue;
+			const { x, y, width, height, isOnScreen } = this.howToDraw({
+				x: player.getX(),
+				y: player.getY(),
+				size: player.size
+			});
+			if (isOnScreen) {
+				ctx.drawImage(this.deadPlayer, x, y, width, height);
+			}
+		}
+
 		//loot
 		for (const loot of betweenSnapshot.l) {
 			const { x, y, size, isOnScreen } = this.howToDraw(loot);
@@ -828,6 +855,7 @@ export default class View {
 
 		//players
 		for (const player of players) {
+			if (!player.alive()) continue;
 			//pistol
 			if (player.getWeapon() === Weapon.Pistol) {
 				//draw pistol
@@ -1198,7 +1226,7 @@ export default class View {
 		//loading
 		const progres = Math.round(betweenSnapshot.i.l / betweenSnapshot.i.lE * 100);
 		const seconds = Math.round((betweenSnapshot.i.lE - betweenSnapshot.i.l) / 1000 * 10) / 10;
-		if (seconds) {
+		if (seconds && this.myPlayer.alive()) {
 			el.loading.main.style.display = 'block';
 			el.loading.text.style.display = 'block';
 			el.loading.text.textContent = betweenSnapshot.i.lT;
@@ -1232,7 +1260,7 @@ export default class View {
 		}
 
 		//take loot info
-		this.takeLootInfo();
+		if (this.myPlayer.alive()) this.takeLootInfo();
 		el.takeLoot.textContent = this.takeLootText;
 		//items
 		el.items.redAmmo.textContent = this.snapshotManager.betweenSnapshot.i.r.toString();
@@ -1256,12 +1284,8 @@ export default class View {
 		if (item5Text) item5Text += ' ' + item5Count;
 		el.items.item5in.textContent = item5Text;
 
-		//active weapon
-		this.activeItem(this.snapshotManager.betweenSnapshot.i.i1, el.items.item1);
-		this.activeItem(this.snapshotManager.betweenSnapshot.i.i2, el.items.item2);
-		this.activeItem(this.snapshotManager.betweenSnapshot.i.i3, el.items.item3);
-		this.activeItem(this.snapshotManager.betweenSnapshot.i.i4, el.items.item4);
-		this.activeItem(this.snapshotManager.betweenSnapshot.i.i5, el.items.item5);
+		//active item
+		this.activeItem(betweenSnapshot.i.ai);
 
 		//activeGunAmmo
 		let ammo = '';
@@ -1320,6 +1344,13 @@ export default class View {
 			}
 			el.zoneTimer.innerText = text;
 		}
+
+		//spectacle text
+		el.spectacle.style.display = 'none';
+		if (betweenSnapshot.i.spectacleName) {
+			el.spectacle.innerText = 'Spectacting ' + betweenSnapshot.i.spectacleName;
+			el.spectacle.style.display = 'block';
+		}
 	}
 
 	private createBulletLines(): void {
@@ -1344,12 +1375,30 @@ export default class View {
 		}
 	}
 
-	private activeItem(item: Weapon, element: HTMLElement): void {
-		if (this.myPlayer.getWeapon() === item) {
-			element.classList.add('active');
-		}
-		else {
-			element.classList.remove('active');
+	private activeItem(activeItem: number): void {
+		const el = this.myHtmlElements;
+		el.items.item1.classList.remove('active');
+		el.items.item2.classList.remove('active');
+		el.items.item3.classList.remove('active');
+		el.items.item4.classList.remove('active');
+		el.items.item5.classList.remove('active');
+
+		switch (activeItem) {
+			case 1:
+				el.items.item1.classList.add('active');
+				break;
+			case 2:
+				el.items.item2.classList.add('active');
+				break;
+			case 3:
+				el.items.item3.classList.add('active');
+				break;
+			case 4:
+				el.items.item4.classList.add('active');
+				break;
+			case 5:
+				el.items.item5.classList.add('active');
+				break;
 		}
 	}
 
@@ -1461,5 +1510,31 @@ export default class View {
 			height,
 			isOnScreen
 		};
+	}
+
+	gameOver(stats: PlayerStats, win: boolean): void {
+		const el = this.myHtmlElements;
+		if (win) {
+			el.gameOverMenu.h1.textContent = 'Winner!';
+			el.gameOverMenu.spectacle.style.display = 'none';
+		}
+		else {
+			el.gameOverMenu.h1.textContent = 'You died';
+			el.gameOverMenu.spectacle.style.display = 'block';
+		}
+		el.open(el.gameOverMenu.main);
+		//stats
+		const kills = document.createElement('p');
+		kills.textContent = 'Kills: ' + stats.kills.toString();
+		const damageDealt = document.createElement('p');
+		damageDealt.textContent = 'Damage dealt: ' + stats.damageDealt.toString();
+		const damageTaken = document.createElement('p');
+		damageTaken.textContent = 'Damage taken: ' + stats.damageTaken.toString();
+		const survive = document.createElement('p');
+		survive.textContent = 'Survive: ' + stats.survive.toString();
+		el.gameOverMenu.stats.appendChild(kills);
+		el.gameOverMenu.stats.appendChild(damageDealt);
+		el.gameOverMenu.stats.appendChild(damageTaken);
+		if (!win) el.gameOverMenu.stats.appendChild(survive);
 	}
 }

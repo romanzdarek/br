@@ -9,6 +9,7 @@ import Point from './Point';
 import { Weapon } from './Weapon';
 import OpenGame from './OpenGame';
 import MapData from './MapData';
+import PlayerStats from './PlayerStats';
 
 declare const io: {
 	connect(url: string): Socket;
@@ -114,10 +115,20 @@ export class Controller {
 		const el = this.myHtmlElements;
 
 		//gameOver
-		this.socket.on('winner', () => {
+		this.socket.on('winner', (stats: PlayerStats) => {
 			setTimeout(() => {
-				el.open(el.gameOverMenu.main);
-			}, 1000);
+				this.model.view.gameOver(stats, true);
+			}, 2000);
+		});
+
+		this.socket.on('loser', (stats: PlayerStats) => {
+			setTimeout(() => {
+				this.model.view.gameOver(stats, false);
+			}, 2000);
+		});
+
+		this.socket.on('stopGame', (stats: PlayerStats) => {
+			this.model.stop();
 		});
 
 		//startGame
@@ -414,10 +425,17 @@ export class Controller {
 
 	private menuController(): void {
 		const el = this.myHtmlElements;
+
 		//+++++++++++++ GAME OVER MENU
 		el.gameOverMenu.back.addEventListener('click', () => {
+			this.socket.emit('leaveGame', this.model.getGameId());
+			this.model.reset();
+		});
+
+		//+++++++++++++ GAME OVER MENU
+		el.gameOverMenu.spectacle.addEventListener('click', () => {
+			this.socket.emit('spectacle', this.model.getGameId());
 			el.close(el.gameOverMenu.main);
-			el.open(el.mainMenu.main);
 		});
 
 		//+++++++++++++ MAP SIZE MENU

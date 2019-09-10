@@ -14,6 +14,7 @@ export default class MyHtmlElements {
 	readonly activeGunAmmo: HTMLElement;
 	readonly alive: HTMLElement;
 	readonly messages: HTMLElement;
+	readonly spectacle: HTMLElement;
 
 	//<div id="healthBar"><div id="healthBarIn"></div></div>
 	readonly healthBar = {
@@ -73,9 +74,24 @@ export default class MyHtmlElements {
 	</div>
 	*/
 
+	/*
+	
+	<div class="menu" id="gameOverMenu">
+		<h1 id="gameOverMenuH1">You win!</h1>
+		<div id="gameOverMenuStats">
+			
+		</div>
+		<button id="gameOverMenuSpectacle">Spectacle</button>
+        <button id="gameOverMenuBack">Main menu</button>
+	</div>
+	*/
+
 	readonly gameOverMenu = {
 		main: document.getElementById('gameOverMenu'),
-		back: document.getElementById('gameOverMenu')
+		back: document.getElementById('gameOverMenuBack'),
+		h1: document.getElementById('gameOverMenuH1'),
+		stats: document.getElementById('gameOverMenuStats'),
+		spectacle: document.getElementById('gameOverMenuSpectacle')
 	};
 
 	readonly mapEditorMenu = {
@@ -248,6 +264,7 @@ export default class MyHtmlElements {
 		this.alive = document.getElementById('alive');
 		this.messages = document.getElementById('messages');
 		this.zoneTimer = document.getElementById('zoneTimer');
+		this.spectacle = document.getElementById('spectacle');
 	}
 
 	close(...elements: HTMLElement[]): void {

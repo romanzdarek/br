@@ -16,11 +16,12 @@ export default class MyPlayerSnapshot {
 	i2: Weapon;
 	i3: Weapon;
 	i4: Weapon;
-	//suma
-	s4: number;
 	i5: Weapon;
 	//suma
+	s4: number;
 	s5: number;
+	//active item
+	ai: number;
 	//bullets
 	r: number;
 	g: number;
@@ -39,6 +40,9 @@ export default class MyPlayerSnapshot {
 	l: number;
 	lE: number;
 	lT: string;
+	//spectacting
+	spectacle: number = -1;
+	spectacleName: string = '';
 
 	constructor(player: Player) {
 		this.id = player.id;
@@ -99,5 +103,12 @@ export default class MyPlayerSnapshot {
 		this.l = player.inventory.loadingNow - player.inventory.loadingStart;
 		this.lE = player.inventory.loadingEnd - player.inventory.loadingStart;
 		this.lT = player.inventory.loadingText;
+
+		if (player.getSpectacle()) {
+			this.spectacle = player.spectacleThatPlayer.id;
+			this.spectacleName = player.spectacleThatPlayer.name;
+		}
+
+		this.ai = player.inventory.getActiveItemNumber();
 	}
 }

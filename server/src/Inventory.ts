@@ -17,6 +17,7 @@ export default class Inventory {
 	private player: Player;
 	private loot: Loot;
 	private hammer: Hammer;
+	private activeItemNumber: number = 3;
 	item1: Gun | null = null;
 	item2: Gun | null = null;
 	item3: any = Weapon.Hand;
@@ -173,19 +174,6 @@ export default class Inventory {
 		}
 	}
 
-	/*
-	private sortNades(type: Weapon): void {
-		if (type === Weapon.Granade)
-			this.item4.sort(function(a, b) {
-				return a - b;
-			});
-		if (type === Weapon.Smoke)
-			this.item4.sort(function(a, b) {
-				return b - a;
-			});
-	}
-	*/
-
 	throwNade(): void {
 		if (this.activeItem === Weapon.Granade) this.item4GranadeCount--;
 		else if (this.activeItem === Weapon.Smoke) this.item4SmokeCount--;
@@ -206,18 +194,6 @@ export default class Inventory {
 			}
 			this.changeActiveItem(3);
 		}
-		/*
-		this.item4.splice(0, 1);
-		if (this.item4.length) {
-			this.activeItem = this.item4[0];
-		}
-		else {
-			if (this.item3 !== Weapon.Hand) {
-				this.activeItem = this.item3;
-			}
-			this.changeActiveItem(3);
-		}
-		*/
 	}
 
 	private cancelLoading(): void {
@@ -230,12 +206,19 @@ export default class Inventory {
 		if (!this.ready()) return;
 		switch (item) {
 			case 1:
-				if (this.item1) this.activeItem = this.item1;
+				if (this.item1) {
+					this.activeItem = this.item1;
+					this.activeItemNumber = item;
+				}
 				break;
 			case 2:
-				if (this.item2) this.activeItem = this.item2;
+				if (this.item2) {
+					this.activeItem = this.item2;
+					this.activeItemNumber = item;
+				}
 				break;
 			case 3:
+				//change hammer x hand
 				if (this.activeItem instanceof Hammer || this.activeItem === Weapon.Hand) {
 					if (this.item3 && this.item33) {
 						//swap
@@ -245,6 +228,7 @@ export default class Inventory {
 					}
 				}
 				this.activeItem = this.item3;
+				this.activeItemNumber = item;
 				break;
 			case 4:
 				if (this.item4GranadeCount || this.item4SmokeCount) {
@@ -258,10 +242,14 @@ export default class Inventory {
 						this.item4 = this.activeItem;
 					}
 					this.activeItem = this.item4;
+					this.activeItemNumber = item;
 				}
 				break;
 			case 5:
-				if (this.item5 > 0) this.activeItem = Weapon.Medkit;
+				if (this.item5 > 0) {
+					this.activeItem = Weapon.Medkit;
+					this.activeItemNumber = item;
+				}
 				break;
 		}
 	}
@@ -506,8 +494,14 @@ export default class Inventory {
 				if (this.item1 === null) {
 					itemPosition = 1;
 				}
-				if (itemPosition === 1) this.item1 = gun;
-				if (itemPosition === 2) this.item2 = gun;
+				if (itemPosition === 1){
+					this.item1 = gun;
+					this.activeItemNumber = 1;
+				} 
+				if (itemPosition === 2){
+					this.item2 = gun;
+					this.activeItemNumber = 2;
+				} 
 				this.activeItem = gun;
 			}
 		}
@@ -520,6 +514,7 @@ export default class Inventory {
 			this.item3 = this.hammer;
 			this.item33 = Weapon.Hand;
 			this.activeItem = this.item3;
+			this.activeItemNumber = 3;
 		}
 		else if (loot.type === LootType.Granade || loot.type === LootType.Smoke) {
 			//take granades & smokes
@@ -532,6 +527,7 @@ export default class Inventory {
 				this.item4SmokeCount += loot.quantity;
 				this.item4 = Weapon.Smoke;
 				this.activeItem = this.item4;
+				this.activeItemNumber = 4;
 			}
 			//throw
 			//granade
@@ -667,5 +663,9 @@ export default class Inventory {
 					break;
 			}
 		}
+	}
+
+	getActiveItemNumber(): number {
+		return this.activeItemNumber;
 	}
 }

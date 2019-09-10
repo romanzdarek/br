@@ -113,12 +113,17 @@ export default class Model {
 	}
 
 	private loop(): void {
-		for (let i = this.games.length - 1; i > 0; i--) {
+		for (let i = this.games.length - 1; i >= 0; i--) {
 			const game = this.games[i];
 			if (game && game.isActive()) {
 				game.loop();
 				//delete game
-				if (game.isEnd()) delete this.games[i];
+				if (game.isEnd()) {
+					for (const player of game.players) {
+						if (player.socket) player.socket.emit('stopGame');
+					}
+					delete this.games[i];
+				}
 			}
 		}
 	}

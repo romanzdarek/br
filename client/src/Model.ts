@@ -42,7 +42,6 @@ export default class Model {
 		this.waterTerrainData = new WaterTerrainData();
 		this.map = new Map(this.waterTerrainData);
 		this.snapshotManager = new SnapshotManager(serverClientSync, this.map);
-		//this.player = new Player(this.map);
 		this.keys = keys;
 		this.mouse = mouse;
 		this.myHtmlElements = myHtmlElements;
@@ -60,6 +59,23 @@ export default class Model {
 		setTimeout(() => {
 			this.loop();
 		}, 200);
+	}
+
+	reset(): void {
+		const el = this.myHtmlElements;
+		el.close(el.gameOverMenu.main);
+		el.open(el.mainMenu.main);
+		el.gameOverMenu.stats.innerHTML = '';
+		this.gameRun = false;
+		this.gameId = -1;
+		this.playerId = -1;
+		this.map.reset();
+		this.snapshotManager.reset();
+		this.view.reset();
+	}
+
+	stop(): void {
+		this.gameRun = false;
 	}
 
 	isNameOk(name: string): boolean {
@@ -122,14 +138,15 @@ export default class Model {
 		requestAnimationFrame(() => {
 			this.loop();
 		});
+		if (this.editor.isActive()) {
+			this.view.drawEditor(this.editor);
+		}
+		if (!this.gameRun) return;
 		//sync
 		if (!this.serverClientSync.ready()) {
 			this.socket.emit('serverClientSync', Date.now());
 		}
-		if (this.editor.isActive()) {
-			this.view.drawEditor(this.editor);
-		}
 		this.snapshotManager.createBetweenSnapshot();
-		if (this.gameRun) this.view.drawGame(this.playerId);
+		this.view.drawGame(this.playerId);
 	}
 }

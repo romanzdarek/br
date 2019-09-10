@@ -20,13 +20,38 @@ export default class Controller {
 			console.log(socket.id, 'connect');
 			this.model.updateListOpenGames();
 			socket.emit('listOfMaps', this.model.getMapNames());
-
 			socket.emit(
 				'collisionPoints',
 				this.model.collisionPoints.body,
 				this.model.collisionPoints.hand,
 				this.model.collisionPoints.hammer.getAllPoints()
 			);
+			
+			//leave game
+			socket.on('leaveGame', (gameId: number) => {
+				if(gameId >= 0 && this.model.games[gameId]){
+					for(const player of this.model.games[gameId].players){
+						if(player.socket === socket){
+							player.leaveGame();
+							return;
+						}
+					}
+				}
+				console.log('Err: leaveGame');
+			});
+
+			//spectacle
+			socket.on('spectacle', (gameId: number) => {
+				if(gameId >= 0 && this.model.games[gameId]){
+					for(const player of this.model.games[gameId].players){
+						if(player.socket === socket){
+							player.startSpectacle();
+							return;
+						}
+					}
+				}
+				console.log('Err: spectacle');
+			});
 
 			//create a new game
 			socket.on('createGame', (playerName: string, mapName: string) => {
