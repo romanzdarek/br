@@ -32,6 +32,6 @@ export default interface MyPlayerSnapshot {
 	l: number;
 	lE: number;
 	lT: string;
-	spectacle: number;
-	spectacleName: string;
+	spectate: number;
+	spectateName: string;
 };

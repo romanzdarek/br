@@ -177,8 +177,10 @@ export default class SnapshotManager {
 		if (!lastMyPlayerSnapshot.hasOwnProperty('l')) lastMyPlayerSnapshot.l = previousMyPlayerSnapshot.l;
 		if (!lastMyPlayerSnapshot.hasOwnProperty('lE')) lastMyPlayerSnapshot.lE = previousMyPlayerSnapshot.lE;
 		if (!lastMyPlayerSnapshot.hasOwnProperty('lT')) lastMyPlayerSnapshot.lT = previousMyPlayerSnapshot.lT;
-		if (!lastMyPlayerSnapshot.hasOwnProperty('spectacle')) lastMyPlayerSnapshot.spectacle = previousMyPlayerSnapshot.spectacle;
-		if (!lastMyPlayerSnapshot.hasOwnProperty('spectacleName')) lastMyPlayerSnapshot.spectacleName = previousMyPlayerSnapshot.spectacleName;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('spectate'))
+			lastMyPlayerSnapshot.spectate = previousMyPlayerSnapshot.spectate;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('spectateName'))
+			lastMyPlayerSnapshot.spectateName = previousMyPlayerSnapshot.spectateName;
 		if (!lastMyPlayerSnapshot.hasOwnProperty('ai')) lastMyPlayerSnapshot.ai = previousMyPlayerSnapshot.ai;
 	}
 
@@ -203,6 +205,8 @@ export default class SnapshotManager {
 				if (!lastSnapshotLoot.hasOwnProperty('type')) lastSnapshotLoot.type = previousSnapshotLoot.type;
 				if (!lastSnapshotLoot.hasOwnProperty('x')) lastSnapshotLoot.x = previousSnapshotLoot.x;
 				if (!lastSnapshotLoot.hasOwnProperty('y')) lastSnapshotLoot.y = previousSnapshotLoot.y;
+				if (!lastSnapshotLoot.hasOwnProperty('quantity') && previousSnapshotLoot.hasOwnProperty('quantity'))
+					lastSnapshotLoot.quantity = previousSnapshotLoot.quantity;
 			}
 		}
 		//find missing objects and copy previous values

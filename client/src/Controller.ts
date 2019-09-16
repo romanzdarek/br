@@ -116,19 +116,19 @@ export class Controller {
 
 		//gameOver
 		this.socket.on('winner', (stats: PlayerStats) => {
-			setTimeout(() => {
-				this.model.view.gameOver(stats, true);
-			}, 2000);
+			this.model.view.gameOver(stats, true);
 		});
 
 		this.socket.on('loser', (stats: PlayerStats) => {
-			setTimeout(() => {
-				this.model.view.gameOver(stats, false);
-			}, 2000);
+			this.model.view.gameOver(stats, false);
 		});
 
-		this.socket.on('stopGame', (stats: PlayerStats) => {
+		this.socket.on('stopGame', () => {
 			this.model.stop();
+		});
+
+		this.socket.on('stopSpectate', (stats: PlayerStats, winnerName) => {
+			this.model.view.gameOver(stats, true, winnerName);
 		});
 
 		//startGame
@@ -198,6 +198,13 @@ export class Controller {
 		//map
 		this.socket.on('sendMap', (map) => {
 			this.model.map.openMap(map);
+		});
+
+		//map saved
+		this.socket.on('mapSaved', () => {
+			el.close(el.mapEditorMenu.main, el.editor.container);
+			el.open(el.saveMapMenu.main);
+			this.editor.close();
 		});
 
 		//uodate listOfMaps
@@ -332,6 +339,11 @@ export class Controller {
 
 	private keysController(): void {
 		document.addEventListener('keydown', (e: KeyboardEvent) => {
+			if (e.code === 'Escape') {
+				if (this.model.gameActive() || this.model.getSpectate()) {
+					this.myHtmlElements.escFromGameMenu.main.style.display = 'block';
+				}
+			}
 			if (!this.model.gameActive()) return;
 			switch (e.code) {
 				case 'KeyW':
@@ -426,16 +438,27 @@ export class Controller {
 	private menuController(): void {
 		const el = this.myHtmlElements;
 
+		//+++++++++++++ ESC MENU
+		el.escFromGameMenu.back.addEventListener('click', () => {
+			el.escFromGameMenu.main.style.display = 'none';
+		});
+
+		el.escFromGameMenu.leave.addEventListener('click', () => {
+			el.escFromGameMenu.main.style.display = 'none';
+			this.socket.emit('leaveGame', this.model.getGameId());
+			this.model.reset();
+		});
+
 		//+++++++++++++ GAME OVER MENU
 		el.gameOverMenu.back.addEventListener('click', () => {
 			this.socket.emit('leaveGame', this.model.getGameId());
 			this.model.reset();
 		});
 
-		//+++++++++++++ GAME OVER MENU
-		el.gameOverMenu.spectacle.addEventListener('click', () => {
-			this.socket.emit('spectacle', this.model.getGameId());
+		el.gameOverMenu.spectate.addEventListener('click', () => {
+			this.socket.emit('spectate', this.model.getGameId());
 			el.close(el.gameOverMenu.main);
+			this.model.startSpectate();
 		});
 
 		//+++++++++++++ MAP SIZE MENU
@@ -506,9 +529,6 @@ export class Controller {
 			const mapName = (<HTMLInputElement>el.mapEditorMenu.name).value;
 			if (this.model.isNameOk(mapName)) {
 				this.socket.emit('editorSaveMap', mapName, mapData);
-				el.close(el.mapEditorMenu.main, el.editor.container);
-				el.open(el.mainMenu.main);
-				this.editor.close();
 			}
 			else {
 				el.open(el.alertMenu.main);
@@ -518,6 +538,13 @@ export class Controller {
 		el.mapEditorMenu.changeSize.addEventListener('click', () => {
 			el.close(el.mapEditorMenu.main);
 			el.open(el.mapSizeMenu.main);
+		});
+
+		//+++++++++++++ SAVE MAP MENU
+		//return to main menu
+		el.saveMapMenu.back.addEventListener('click', () => {
+			el.close(el.saveMapMenu.main);
+			el.open(el.mainMenu.main);
 		});
 
 		//+++++++++++++ MAIN MENU

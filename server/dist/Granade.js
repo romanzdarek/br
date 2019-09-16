@@ -7,7 +7,7 @@ class Granade extends ThrowingObject_1.default {
         this.fragmentRange = 25;
         this.fragmentSpeed = 5;
         this.fragmentSpray = 10;
-        this.fragmentCount = 15;
+        this.fragmentCount = 50;
     }
 }
 exports.default = Granade;

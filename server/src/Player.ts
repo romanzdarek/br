@@ -26,8 +26,8 @@ import PlayerStats from './PlayerStats';
 
 export class Player {
 	socket: SocketIO.Socket | null;
-	private spectacle: boolean = false;
-	spectacleThatPlayer: Player | null = null;
+	private spectate: boolean = false;
+	spectateThatPlayer: Player | null = null;
 	private startTime: number;
 	readonly id: number;
 	readonly name: string;
@@ -116,15 +116,20 @@ export class Player {
 	}
 
 	getStats(): PlayerStats {
-		return { ...this.stats };
+		return {
+			kills: this.stats.kills,
+			damageDealt: Math.round(this.stats.damageDealt),
+			damageTaken: Math.round(this.stats.damageTaken),
+			survive: Math.round(this.stats.survive)
+		};
 	}
 
-	startSpectacle(): void {
-		this.spectacle = true;
+	startSpectate(): void {
+		this.spectate = true;
 	}
 
-	getSpectacle(): boolean {
-		return this.spectacle;
+	getSpectate(): boolean {
+		return this.spectate;
 	}
 
 	private setRandomPosition(): void {
@@ -140,7 +145,9 @@ export class Player {
 
 	win(): void {
 		this.winner = true;
-		this.stats.survive = (Date.now() - this.startTime) / 1000;
+		this.stats.survive = Math.round((Date.now() - this.startTime) / 1000);
+		this.stats.damageDealt = Math.round(this.stats.damageDealt);
+		this.stats.damageTaken = Math.round(this.stats.damageTaken);
 	}
 
 	private randomPositionCollision(): boolean {
@@ -207,17 +214,17 @@ export class Player {
 		return false;
 	}
 
-	spectaclePlayer(): Player {
-		if (this.spectacleThatPlayer.isActive()) {
-			return this.spectacleThatPlayer;
+	spectatePlayer(): Player {
+		if (this.spectateThatPlayer.isActive()) {
+			return this.spectateThatPlayer;
 		}
 		else {
 			let alive = 0;
 			for (const player of this.players) {
 				if (player.isActive()) alive++;
 			}
-			if (alive) this.spectacleThatPlayer = this.spectacleThatPlayer.spectaclePlayer();
-			return this.spectacleThatPlayer;
+			if (alive) this.spectateThatPlayer = this.spectateThatPlayer.spectatePlayer();
+			return this.spectateThatPlayer;
 		}
 	}
 
@@ -235,7 +242,7 @@ export class Player {
 			playerDied = true;
 			this.die(attacker, weapon);
 			if (attacker) {
-				this.spectacleThatPlayer = attacker;
+				this.spectateThatPlayer = attacker;
 			}
 			else {
 				let activePlayer;
@@ -245,11 +252,11 @@ export class Player {
 						break;
 					}
 				}
-				if (activePlayer) this.spectacleThatPlayer = activePlayer;
-				else this.spectacleThatPlayer = this;
+				if (activePlayer) this.spectateThatPlayer = activePlayer;
+				else this.spectateThatPlayer = this;
 			}
 		}
-		if (attacker) attacker.stats.damageDealt += damage;
+		if (attacker && attacker !== this) attacker.stats.damageDealt += damage;
 		if (attacker && playerDied) attacker.stats.kills++;
 	}
 
@@ -290,14 +297,7 @@ export class Player {
 			message = attacker.name + ' killed ' + this.name + ' with ' + weaponName;
 		}
 		this.killMessages.push(message);
-		const { kills, damageDealt, damageTaken, survive } = this.getStats();
-		const stats: PlayerStats = {
-			kills,
-			damageDealt: Math.round(damageDealt),
-			damageTaken: Math.round(damageTaken),
-			survive: Math.round(survive)
-		};
-		this.socket.emit('loser', stats);
+		if (this.socket) this.socket.emit('loser', this.getStats());
 	}
 
 	keyController(key: string): void {

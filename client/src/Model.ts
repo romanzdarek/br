@@ -13,6 +13,7 @@ import CollisionPoints from './CollisionPoints';
 import SnapshotManager from './SnapshotManager';
 
 export default class Model {
+	private spectate: boolean = false;
 	private gameRun: boolean = false;
 	private gameId: number = -1;
 	private playerId: number = -1;
@@ -72,6 +73,7 @@ export default class Model {
 		this.map.reset();
 		this.snapshotManager.reset();
 		this.view.reset();
+		this.spectate = false;
 	}
 
 	stop(): void {
@@ -99,6 +101,14 @@ export default class Model {
 			}
 		}
 		return state;
+	}
+
+	startSpectate(): void {
+		this.spectate = true;
+	}
+
+	getSpectate(): boolean {
+		return this.spectate;
 	}
 
 	setName(name: string): void {

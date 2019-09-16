@@ -14,7 +14,7 @@ export default class MyHtmlElements {
 	readonly activeGunAmmo: HTMLElement;
 	readonly alive: HTMLElement;
 	readonly messages: HTMLElement;
-	readonly spectacle: HTMLElement;
+	readonly spectate: HTMLElement;
 
 	//<div id="healthBar"><div id="healthBarIn"></div></div>
 	readonly healthBar = {
@@ -63,6 +63,18 @@ export default class MyHtmlElements {
 		objectDelete: document.getElementById('editorObjectDelete'),
 		openMenu: document.getElementById('editorOpenMenu')
 	};
+	
+	/*
+	<div class="menu" id="saveMapMenu">
+        <h1>Saved</h1>
+        <button id="saveMapMenuBack">Back to main menu</button>
+	</div>
+	*/
+	readonly saveMapMenu = {
+		main: document.getElementById('saveMapMenu'),
+		back: document.getElementById('saveMapMenuBack')
+	};
+
 	/*
 	<div class="menu" id="mapEditorMenu">
 		<h1>Map editor</h1>
@@ -81,7 +93,7 @@ export default class MyHtmlElements {
 		<div id="gameOverMenuStats">
 			
 		</div>
-		<button id="gameOverMenuSpectacle">Spectacle</button>
+		<button id="gameOverMenuspectate">spectate</button>
         <button id="gameOverMenuBack">Main menu</button>
 	</div>
 	*/
@@ -91,7 +103,7 @@ export default class MyHtmlElements {
 		back: document.getElementById('gameOverMenuBack'),
 		h1: document.getElementById('gameOverMenuH1'),
 		stats: document.getElementById('gameOverMenuStats'),
-		spectacle: document.getElementById('gameOverMenuSpectacle')
+		spectate: document.getElementById('gameOverMenuspectate')
 	};
 
 	readonly mapEditorMenu = {
@@ -248,6 +260,19 @@ export default class MyHtmlElements {
 		text: document.getElementById('loadingText')
 	};
 
+	/*
+	<div class="menu" id="escFromGame">
+		<h1>Leave game?</h1>
+		<button id="escFromGameBack">Back to the game</button>
+        <button id="escFromGameLeave">Leave the game</button>
+	</div>
+	*/
+	readonly escFromGameMenu = {
+		main: document.getElementById('escFromGame'),
+		back: document.getElementById('escFromGameBack'),
+		leave: document.getElementById('escFromGameLeave')
+	};
+
 	constructor() {
 		this.gameScreen = document.getElementById('gameScreen');
 		this.mapScreen = document.getElementById('mapScreen');
@@ -264,7 +289,7 @@ export default class MyHtmlElements {
 		this.alive = document.getElementById('alive');
 		this.messages = document.getElementById('messages');
 		this.zoneTimer = document.getElementById('zoneTimer');
-		this.spectacle = document.getElementById('spectacle');
+		this.spectate = document.getElementById('spectate');
 	}
 
 	close(...elements: HTMLElement[]): void {

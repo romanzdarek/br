@@ -5,7 +5,7 @@ const Player_1 = require("./Player");
 class Zone {
     constructor(map) {
         this.createZoneTime = null;
-        this.moveZoneDelay = 1000 * 10;
+        this.moveZoneDelay = 1000 * 30;
         this.damage = 0.1;
         this.damageIncrease = 0.01;
         const mapCenterX = map.getSize() / 2;

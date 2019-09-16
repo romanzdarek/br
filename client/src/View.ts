@@ -631,13 +631,13 @@ export default class View {
 		const betweenSnapshot = this.snapshotManager.betweenSnapshot;
 		const players = this.snapshotManager.players;
 		if (!betweenSnapshot) return;
-		//spectacle
-		if (betweenSnapshot.i.spectacle !== -1) {
-			myPlayerId = betweenSnapshot.i.spectacle;
-			console.log('spectacle ' + myPlayerId);
+		//spectate
+		if (betweenSnapshot.i.spectate !== -1) {
+			myPlayerId = betweenSnapshot.i.spectate;
+			console.log('spectate ' + myPlayerId);
 		}
 
-		//my player or spectacle
+		//my player or spectate
 		for (const player of players) {
 			if (player.id === myPlayerId) {
 				this.myPlayer = player;
@@ -1260,7 +1260,8 @@ export default class View {
 		}
 
 		//take loot info
-		if (this.myPlayer.alive()) this.takeLootInfo();
+		this.takeLootInfo();
+		if (!this.myPlayer.alive()) this.takeLootText = '';
 		el.takeLoot.textContent = this.takeLootText;
 		//items
 		el.items.redAmmo.textContent = this.snapshotManager.betweenSnapshot.i.r.toString();
@@ -1337,7 +1338,7 @@ export default class View {
 		if (this.snapshotManager.betweenSnapshot.z.hasOwnProperty('d')) {
 			let text = '';
 			if (this.snapshotManager.betweenSnapshot.z.d > 0) {
-				text += this.snapshotManager.betweenSnapshot.z.d;
+				text += this.snapshotManager.betweenSnapshot.z.d + 's';
 			}
 			else {
 				text = 'Zone is moving!';
@@ -1345,11 +1346,11 @@ export default class View {
 			el.zoneTimer.innerText = text;
 		}
 
-		//spectacle text
-		el.spectacle.style.display = 'none';
-		if (betweenSnapshot.i.spectacleName) {
-			el.spectacle.innerText = 'Spectacting ' + betweenSnapshot.i.spectacleName;
-			el.spectacle.style.display = 'block';
+		//spectate text
+		el.spectate.style.display = 'none';
+		if (betweenSnapshot.i.spectateName) {
+			el.spectate.innerText = 'Spectate ' + betweenSnapshot.i.spectateName;
+			el.spectate.style.display = 'block';
 		}
 	}
 
@@ -1453,20 +1454,61 @@ export default class View {
 			const distance = Math.sqrt(x * x + y * y);
 			const lootAndPlayerRadius = this.snapshotManager.players[0].radius + loot.size / 2;
 			if (distance < lootAndPlayerRadius) {
-				this.takeLootText = 'Take (E)';
+				let lootName = '';
+				switch (loot.type) {
+					case LootType.BlueAmmo:
+					case LootType.RedAmmo:
+					case LootType.GreenAmmo:
+					case LootType.OrangeAmmo:
+						lootName = 'Ammo';
+						break;
+					case LootType.Pistol:
+						lootName = 'Pistol';
+						break;
+					case LootType.Rifle:
+						lootName = 'Rifle';
+						break;
+					case LootType.Machinegun:
+						lootName = 'Machinegun';
+						break;
+					case LootType.Shotgun:
+						lootName = 'Shotgun';
+						break;
+					case LootType.Scope2:
+						lootName = '2X scope';
+						break;
+					case LootType.Scope4:
+						lootName = '4X scope';
+						break;
+					case LootType.Scope6:
+						lootName = '6X scope';
+						break;
+					case LootType.Granade:
+						lootName = 'Granade';
+						break;
+					case LootType.Smoke:
+						lootName = 'Smoke';
+						break;
+					case LootType.Medkit:
+						lootName = 'Medkit';
+						break;
+					case LootType.Vest:
+						lootName = 'Vest';
+						break;
+					case LootType.Hammer:
+						lootName = 'Hammer';
+						break;
+				}
+
+				let quantity = '';
+				if (loot.quantity) quantity += loot.quantity;
+				this.takeLootText = lootName + ' ' + quantity + ' (E)';
 				return;
 			}
 		}
 	}
 
 	private howToDraw(gameObject: RoundObject | RectObject | RectangleObstacle | RoundObstacle): DrawData {
-		/*
-		this.finalResolutionAdjustment = this.resolutionAdjustment;
-		//scope
-		if (this.snapshotManager.betweenSnapshot.i.s === 2) this.finalResolutionAdjustment /= 1.2;
-		else if (this.snapshotManager.betweenSnapshot.i.s === 4) this.finalResolutionAdjustment /= 1.4;
-		else if (this.snapshotManager.betweenSnapshot.i.s === 6) this.finalResolutionAdjustment /= 1.6;
-		*/
 		//size
 		let size = 0;
 		let width = 0;
@@ -1512,29 +1554,36 @@ export default class View {
 		};
 	}
 
-	gameOver(stats: PlayerStats, win: boolean): void {
-		const el = this.myHtmlElements;
-		if (win) {
-			el.gameOverMenu.h1.textContent = 'Winner!';
-			el.gameOverMenu.spectacle.style.display = 'none';
-		}
-		else {
-			el.gameOverMenu.h1.textContent = 'You died';
-			el.gameOverMenu.spectacle.style.display = 'block';
-		}
-		el.open(el.gameOverMenu.main);
-		//stats
-		const kills = document.createElement('p');
-		kills.textContent = 'Kills: ' + stats.kills.toString();
-		const damageDealt = document.createElement('p');
-		damageDealt.textContent = 'Damage dealt: ' + stats.damageDealt.toString();
-		const damageTaken = document.createElement('p');
-		damageTaken.textContent = 'Damage taken: ' + stats.damageTaken.toString();
-		const survive = document.createElement('p');
-		survive.textContent = 'Survive: ' + stats.survive.toString();
-		el.gameOverMenu.stats.appendChild(kills);
-		el.gameOverMenu.stats.appendChild(damageDealt);
-		el.gameOverMenu.stats.appendChild(damageTaken);
-		if (!win) el.gameOverMenu.stats.appendChild(survive);
+	gameOver(stats: PlayerStats, win: boolean, winnerName?: string): void {
+		setTimeout(() => {
+			const el = this.myHtmlElements;
+			if (win || winnerName) {
+				el.gameOverMenu.h1.textContent = 'Winner!';
+				if (winnerName) el.gameOverMenu.h1.textContent = winnerName + ' win';
+				el.gameOverMenu.spectate.style.display = 'none';
+			}
+			else {
+				el.gameOverMenu.h1.textContent = 'You died';
+				el.gameOverMenu.spectate.style.display = 'block';
+			}
+			el.open(el.gameOverMenu.main);
+			//remove stats
+			el.gameOverMenu.stats.innerHTML = '';
+			const kills = document.createElement('p');
+			kills.textContent = 'Kills: ' + stats.kills.toString();
+			const damageDealt = document.createElement('p');
+			damageDealt.textContent = 'Damage dealt: ' + stats.damageDealt.toString();
+			const damageTaken = document.createElement('p');
+			damageTaken.textContent = 'Damage taken: ' + stats.damageTaken.toString();
+			const survive = document.createElement('p');
+			const minutes = Math.floor(stats.survive / 60);
+			const seconds = stats.survive - minutes * 60;
+			const surviveTime = minutes + 'm ' + seconds + 's';
+			survive.textContent = 'Survive: ' + surviveTime;
+			el.gameOverMenu.stats.appendChild(kills);
+			el.gameOverMenu.stats.appendChild(damageDealt);
+			el.gameOverMenu.stats.appendChild(damageTaken);
+			if (!win) el.gameOverMenu.stats.appendChild(survive);
+		}, 2000);
 	}
 }

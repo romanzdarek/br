@@ -7,7 +7,7 @@ export default class Zone {
 	innerCircle: ZoneCircle;
 	outerCircle: ZoneCircle;
 	createZoneTime: number | null = null;
-	moveZoneDelay: number = 1000 * 10;
+	moveZoneDelay: number = 1000 * 30;
 	private damage: number = 0.1;
 	private damageIncrease: number = 0.01;
 

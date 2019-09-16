@@ -41,8 +41,8 @@ export default class MyPlayerSnapshot {
 	lE: number;
 	lT: string;
 	//spectacting
-	spectacle: number = -1;
-	spectacleName: string = '';
+	spectate: number = -1;
+	spectateName: string = '';
 
 	constructor(player: Player) {
 		this.id = player.id;
@@ -104,9 +104,9 @@ export default class MyPlayerSnapshot {
 		this.lE = player.inventory.loadingEnd - player.inventory.loadingStart;
 		this.lT = player.inventory.loadingText;
 
-		if (player.getSpectacle()) {
-			this.spectacle = player.spectacleThatPlayer.id;
-			this.spectacleName = player.spectacleThatPlayer.name;
+		if (player.getSpectate()) {
+			this.spectate = player.spectateThatPlayer.id;
+			this.spectateName = player.spectateThatPlayer.name;
 		}
 
 		this.ai = player.inventory.getActiveItemNumber();

@@ -2,7 +2,7 @@ import * as SocketIO from 'socket.io';
 import Game from './Game';
 import WaterTerrainData from './WaterTerrainData';
 import CollisionPoints from './CollisionPoints';
-import MapData from './Mapdata';
+import MapData from './MapData';
 //node modules
 import * as fs from 'fs';
 import * as path from 'path';
@@ -120,7 +120,9 @@ export default class Model {
 				//delete game
 				if (game.isEnd()) {
 					for (const player of game.players) {
-						if (player.socket) player.socket.emit('stopGame');
+						if (player.socket) {
+							player.socket.emit('stopGame');
+						}
 					}
 					delete this.games[i];
 				}

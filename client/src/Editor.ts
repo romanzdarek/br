@@ -70,16 +70,7 @@ export default class Editor {
 	}
 
 	getMapData(): MapData {
-		const mapData: MapData = {
-			size: this.size,
-			blockSize: this.blockSize,
-			terrains: this.terrains,
-			rects: this.walls,
-			bushes: this.bushes,
-			rocks: this.rocks,
-			trees: this.trees
-		};
-		return mapData;
+		return new MapData(this.size, this.blockSize, this.terrains, this.walls, this.bushes, this.rocks, this.trees);
 	}
 
 	create(): void {

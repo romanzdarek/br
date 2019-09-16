@@ -6,7 +6,7 @@ import Wall from './Wall';
 import WaterTerrainData from './WaterTerrainData';
 import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
-import MapData from './Mapdata';
+import MapData from './MapData';
 
 type Block = {
 	x: number;

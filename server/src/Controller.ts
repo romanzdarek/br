@@ -2,6 +2,7 @@ import * as SocketIO from 'socket.io';
 import Model from './Model';
 import Point from './Point';
 import Editor from './Editor';
+import MapData from './MapData';
 
 export default class Controller {
 	private io: SocketIO.Server;
@@ -26,12 +27,12 @@ export default class Controller {
 				this.model.collisionPoints.hand,
 				this.model.collisionPoints.hammer.getAllPoints()
 			);
-			
+
 			//leave game
 			socket.on('leaveGame', (gameId: number) => {
-				if(gameId >= 0 && this.model.games[gameId]){
-					for(const player of this.model.games[gameId].players){
-						if(player.socket === socket){
+				if (gameId >= 0 && this.model.games[gameId]) {
+					for (const player of this.model.games[gameId].players) {
+						if (player.socket === socket) {
 							player.leaveGame();
 							return;
 						}
@@ -40,17 +41,17 @@ export default class Controller {
 				console.log('Err: leaveGame');
 			});
 
-			//spectacle
-			socket.on('spectacle', (gameId: number) => {
-				if(gameId >= 0 && this.model.games[gameId]){
-					for(const player of this.model.games[gameId].players){
-						if(player.socket === socket){
-							player.startSpectacle();
+			//spectate
+			socket.on('spectate', (gameId: number) => {
+				if (gameId >= 0 && this.model.games[gameId]) {
+					for (const player of this.model.games[gameId].players) {
+						if (player.socket === socket) {
+							player.startSpectate();
 							return;
 						}
 					}
 				}
-				console.log('Err: spectacle');
+				console.log('Err: spectate');
 			});
 
 			//create a new game
@@ -125,12 +126,11 @@ export default class Controller {
 
 			socket.on('disconnect', () => {
 				console.log(socket.id, 'disconnect');
-				//delete player
 				for (const game of this.model.games) {
 					if (game) {
-						for (let i = 0; i < game.players.length; i++) {
-							if (game.players[i].socket == socket) {
-								game.players.splice(i, 1);
+						for (const player of game.players) {
+							if (player.socket == socket) {
+								player.leaveGame();
 							}
 						}
 					}
@@ -207,16 +207,20 @@ export default class Controller {
 				console.log('Error: i (controll player)');
 			});
 
-			//save level from editor
-			socket.on('editorSaveMap', async (mapName: string, mapData: any) => {
-				if (this.model.isNameOk(mapName)) {
+			//save map from editor
+			socket.on('editorSaveMap', async (mapName: string, mapData: MapData) => {
+				if (this.model.isNameOk(mapName) && mapData.size >= 5) {
 					const saveDone = await this.editor.saveMap(mapName, mapData);
 					if (saveDone) {
+						socket.emit('mapSaved');
 						this.io.emit('listOfMaps', this.model.getMapNames());
 					}
 					else {
 						console.log('err: save level');
 					}
+				}
+				else {
+					console.log('err: editorSaveMap');
 				}
 			});
 

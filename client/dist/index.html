@@ -96,6 +96,7 @@
 			left: 0;
 			background: silver;
 			overflow: scroll;
+			z-index: 9;
 		}
 		#editorScreenContainer{
 			width: 85%;
@@ -105,6 +106,7 @@
 			left: 15%;
 			overflow: scroll;
 			background: white;
+			z-index: 9;
 		}
 		#editorMenuContainer img{
 			width: 100px;
@@ -180,7 +182,7 @@
 			margin-left: -40px;
 			display: none;
 		}
-		#loadingText, #takeLoot, #spectacle{
+		#loadingText, #takeLoot, #spectate{
 			font-size: 200%;
 			text-align: center;
 			line-height: 50px;
@@ -415,7 +417,7 @@
 	</svg>
 	<div id="loadingText"></div>
 	<div id="takeLoot"></div>
-	<div id="spectacle"></div>
+	<div id="spectate"></div>
 	<div id="transparentLayer"></div>
 	
 	<div class="menu" id="mainMenu">
@@ -447,24 +449,30 @@
 	</div>		
 
 	<div class="menu" id="mapSizeMenu">
-			<h1>Map size</h1>
-			<p>Size [blocks]</p>
-			<select id="mapSizeValue">
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
-				<option value="4">4</option>
-				<option value="5" selected>5</option>
-				<option value="6">6</option>
-				<option value="7">7</option>
-				<option value="8">8</option>
-				<option value="9">9</option>
-				<option value="10">10</option>
-			</select>
-			<p>
-				<button id="mapSizeOk">OK</button>
-				<button id="mapSizeBack">Back</button>
-			</p>
+		<h1>Map size</h1>
+		<p>Size [blocks]</p>
+		<select id="mapSizeValue">
+			<option value="5">5</option>
+			<option value="6">6</option>
+			<option value="7">7</option>
+			<option value="8">8</option>
+			<option value="9">9</option>
+			<option value="10">10</option>
+			<option value="12">12</option>
+			<option value="14">14</option>
+			<option value="16">16</option>
+			<option value="18">18</option>
+			<option value="20">20</option>
+			<option value="25">25</option>
+			<option value="30">35</option>
+			<option value="40">40</option>
+			<option value="45">45</option>
+			<option value="50">50</option>
+		</select>
+		<p>
+			<button id="mapSizeOk">OK</button>
+			<button id="mapSizeBack">Back</button>
+		</p>
 	</div>
 
 	<div class="menu" id="mapMenu">
@@ -472,6 +480,11 @@
         <button id="mapMenuCreate">Create a new map</button>
         <button id="mapMenuOpenMap">Open the created maps</button>
         <button id="mapMenuBack">Back</button>
+	</div>
+
+	<div class="menu" id="saveMapMenu">
+        <h1>Saved</h1>
+        <button id="saveMapMenuBack">Back to main menu</button>
 	</div>
 
 	<div class="menu" id="mapEditorMenu">
@@ -502,8 +515,14 @@
 		<div id="gameOverMenuStats">
 			
 		</div>
-		<button id="gameOverMenuSpectacle">Spectacle</button>
+		<button id="gameOverMenuspectate">spectate</button>
         <button id="gameOverMenuBack">Main menu</button>
+	</div>
+
+	<div class="menu" id="escFromGame">
+		<h1>Leave game?</h1>
+		<button id="escFromGameBack">Back to the game</button>
+        <button id="escFromGameLeave">Leave the game</button>
 	</div>
 	
 	<div class="menu" id="alertMenu">

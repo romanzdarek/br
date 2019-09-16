@@ -1,4 +1,4 @@
-import { LootType } from "./LootType";
+import { LootType } from './LootType';
 
 export default interface LootSnapshot {
 	//id
@@ -7,4 +7,6 @@ export default interface LootSnapshot {
 	y: number;
 	size: number;
 	type: LootType;
+	del?: number;
+	quantity?: number;
 };
