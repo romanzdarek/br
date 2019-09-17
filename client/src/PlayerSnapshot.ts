@@ -6,7 +6,7 @@ export default interface PlayerSnapshot {
 	x?: number;
 	y?: number;
 	//live
-	l?:number;
+	l?: number;
 	//angle
 	a?: number;
 	//hammer angle
@@ -15,7 +15,7 @@ export default interface PlayerSnapshot {
 	w?: Weapon;
 	size?: number;
 	//deny hand beetween snapshot
-	h? :number;
+	h?: number;
 	//left hand
 	lX?: number;
 	lY?: number;
@@ -24,4 +24,6 @@ export default interface PlayerSnapshot {
 	rY?: number;
 	//hand size
 	hSize?: number;
+	//damageTaken
+	d?: number;
 };

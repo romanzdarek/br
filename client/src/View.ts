@@ -1074,6 +1074,32 @@ export default class View {
 				}
 				*/
 			}
+
+			//blood
+			ctx.fillStyle = this.colors.collisionPoint;
+			for (let i = player.bloods.length - 1; i >= 0; i--) {
+				const blood = player.bloods[i];
+				if (blood.getTimer() < blood.timerMax) {
+					blood.shift();
+					const bloodX = player.getCenterX() + blood.getX();
+					const bloodY = player.getCenterY() + blood.getY();
+					const { x, y, size, isOnScreen } = this.howToDraw({
+						x: bloodX,
+						y: bloodY,
+						size: blood.size
+					});
+					if (isOnScreen) {
+						const alpha = 1 - blood.getTimer() / blood.timerMax;
+						ctx.save();
+						ctx.globalAlpha = alpha;
+						ctx.fillRect(x, y, size, size);
+						ctx.restore();
+					}
+				}
+				else {
+					player.bloods.splice(i, 1);
+				}
+			}
 		}
 
 		//granades

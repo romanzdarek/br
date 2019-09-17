@@ -53,16 +53,29 @@ export default class SnapshotManager {
 
 	addSnapshot(snapshot: Snapshot): void {
 		if (this.snapshots.length === 0) this.numberOfPlayers = snapshot.p.length;
+		const updateDelay = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
+		//blood animate
+		if (snapshot.p) {
+			for (const playerSnapshot of snapshot.p) {
+				if (playerSnapshot.d) {
+					setTimeout(() => {
+						for (const player of this.players) {
+							if (player.id === playerSnapshot.i) {
+								player.createInjury(playerSnapshot.d);
+								break;
+							}
+						}
+					}, updateDelay);
+				}
+			}
+		}
 		this.snapshots.push(snapshot);
 		if (this.snapshots.length > 1) {
 			this.completeSnapshot(this.snapshots[this.snapshots.length - 2], snapshot);
 		}
-
 		//add message
 		if (snapshot.m) {
 			for (const message of snapshot.m) {
-				const updateDelay =
-					this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
 				setTimeout(() => {
 					this.messages.push(new Message(Date.now(), message));
 				}, updateDelay);

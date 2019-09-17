@@ -34,6 +34,8 @@ export default class PlayerSnapshot {
 	rY: number;
 	//hand size
 	hSize: number;
+	//damageTaken
+	d?: number;
 
 	constructor(player: Player) {
 		this.i = player.id;
@@ -72,5 +74,10 @@ export default class PlayerSnapshot {
 		this.lY = Math.round(player.hands[0].getY() * afterComma) / afterComma;
 		this.rX = Math.round(player.hands[1].getX() * afterComma) / afterComma;
 		this.rY = Math.round(player.hands[1].getY() * afterComma) / afterComma;
+
+		if (player.getDamageTaken() >= 5) {
+			this.d = player.getDamageTaken();
+			player.nullDamageTaken();
+		}
 	}
 }

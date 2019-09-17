@@ -78,7 +78,7 @@ export default class Game {
 		//last player win
 		if (this.players.length > 1 && activePlayers === 1 && this.endingTimer === -1) {
 			lastActivePlayer.win();
-			lastActivePlayer.socket.emit('winner', lastActivePlayer.getStats());
+			if (lastActivePlayer.socket) lastActivePlayer.socket.emit('winner', lastActivePlayer.getStats());
 			state = true;
 			//end spectacting
 			for (const player of this.players) {
@@ -105,7 +105,7 @@ export default class Game {
 			list.push(player.name);
 		}
 		for (const player of this.players) {
-			player.socket.emit('listOfPlayers', list);
+			if (player.socket) player.socket.emit('listOfPlayers', list);
 		}
 	}
 
@@ -320,8 +320,8 @@ export default class Game {
 
 		//players snapshots copy for optimalization
 		let playerSnapshotsOptimalization: PlayerSnapshot[] = [];
-		for (const player of this.players) {
-			playerSnapshotsOptimalization.push(new PlayerSnapshot(player));
+		for (const player of playerSnapshots) {
+			playerSnapshotsOptimalization.push({ ...player });
 		}
 
 		//find same values and delete them
@@ -377,7 +377,8 @@ export default class Game {
 				!player.hasOwnProperty('lY') &&
 				!player.hasOwnProperty('rX') &&
 				!player.hasOwnProperty('rY') &&
-				!player.hasOwnProperty('l')
+				!player.hasOwnProperty('l') &&
+				!player.hasOwnProperty('d')
 			) {
 				playerSnapshotsOptimalization.splice(i, 1);
 			}

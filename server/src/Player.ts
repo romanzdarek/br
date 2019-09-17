@@ -55,6 +55,7 @@ export class Player {
 	private maxRandomPositionAttempts: number = 100;
 	private winner: boolean = false;
 	private died: boolean = false;
+	private damageTaken: number = 0;
 
 	private controll = {
 		up: false,
@@ -130,6 +131,14 @@ export class Player {
 
 	getSpectate(): boolean {
 		return this.spectate;
+	}
+
+	getDamageTaken(): number {
+		return this.damageTaken;
+	}
+
+	nullDamageTaken(): void {
+		this.damageTaken = 0;
 	}
 
 	private setRandomPosition(): void {
@@ -232,6 +241,7 @@ export class Player {
 		if (this.inventory.vest) power /= 2;
 		const healthBefore = this.health;
 		this.health -= power;
+		this.damageTaken += power;
 		this.health = Math.round(this.health * 10) / 10;
 		if (this.health < 0) this.health = 0;
 		const damage = healthBefore - this.health;

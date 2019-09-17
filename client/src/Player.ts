@@ -1,6 +1,7 @@
 import Hand from './Hand';
 import { Weapon } from './Weapon';
 import PlayerSnapshot from './PlayerSnapshot';
+import Blood from './Blood';
 
 export default class Player {
 	readonly id: number;
@@ -13,6 +14,7 @@ export default class Player {
 	private hammerAngle: number;
 	readonly hands: Hand[] = [];
 	private weapon: Weapon;
+	readonly bloods: Blood[] = [];
 
 	constructor(playerSnapshot: PlayerSnapshot) {
 		this.id = playerSnapshot.i;
@@ -27,11 +29,18 @@ export default class Player {
 		this.hands.push(new Hand(playerSnapshot.rX, playerSnapshot.rY, playerSnapshot.hSize));
 	}
 
-	die():void{
+	createInjury(power: number): void {
+		const powerToBlood = 2;
+		for (let i = 0; i < power / powerToBlood; i++) {
+			this.bloods.push(new Blood());
+		}
+	}
+
+	die(): void {
 		this.live = false;
 	}
 
-	alive(): boolean{
+	alive(): boolean {
 		return this.live;
 	}
 
