@@ -31,11 +31,12 @@ export default class Loot {
 		loot.setX(randomX);
 		loot.setY(randomY);
 		//repeat
-		if (this.randomPositionCollision(loot)) {
+		if (this.randomPositionCollision(loot) && this.randomPositionAttempts < this.maxRandomPositionAttempts) {
 			this.setRandomPosition(loot);
 		}
 		else {
 			//done
+			const lootItemGap = loot.size;
 			if (loot.type === LootType.Pistol) {
 				let directionX = 1;
 				let directionY = 1;
@@ -45,8 +46,8 @@ export default class Loot {
 				this.lootItems.push(
 					new LootItem(
 						this.lootId++,
-						loot.getCenterX() + loot.size * directionX,
-						loot.getCenterY() + loot.size * directionY,
+						loot.getCenterX() + lootItemGap * directionX,
+						loot.getCenterY() + lootItemGap * directionY,
 						LootType.OrangeAmmo,
 						30
 					)
@@ -61,8 +62,8 @@ export default class Loot {
 				this.lootItems.push(
 					new LootItem(
 						this.lootId++,
-						loot.getCenterX() + loot.size * directionX,
-						loot.getCenterY() + loot.size * directionY,
+						loot.getCenterX() + lootItemGap * directionX,
+						loot.getCenterY() + lootItemGap * directionY,
 						LootType.GreenAmmo,
 						20
 					)
@@ -77,8 +78,8 @@ export default class Loot {
 				this.lootItems.push(
 					new LootItem(
 						this.lootId++,
-						loot.getCenterX() + loot.size * directionX,
-						loot.getCenterY() + loot.size * directionY,
+						loot.getCenterX() + lootItemGap * directionX,
+						loot.getCenterY() + lootItemGap * directionY,
 						LootType.RedAmmo,
 						10
 					)
@@ -93,8 +94,8 @@ export default class Loot {
 				this.lootItems.push(
 					new LootItem(
 						this.lootId++,
-						loot.getCenterX() + loot.size * directionX,
-						loot.getCenterY() + loot.size * directionY,
+						loot.getCenterX() + lootItemGap * directionX,
+						loot.getCenterY() + lootItemGap * directionY,
 						LootType.BlueAmmo,
 						30
 					)
@@ -113,10 +114,13 @@ export default class Loot {
 		for (const obstacle of this.map.bushes) {
 			if (this.lootInObstacle(loot, obstacle)) return true;
 		}
+		for (const obstacle of this.lootItems) {
+			if (this.lootInObstacle(loot, obstacle)) return true;
+		}
 		return false;
 	}
 
-	private lootInObstacle(loot: LootItem, obstacle: RoundObstacle | RectangleObstacle): boolean {
+	private lootInObstacle(loot: LootItem, obstacle: RoundObstacle | RectangleObstacle | LootItem): boolean {
 		let x = 0,
 			y = 0,
 			width = 0,
@@ -133,9 +137,16 @@ export default class Loot {
 			x = obstacle.x;
 			y = obstacle.y;
 		}
+		if (obstacle instanceof LootItem) {
+			width = obstacle.size;
+			height = obstacle.size;
+			x = obstacle.getX();
+			y = obstacle.getY();
+		}
 
-		//loot in obstacle
-		const lootSize = loot.size * 3;
+		//bigger loot size
+		const gap = 2 * loot.size;
+		const lootSize = loot.size + gap;
 		if (
 			x + width >= loot.getX() - lootSize &&
 			x <= loot.getX() + lootSize &&
@@ -149,13 +160,30 @@ export default class Loot {
 		}
 	}
 
+	//loot balancer
 	createMainLootItems(players: number): void {
-		this.createLootItem(0, 0, LootType.Pistol, 10);
-		this.createLootItem(0, 0, LootType.Pistol, 10);
-		this.createLootItem(0, 0, LootType.Pistol, 10);
-		this.createLootItem(0, 0, LootType.Pistol, 10);
-		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Granade, 10);
+		this.createLootItem(0, 0, LootType.Granade, 10);
+		this.createLootItem(0, 0, LootType.Granade, 10);
 
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
+		this.createLootItem(0, 0, LootType.Pistol, 10);
 		for (let i = 0; i < players; i++) {
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Rifle, 5);

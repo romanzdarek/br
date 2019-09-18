@@ -136,6 +136,9 @@ export class Controller {
 			this.model.map.openMap(mapData);
 			this.model.gameStart();
 			el.close(el.lobbyMenu.main);
+			setTimeout(() => {
+				el.close(el.hideGame);
+			}, 100);
 		});
 
 		//playerId
@@ -288,16 +291,7 @@ export class Controller {
 			this.mouse.left = true;
 			const clickPoint = new Point(e.clientX, e.clientY);
 			const serverPosition = this.model.view.calculateServerPosition(clickPoint);
-			//send click position only if i have granade or smoke...
-			if (
-				this.model.view.myPlayer.getWeapon() === Weapon.Granade ||
-				this.model.view.myPlayer.getWeapon() === Weapon.Smoke
-			) {
-				this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
-			}
-			else {
-				this.socket.emit('m', this.model.getGameId(), 'l');
-			}
+			this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
 		});
 		this.myHtmlElements.transparentLayer.addEventListener('mouseup', (e: MouseEvent) => {
 			if (!this.model.gameActive()) return;

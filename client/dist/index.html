@@ -203,12 +203,20 @@
 		#transparentLayer{
 			width: 100%;
 			height:100%;
-			opacity: 0.5;
 			position: absolute;
 			top:0;
 			left:0;
 			z-index:9;
 			cursor:url(img/cursor.png) 12 12, auto;
+		}
+		#hideGame{
+			width: 100%;
+			height:100%;
+			position: absolute;
+			top:0;
+			left:0;
+			z-index:9;
+			background:olivedrab;
 		}
 		#items{
 			width:200px;
@@ -362,10 +370,7 @@
 		<div id="vest"><img src="img/vestTop.svg"></div>
 	</div>
 
-	<div id="messages">
-		<p>PlayerA killed playerB with Rifle</p>
-		<p>PlayerASD killed playerERZ with Hand</p>
-	</div>
+	<div id="messages"></div>
 
 	<div id="mapContainer"><div id="zoneTimer"></div></div>
 
@@ -419,6 +424,7 @@
 	<div id="takeLoot"></div>
 	<div id="spectate"></div>
 	<div id="transparentLayer"></div>
+	<div id="hideGame"></div>
 	
 	<div class="menu" id="mainMenu">
 		<h1>Mini battle royale</h1>

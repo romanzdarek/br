@@ -271,6 +271,9 @@ export default class View {
 		this.screenCenterX = window.innerWidth / 2;
 		this.screenCenterY = window.innerHeight / 2;
 		this.changeResolutionAdjustment();
+		if (this.myPlayer) {
+			this.drawGame(this.myPlayer.id);
+		}
 	}
 
 	calculateServerPosition(point: Point): Point {
@@ -631,10 +634,10 @@ export default class View {
 		const betweenSnapshot = this.snapshotManager.betweenSnapshot;
 		const players = this.snapshotManager.players;
 		if (!betweenSnapshot) return;
+
 		//spectate
 		if (betweenSnapshot.i.spectate !== -1) {
 			myPlayerId = betweenSnapshot.i.spectate;
-			console.log('spectate ' + myPlayerId);
 		}
 
 		//my player or spectate

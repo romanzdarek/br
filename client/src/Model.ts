@@ -65,7 +65,7 @@ export default class Model {
 	reset(): void {
 		const el = this.myHtmlElements;
 		el.close(el.gameOverMenu.main);
-		el.open(el.mainMenu.main);
+		el.open(el.mainMenu.main, el.hideGame);
 		el.gameOverMenu.stats.innerHTML = '';
 		this.gameRun = false;
 		this.gameId = -1;

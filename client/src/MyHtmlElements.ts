@@ -15,6 +15,7 @@ export default class MyHtmlElements {
 	readonly alive: HTMLElement;
 	readonly messages: HTMLElement;
 	readonly spectate: HTMLElement;
+	readonly hideGame: HTMLElement;
 
 	//<div id="healthBar"><div id="healthBarIn"></div></div>
 	readonly healthBar = {
@@ -63,7 +64,7 @@ export default class MyHtmlElements {
 		objectDelete: document.getElementById('editorObjectDelete'),
 		openMenu: document.getElementById('editorOpenMenu')
 	};
-	
+
 	/*
 	<div class="menu" id="saveMapMenu">
         <h1>Saved</h1>
@@ -290,6 +291,7 @@ export default class MyHtmlElements {
 		this.messages = document.getElementById('messages');
 		this.zoneTimer = document.getElementById('zoneTimer');
 		this.spectate = document.getElementById('spectate');
+		this.hideGame = document.getElementById('hideGame');
 	}
 
 	close(...elements: HTMLElement[]): void {
