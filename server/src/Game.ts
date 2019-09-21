@@ -120,7 +120,9 @@ export default class Game {
 
 	cancelGame(): void {
 		for (const player of this.players) {
-			player.socket.emit('leaveLobby');
+			if (player.socket) {
+				player.socket.emit('cancelLobby');
+			}
 		}
 	}
 

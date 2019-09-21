@@ -33,7 +33,7 @@ export class Player {
 	readonly name: string;
 	static readonly size: number = 80;
 	static readonly radius: number = Player.size / 2;
-	readonly speed: number = 10; //6
+	readonly speed: number = 6;
 	private x: number = 0;
 	private y: number = 0;
 	private angle: number = 0;
@@ -238,7 +238,19 @@ export class Player {
 	}
 
 	acceptHit(power: number, attacker?: Player, weapon?: Weapon): void {
-		if (this.inventory.vest) power /= 2;
+		if (this.inventory.vest) {
+			//reduce bullet / fragment power
+			if (
+				weapon &&
+				(weapon === Weapon.Pistol ||
+					weapon === Weapon.Rifle ||
+					weapon === Weapon.Shotgun ||
+					weapon === Weapon.Machinegun ||
+					weapon === Weapon.Granade)
+			) {
+				power *= 0.67;
+			}
+		}
 		const healthBefore = this.health;
 		this.health -= power;
 		this.damageTaken += power;

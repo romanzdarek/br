@@ -6,6 +6,7 @@ import { Weapon } from './Weapon';
 
 export default class Hammer {
 	private angle: number = 0;
+	readonly power: number = 34;
 	readonly size: number = 200;
 	private active: boolean = false;
 	private hitTimer: number = 0;
@@ -72,25 +73,25 @@ export default class Hammer {
 			const collisionPoint = new Point(pointX, pointY);
 			for (const round of this.map.impassableRoundObstacles) {
 				if (!this.hitObjects.includes(round) && round.isActive() && round.isPointIn(collisionPoint)) {
-					round.acceptHit(collisionPoint);
+					round.acceptHit(this.power);
 					this.hitObjects.push(round);
 				}
 			}
 			for (const round of this.map.bushes) {
 				if (!this.hitObjects.includes(round) && round.isActive() && round.isPointIn(collisionPoint)) {
-					round.acceptHit(collisionPoint);
+					round.acceptHit(thispower);
 					this.hitObjects.push(round);
 				}
 			}
 			for (const rect of this.map.rectangleObstacles) {
 				if (!this.hitObjects.includes(rect) && rect.isActive() && rect.isPointIn(collisionPoint)) {
-					rect.acceptHit();
+					rect.acceptHit(this.power);
 					this.hitObjects.push(rect);
 				}
 			}
 			for (const player of this.players) {
 				if (!this.hitObjects.includes(player) && player.isActive() && player.isPointIn(collisionPoint)) {
-					player.acceptHit(34, this.player, Weapon.Hammer);
+					player.acceptHit(this.power, this.player, Weapon.Hammer);
 					this.hitObjects.push(player);
 				}
 			}

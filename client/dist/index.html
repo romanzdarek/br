@@ -17,9 +17,30 @@
             -ms-user-select: none;
             user-select: none;
 		}
+		h1{
+			text-align: center;
+			font-size:180%;
+			margin-bottom: 20px;
+		}
+		h2{
+			font-size:120%;
+			margin:0;
+		}
+		p{
+			margin-bottom: 10px;
+		}
 		body{
 			position: relative;
 			overflow: hidden;
+		}
+		ul#lobbyMenuPlayers{
+			border-radius: 2px;
+			background:#F1F1F1;
+			margin-bottom:20px;
+			padding:10px;
+			height:110px;
+			overflow: auto;
+
 		}
 		canvas#gameScreen{
 			cursor: none;
@@ -72,18 +93,33 @@
 		}
 		.menu{
 			border-radius: 5px;
-			border: 3px solid gray;
+			border: 3px solid #6B6B6B;
 			background: silver;
-			width: 250px;
-			height: 250px;
+			width: 300px;
+			height: 300px;
 			position: absolute;
 			top: 50%;
 			left: 50%;
-			margin-left: -125px;
-			margin-top: -125px;
-			padding: 0 20px;
+			margin-left: -150px;
+			margin-top: -150px;
+			padding: 20px;
 			display: none;
 			z-index: 10;
+		}
+		.menu input, button, select{
+			display: block;
+			width: 100%;
+			margin-bottom:10px;
+			padding: 5px;
+		}
+
+		.join{
+			width: 48%;
+			float: right;
+		}
+		.create{
+			width: 48%;
+
 		}
 		#editorContainer{
 			display: none;
@@ -216,7 +252,7 @@
 			top:0;
 			left:0;
 			z-index:9;
-			background:olivedrab;
+			background:#424242;
 		}
 		#items{
 			width:200px;
@@ -366,7 +402,7 @@
 
 
 	<div id="topItems">
-		<div id="scope"><img src="img/scopeTop.svg"></div>
+		<div id="scope"><img id="scope2" src="img/scopeTop2.svg"><img id="scope4" src="img/scopeTop4.svg"><img id="scope6" src="img/scopeTop6.svg"></div>
 		<div id="vest"><img src="img/vestTop.svg"></div>
 	</div>
 
@@ -428,15 +464,18 @@
 	
 	<div class="menu" id="mainMenu">
 		<h1>Mini battle royale</h1>
-		<p id="mainMenuIp">+</p>
-		<input id="mainMenuName" type="text" maxlength="20" placeholder="Your name" value="" autocomplete="off" autofocus>
-		<h2>Join</h2>
-		<select id="mainMenuGames" disabled></select>
-		<button id="mainMenuJoin" disabled>Join the game</button>
-		<h2>Create</h2>
-		<select id="mainMenuMaps"></select>
-		<button id="mainMenuCreate" disabled>Create a new game</button>
-		
+		<!--<p id="mainMenuIp">+</p>-->
+		<input id="mainMenuName" type="text" maxlength="20" placeholder="Write your name" value="" autocomplete="off" autofocus>
+		<div class ="join">
+			<h2>Join</h2>
+			<select id="mainMenuGames" disabled></select>
+			<button id="mainMenuJoin" disabled>Join</button>
+		</div>
+		<div class ="create">
+			<h2>Create</h2>
+			<select id="mainMenuMaps" disabled></select>
+			<button id="mainMenuCreate" disabled>Create</button>
+		</div>
 		<button id="mainMenuOpenEditor">Map editor</button>
 		<button id="mainMenuControls">Game controls</button>
 	</div>
@@ -452,11 +491,18 @@
 			<button id="lobbyMenuStart">Launch the game</button>
 			<button id="lobbyMenuCancel">Cancel the game</button>
 		</div>
-	</div>		
+	</div>
+	
+	
+	<div class="menu" id="cancelLobbyMenu">
+		<h1>Game canceled</h1>
+		<p>Your game has been canceled.</p>
+		<button id="cancelLobbyMenuBack">Back to main menu</button>
+	</div>
 
 	<div class="menu" id="mapSizeMenu">
 		<h1>Map size</h1>
-		<p>Size [blocks]</p>
+		<h2>Size [blocks]</h2>
 		<select id="mapSizeValue">
 			<option value="5">5</option>
 			<option value="6">6</option>
@@ -511,8 +557,13 @@
 	
 	<div class="menu" id="controlsMenu">
         <h1>Game controls</h1>
-        <p>Move: <b>A, W, S, D</b>.</p>
-        <p>Hit / Shoot: <b>Mouse</b>.</p>
+		<p>Move: <b>A, W, S, D</b>.<br>
+		Items: <b>1, 2, 3, 4, 5</b>.<br>
+		Reload: <b>R</b>.<br>
+		Take loot: <b>E</b>.<br>
+		Hit, shoot, throw, heal, : <b>Left click</b>.<br>
+		Close game: <b>A, W, S, D</b>.<br>
+		Exit: <b>ESC</b>.</p>
         <button id="controlsMenuBack">Back</button>
 	</div>
 
@@ -521,7 +572,7 @@
 		<div id="gameOverMenuStats">
 			
 		</div>
-		<button id="gameOverMenuspectate">spectate</button>
+		<button id="gameOverMenuspectate">Spectate</button>
         <button id="gameOverMenuBack">Main menu</button>
 	</div>
 
@@ -533,9 +584,8 @@
 	
 	<div class="menu" id="alertMenu">
 		<h1>Not allowed character!</h1>
-		<p>Please change that name.</p>
 		<p>Allowed characters:</p>
-		<p><b>abcdefghijklmnopqrstuvwxyz</b><br /><b>ABCDEFGHIJKLMNOPQRSTUVWXYZ</b><br /><b>0123456789</b><br /> and <b>space</b></p>
+		<p><b>a-z</b>, <b>A-Z</b>, <b>0-9</b> and <b>space</b></p>
 		<button id="alertMenuOk">OK</button>
 	</div>
 

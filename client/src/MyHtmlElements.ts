@@ -41,6 +41,9 @@ export default class MyHtmlElements {
 		item1Ammo: document.getElementById('item1Ammo'),
 		item2Ammo: document.getElementById('item2Ammo'),
 		scope: document.getElementById('scope'),
+		scope2: document.getElementById('scope2'),
+		scope4: document.getElementById('scope4'),
+		scope6: document.getElementById('scope6'),
 		scopeSVG: document.getElementById('scope').getElementsByTagName('img')[0],
 		vest: document.getElementById('vest')
 	};
@@ -162,12 +165,18 @@ export default class MyHtmlElements {
 	/*
 	<div class="menu" id="mainMenu">
 		<h1>Mini battle royale</h1>
-		<p id="mainMenuIp">+</p>
+		<!--<p id="mainMenuIp">+</p>-->
 		<input id="mainMenuName" type="text" maxlength="20" placeholder="Your name" value="" autocomplete="off" autofocus>
-		<h2>Created games</h2>
-		<select id="mainMenuGames" disabled></select>
-		<button id="mainMenuJoin" disabled>Join the game</button>
-		<button id="mainMenuCreate" disabled>Create a new game</button>
+		<div class ="join">
+			<h2>Join</h2>
+			<select id="mainMenuGames" disabled></select>
+			<button id="mainMenuJoin" disabled>Join</button>
+		</div>
+		<div class ="create">
+			<h2>Create</h2>
+			<select id="mainMenuMaps"></select>
+			<button id="mainMenuCreate" disabled>Create</button>
+		</div>
 		<button id="mainMenuOpenEditor">Map editor</button>
 		<button id="mainMenuControls">Game controls</button>
 	</div>
@@ -184,6 +193,18 @@ export default class MyHtmlElements {
 		openEditor: document.getElementById('mainMenuOpenEditor'),
 		controls: document.getElementById('mainMenuControls')
 	};
+	/*
+	<div class="menu" id="gameCanceledMenu">
+		<h1>Game canceled</h1>
+		<p>Your game has been canceled.</p>
+		<button id="gameCanceledMenuBack">Back to main menu</button>
+	</div>
+	*/
+	readonly gameCanceledMenu = {
+		main: document.getElementById('cancelLobbyMenu'),
+		back: document.getElementById('cancelLobbyMenuBack')
+	};
+
 	/*
 	<div class="menu" id="mapSizeMenu">
 			<h1>Map size</h1>

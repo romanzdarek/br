@@ -25,6 +25,7 @@ export default class Loot {
 
 	private setRandomPosition(loot: LootItem) {
 		this.randomPositionAttempts++;
+		if (this.randomPositionAttempts > this.maxRandomPositionAttempts) console.log('err: maxRandomPositionAttempts');
 		const lootSize = loot.size * 3;
 		const randomX = Math.floor(Math.random() * (this.map.getSize() - lootSize * 2)) + lootSize;
 		const randomY = Math.floor(Math.random() * (this.map.getSize() - lootSize * 2)) + lootSize;

@@ -78,14 +78,12 @@ export class Controller {
 			const event = new Event('mousemove');
 			this.canvas.dispatchEvent(event);
 		});
-		/*
 		window.addEventListener('beforeunload', (e) => {
 			// Cancel the event as stated by the standard.
 			e.preventDefault();
 			// Chrome requires returnValue to be set.
 			e.returnValue = '';
 		});
-		*/
 		this.keysController();
 		this.mouseController();
 		this.socketController();
@@ -109,6 +107,24 @@ export class Controller {
 		else {
 			throw new Error('Only one controller!');
 		}
+	}
+
+	private changePlayerName(): void {
+		const el = this.myHtmlElements;
+		let nameOk = false;
+		if ((<HTMLInputElement>el.mainMenu.name).value.length) {
+			nameOk = true;
+			//save name
+			localStorage.setItem('playerName', (<HTMLInputElement>el.mainMenu.name).value);
+		}
+		(<HTMLInputElement>el.mainMenu.create).disabled = !nameOk;
+		(<HTMLInputElement>el.mainMenu.maps).disabled = !nameOk;
+		let gameExists = false;
+		if ((<HTMLInputElement>el.mainMenu.games).value) gameExists = true;
+		let joinDisabled = true;
+		if (nameOk && gameExists) joinDisabled = false;
+		(<HTMLInputElement>el.mainMenu.join).disabled = joinDisabled;
+		(<HTMLInputElement>el.mainMenu.games).disabled = joinDisabled;
 	}
 
 	private socketController(): void {
@@ -167,6 +183,13 @@ export class Controller {
 			el.open(el.mainMenu.main);
 		});
 
+		//cancel lobby
+		this.socket.on('cancelLobby', () => {
+			this.model.setGameId(-1);
+			el.close(el.lobbyMenu.main);
+			el.open(el.gameCanceledMenu.main);
+		});
+
 		//updateListOpenGames
 		this.socket.on('updateListOpenGames', (openGames: OpenGame[]) => {
 			el.mainMenu.games.innerHTML = '';
@@ -176,9 +199,15 @@ export class Controller {
 				option.setAttribute('value', openGame.index.toString());
 				el.mainMenu.games.appendChild(option);
 			}
-			let noGame = true;
-			if (openGames.length) noGame = false;
-			(<HTMLInputElement>el.mainMenu.games).disabled = noGame;
+
+			if (openGames.length && (<HTMLInputElement>el.mainMenu.name).value.length) {
+				(<HTMLInputElement>el.mainMenu.games).disabled = false;
+				(<HTMLInputElement>el.mainMenu.join).disabled = false;
+			}
+			else {
+				(<HTMLInputElement>el.mainMenu.games).disabled = true;
+				(<HTMLInputElement>el.mainMenu.join).disabled = true;
+			}
 		});
 
 		//update listOfPlayers in lobby
@@ -432,6 +461,12 @@ export class Controller {
 	private menuController(): void {
 		const el = this.myHtmlElements;
 
+		//load player name
+		if (localStorage.getItem('playerName')) {
+			(<HTMLInputElement>el.mainMenu.name).value = localStorage.getItem('playerName');
+			this.changePlayerName();
+		}
+
 		//+++++++++++++ ESC MENU
 		el.escFromGameMenu.back.addEventListener('click', () => {
 			el.escFromGameMenu.main.style.display = 'none';
@@ -549,14 +584,10 @@ export class Controller {
 		});
 		//change player name and allow create game
 		el.mainMenu.name.addEventListener('input', () => {
-			let disabled = true;
-			if ((<HTMLInputElement>el.mainMenu.name).value.length) disabled = false;
-			(<HTMLInputElement>el.mainMenu.create).disabled = disabled;
-			let disabled2 = true;
-			if ((<HTMLInputElement>el.mainMenu.games).value) disabled2 = false;
-			if (!disabled && !disabled2) (<HTMLInputElement>el.mainMenu.join).disabled = false;
+			this.changePlayerName();
 		});
 		//select game - allow join
+		/*
 		el.mainMenu.games.addEventListener('change', () => {
 			let disabled = true;
 			if ((<HTMLInputElement>el.mainMenu.name).value.length) disabled = false;
@@ -564,6 +595,7 @@ export class Controller {
 			if ((<HTMLInputElement>el.mainMenu.games).value) disabled2 = false;
 			if (!disabled && !disabled2) (<HTMLInputElement>el.mainMenu.join).disabled = false;
 		});
+		*/
 		//create a new game
 		el.mainMenu.create.addEventListener('click', () => {
 			if ((<HTMLInputElement>el.mainMenu.name).value.length) {
@@ -589,6 +621,11 @@ export class Controller {
 					el.open(el.alertMenu.main);
 				}
 			}
+		});
+		//cancel lobby
+		el.gameCanceledMenu.back.addEventListener('click', () => {
+			el.close(el.gameCanceledMenu.main);
+			el.open(el.mainMenu.main);
 		});
 		//controls
 		el.mainMenu.controls.addEventListener('click', () => {

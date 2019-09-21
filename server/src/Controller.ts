@@ -126,10 +126,18 @@ export default class Controller {
 
 			socket.on('disconnect', () => {
 				console.log(socket.id, 'disconnect');
-				for (const game of this.model.games) {
-					if (game) {
+				for (let i = 0; i < this.model.games.length; i++) {
+					if (this.model.games[i]) {
+						const game = this.model.games[i];
 						for (const player of game.players) {
 							if (player.socket == socket) {
+								if (!game.isActive()) {
+									//cancel lobby
+									if (player.id === 0) this.model.cancelGame(i, socket);
+									else
+										//leave lobby
+										game.leaveLobby(socket);
+								}
 								player.leaveGame();
 							}
 						}

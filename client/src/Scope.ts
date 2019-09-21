@@ -1,9 +1,9 @@
 export default class Scope {
 	private loadingMax: number = 40;
 	private loading: number = this.loadingMax;
-	private scope: number = 1;
+	private scope: number = 0.3; //1
 	private scopeLoadingChange: number = 0;
-	private scopeResolutionAdjustment: number = 1;
+	private scopeResolutionAdjustment: number = 0.3; //1
 
 	setScope(newScope: number): void {
 		switch (newScope) {

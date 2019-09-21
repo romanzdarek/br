@@ -6,6 +6,8 @@ export default abstract class RectangleObstacle {
 	readonly x: number;
 	readonly y: number;
 	protected opacity: number = 1;
+	protected health: number;
+	protected healthMax: number;
 	readonly width: number;
 	readonly height: number;
 	private active: boolean = true;
@@ -25,7 +27,7 @@ export default abstract class RectangleObstacle {
 	nullChanged(): void {
 		this.changed = false;
 	}
-	
+
 	/*
 	getChangedData(): any {
 		return { id: this.id, opacity: this.opacity };
@@ -48,10 +50,12 @@ export default abstract class RectangleObstacle {
 		return this.active;
 	}
 
-	acceptHit(): void {
+	acceptHit(power: number): void {
 		if (this.active) {
-			if (this.opacity > 0.1) this.opacity -= 0.1;
-			if (this.opacity < 0.1) {
+			this.health -= power;
+			this.opacity = Math.round(this.health / this.healthMax * 10) / 10;
+			if (this.opacity <= 0) {
+				this.opacity = 0;
 				this.active = false;
 			}
 			this.changed = true;

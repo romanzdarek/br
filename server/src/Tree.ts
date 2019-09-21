@@ -9,6 +9,8 @@ export default class Tree extends RoundObstacle {
 		super(id, x, y, size);
 		this.treeTrankRadius = 35;
 		this.opacity = 0.9;
+		this.healthMax = 200;
+		this.health = this.healthMax * this.opacity;
 	}
 
 	isPointIn(point: Point): boolean {

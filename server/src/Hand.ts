@@ -7,6 +7,7 @@ import { Weapon } from './Weapon';
 export default class Hand {
 	static readonly size: number = 35;
 	static readonly radius: number = Hand.size / 2;
+	readonly power: number = 25;
 	private x: number = 0;
 	private y: number = 0;
 	private shiftAngle: number = 40;
@@ -260,7 +261,7 @@ export default class Hand {
 				const y = this.getCenterY() - player.getCenterY();
 				const distance = Math.sqrt(x * x + y * y);
 				if (distance < playerAndHandRadius) {
-					player.acceptHit(25, this.player, Weapon.Hand);
+					player.acceptHit(this.power, this.player, Weapon.Hand);
 					this.hitObjects.push(player);
 				}
 			}
@@ -274,7 +275,7 @@ export default class Hand {
 				const y = this.getCenterY() - obstacle.getCenterY();
 				const distance = Math.sqrt(x * x + y * y);
 				if (distance < obstacleAndHandRadius) {
-					obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
+					obstacle.acceptHit(this.power);
 					this.hitObjects.push(obstacle);
 				}
 			}
@@ -288,7 +289,7 @@ export default class Hand {
 				const y = this.getCenterY() - obstacle.getCenterY();
 				const distance = Math.sqrt(x * x + y * y);
 				if (distance < obstacleAndHandRadius) {
-					obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
+					obstacle.acceptHit(this.power);
 					this.hitObjects.push(obstacle);
 				}
 			}
@@ -302,7 +303,7 @@ export default class Hand {
 				const y = this.getCenterY() - obstacle.getCenterY();
 				const distance = Math.sqrt(x * x + y * y);
 				if (distance < obstacleAndHandRadius) {
-					obstacle.acceptHit(new Point(this.getCenterX(), this.getCenterY()));
+					obstacle.acceptHit(this.power);
 					this.hitObjects.push(obstacle);
 				}
 			}
@@ -321,7 +322,7 @@ export default class Hand {
 					for (let j = 0; j < this.collisionPoints.hand.length; j++) {
 						const point = this.collisionPoints.hand[j];
 						if (obstacle.isPointIn(new Point(this.getCenterX() + point.x, this.getCenterY() + point.y))) {
-							obstacle.acceptHit();
+							obstacle.acceptHit(this.power);
 							this.hitObjects.push(obstacle);
 							break;
 						}

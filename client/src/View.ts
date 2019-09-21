@@ -250,6 +250,7 @@ export default class View {
 
 	reset(): void {
 		this.myPlayer = null;
+		this.scope = new Scope();
 	}
 
 	screenResize(): void {
@@ -1347,7 +1348,26 @@ export default class View {
 
 		//top items
 		let display = 'none';
-		if (this.snapshotManager.betweenSnapshot.i.s !== 1) display = 'block';
+		if (this.snapshotManager.betweenSnapshot.i.s !== 1) {
+			display = 'block';
+			switch (this.snapshotManager.betweenSnapshot.i.s) {
+				case 2:
+					el.items.scope2.style.display = 'block';
+					el.items.scope4.style.display = 'none';
+					el.items.scope6.style.display = 'none';
+					break;
+				case 4:
+					el.items.scope2.style.display = 'none';
+					el.items.scope4.style.display = 'block';
+					el.items.scope6.style.display = 'none';
+					break;
+				case 6:
+					el.items.scope2.style.display = 'none';
+					el.items.scope4.style.display = 'none';
+					el.items.scope6.style.display = 'block';
+					break;
+			}
+		}
 		el.items.scope.style.display = display;
 		display = 'none';
 		if (this.snapshotManager.betweenSnapshot.i.v) display = 'block';

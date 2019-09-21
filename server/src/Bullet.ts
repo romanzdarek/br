@@ -15,6 +15,7 @@ export default class Bullet {
 	readonly size: number = 1;
 	readonly range: number;
 	readonly weapon: Weapon;
+	readonly power: number;
 	private x: number = 0;
 	private y: number = 0;
 	private angle: number = 0;
@@ -32,12 +33,25 @@ export default class Bullet {
 		this.range = range;
 		if (!gun) {
 			this.weapon = Weapon.Granade;
+			this.power = 34;
 		}
 		else {
-			if (gun instanceof Pistol) this.weapon = Weapon.Pistol;
-			if (gun instanceof Rifle) this.weapon = Weapon.Rifle;
-			if (gun instanceof Shotgun) this.weapon = Weapon.Shotgun;
-			if (gun instanceof Machinegun) this.weapon = Weapon.Machinegun;
+			if (gun instanceof Pistol) {
+				this.weapon = Weapon.Pistol;
+				this.power = 20;
+			}
+			if (gun instanceof Rifle) {
+				this.weapon = Weapon.Rifle;
+				this.power = 50;
+			}
+			if (gun instanceof Shotgun) {
+				this.weapon = Weapon.Shotgun;
+				this.power = 15;
+			}
+			if (gun instanceof Machinegun) {
+				this.weapon = Weapon.Machinegun;
+				this.power = 20;
+			}
 		}
 	}
 
@@ -135,7 +149,7 @@ export default class Bullet {
 		if (this.active) {
 			for (const obstacle of this.map.impassableRoundObstacles) {
 				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
-					obstacle.acceptHit(bulletPoint);
+					obstacle.acceptHit(this.power);
 					this.active = false;
 					return true;
 				}
@@ -145,7 +159,7 @@ export default class Bullet {
 		if (this.active) {
 			for (const obstacle of this.map.bushes) {
 				if (!this.hitBushes.includes(obstacle) && obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
-					obstacle.acceptHit(bulletPoint);
+					obstacle.acceptHit(this.power);
 					this.hitBushes.push(obstacle);
 				}
 			}
@@ -154,7 +168,7 @@ export default class Bullet {
 		if (this.active) {
 			for (const obstacle of this.map.rectangleObstacles) {
 				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
-					obstacle.acceptHit();
+					obstacle.acceptHit(this.power);
 					this.active = false;
 					return true;
 				}
@@ -164,7 +178,7 @@ export default class Bullet {
 		if (this.active) {
 			for (const player of this.players) {
 				if (player.isActive() && player.isPointIn(bulletPoint)) {
-					player.acceptHit(1, this.player, this.weapon);
+					player.acceptHit(this.power, this.player, this.weapon);
 					this.active = false;
 					return true;
 				}

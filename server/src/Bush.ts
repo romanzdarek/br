@@ -5,5 +5,7 @@ export default class Bush extends RoundObstacle {
 		const size = 100;
 		super(id, x, y, size);
 		this.opacity = 0.9;
+		this.healthMax = 200;
+		this.health = this.healthMax * this.opacity;
 	}
 }
