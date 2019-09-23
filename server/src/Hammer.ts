@@ -79,7 +79,7 @@ export default class Hammer {
 			}
 			for (const round of this.map.bushes) {
 				if (!this.hitObjects.includes(round) && round.isActive() && round.isPointIn(collisionPoint)) {
-					round.acceptHit(thispower);
+					round.acceptHit(this.power);
 					this.hitObjects.push(round);
 				}
 			}

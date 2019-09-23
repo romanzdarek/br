@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<script src="http://192.168.0.2:8888/socket.io/socket.io.js"></script>
-	<title>Battle royale</title>
+	<title>Mini battle royale</title>
 	<style>
 		*{
 			font-family: sans-serif;
@@ -30,7 +30,7 @@
 			margin-bottom: 10px;
 		}
 		body{
-			position: relative;
+			/*position: relative;*/
 			overflow: hidden;
 		}
 		ul#lobbyMenuPlayers{
@@ -52,16 +52,14 @@
 			bottom:20px;
 			left:20px;
 			z-index: 5;
-			background: rgba(128, 128, 128, 0.5);
+			background: rgba(0, 0, 0, 0.3);
 		}
 		#zoneTimer{
 			z-index: 8;
 			position:relative;
-			top:-60px;
+			top: -40px;
 			margin: auto;
 			height: 40px;
-			border-radius: 10px;
-			background: rgba(128, 128, 128, 0.5);
 			color:white;
 			font-size: 130%;
 			line-height: 40px;
@@ -112,7 +110,6 @@
 			margin-bottom:10px;
 			padding: 5px;
 		}
-
 		.join{
 			width: 48%;
 			float: right;
@@ -176,7 +173,7 @@
 		}
 		#healthBar{
 			border-radius: 10px;
-			background: rgba(128, 128, 128, 0.5);
+			background: rgba(0, 0, 0, 0.3);
 			padding: 5px;
 			width: 300px;
 			height:40px;
@@ -205,36 +202,67 @@
 			font-size: 200%;
 			color: white;
 			border-radius: 10px;
-			background: rgba(128, 128, 128, 0.5);
+			background: rgba(0, 0, 0, 0.3);
+		}
+		div.infoBox{
+			width: 300px;
+			position: absolute;
+			z-index: 8;
+			top:23%;
+			left:50%;
+			margin-left: -150px;
+
+
+			/*
+			background:olivedrab;
+			Z-index: 100;
+			*/
 		}
 		#loading{
 			width:80px;
 			height:80px;
-			position: absolute;
 			z-index: 8;
-			top:50%;
-			left:50%;
-			margin-top: -230px;
-			margin-left: -40px;
-			display: none;
+			margin: 0 auto;
+			display: block;
+			visibility: hidden;
+
+			/*
+			display: block;
+			background: pink;
+			Z-index: 100;
+			*/
 		}
-		#loadingText, #takeLoot, #spectate{
+		#loadingText, #takeLoot{
 			font-size: 200%;
 			text-align: center;
 			line-height: 50px;
 			color: white;
-			width:200px;
 			height:50px;
-			position: absolute;
 			z-index: 8;
-			top:50%;
-			left:50%;
-			margin-top: -150px;
-			margin-left: -100px;
-			display: none;
+			display: none;	
 		}
 		#takeLoot{
 			display: block;
+		}
+		#spectate{
+			display: none;	
+			z-index: 8;
+			top:20px;
+			left:110px;
+			position: absolute;
+			text-align:center;
+			color:white;
+			border-radius: 10px;
+			background: rgba(0, 0, 0, 0.3);
+			padding:0 10px;
+		}
+		#spectate div{
+			font-size: 130%;
+			line-height: 35px;
+			height:35px;
+		}
+		div.spectateLabel{
+			font-weight: bold;
 		}
 		#transparentLayer{
 			width: 100%;
@@ -263,28 +291,35 @@
 		}
 		#items div{
 			border-radius: 10px;
-			background: rgba(128, 128, 128, 0.5);
+			background: rgba(0, 0, 0, 0.3);
 			color:white;
 			font-weight: bold;
-			padding: 10px;
-			padding-left:0;
 			margin-bottom:10px;
 			height: 37px;
+			line-height: 37px;
+
 		}
 		#items div:last-child{
 			margin-bottom:0;
-
 		}
 		.active{
-			background: rgba(0, 0, 0, 0.5) !important;
+			background: rgba(0, 0, 0, 0.7) !important;
 		}
 		#items b{
+			display: block;
+			float:left;
+			height: 100%;
 			border-top-left-radius: 10px;
 			border-bottom-left-radius: 10px;
 			background: rgba(0, 0, 0, 0.5);
-			padding: 10px;
+			padding-left: 10px;
+			padding-right: 10px;
 		}
-
+		.itemName{
+			display: block;
+			float:left;
+			margin-left: 10px;
+		}
 		#ammo{
 			padding:0 !important;
 
@@ -316,11 +351,14 @@
 			border-bottom-right-radius: 10px;
 		}
 		#item1Ammo, #item2Ammo{
+			border-radius: 2px;
 			background: transparent;
 			display: block;
 			float:right;
 			width: 17px;
 			height: 17px;
+			margin-right:10px;
+			margin-top:10px;
 
 		}
 		#alive{
@@ -331,7 +369,7 @@
 			width: 70px;
 			height: 70px;
 			border-radius: 10px;
-			background: rgba(128, 128, 128, 0.5);
+			background: rgba(0, 0, 0, 0.3);
 			color:white;
 			font-size: 300%;
 			line-height: 70px;
@@ -360,7 +398,7 @@
 			width: 50px;
 			height: 50px;
 			border-radius: 10px;
-			background: rgba(128, 128, 128, 0.5);
+			background: rgba(0, 0, 0, 0.3);
 			display: none;
 		}
 		#vest img, #scope img, #scope svg{
@@ -378,13 +416,150 @@
 		#messages p{
 			float: right;
 			clear: both;
-			background: rgba(128, 128, 128, 0.5);
+			background: rgba(0, 0, 0, 0.3);
 			border-radius: 10px;
 			margin-bottom: 10px;
 			padding: 7px;
 			color:white;
 		}
+		@media screen and (max-width: 1400px), screen and (max-height: 700px) {
+			#alive{
+				top:10px;
+				left: 10px;
+				width: 50px;
+				height: 50px;
+				font-size: 200%;
+				line-height: 50px;
+			}
+			#aliveText{
+				font-size: 100%;
+				width: 50px;
+				top:70px;
+				left: 10px;
+			}
+			#topItems{
+				z-index: 8;
+				position: absolute;
+				top: 10px;
+				left: 50%;
+				transform: translate(-50%, 0);
+			}
+			#vest, #scope{
+				width: 35px;
+				height: 35px;
+			}
+			#messages{
+				top: 10px;
+				right: 10px;
+				width: 300px;
+			}
+			#messages p{
+				margin-bottom: 7px;
+				padding: 5px;
+				font-size: 80%
+			}
+			#mapContainer{
+				bottom:10px;
+				left:10px;
+			}
+			#zoneTimer{
+				top: -30px;
+				height: 30px;
+				font-size: 100%;
+				line-height: 30px;
+			}
+			svg#mapZoneSVG{
+				bottom:10px;
+				left:10px;
+			}
+			canvas#mapScreen{
+				bottom:10px;
+				left:10px;
+			}
+			#healthBar{
+				width: 200px;
+				height:35px;
+				position: absolute;
+				bottom: 10px;
+				left:50%;
+				margin-left: -100px;
+			}
+			#activeGunAmmo{
+				line-height: 35px;
+				width: 35px;
+				height: 35px;
+				bottom: 55px;
+				margin-left:-17.5px;
+				font-size: 140%;
+			}
+			#items{
+				width:150px;
+				bottom:10px;
+				right:10px;
+				font-size:90%;
+			}
+			#items div{
+				height: 30px;
+				line-height: 30px;
 
+			}
+			#items b{
+				padding-left: 8px;
+				padding-right: 8px;
+			}
+			.itemName{
+				margin-left: 8px;
+			}
+
+			#redAmmo, #blueAmmo, #greenAmmo, #orangeAmmo{
+				line-height: 30px;
+			}
+			
+			#item1Ammo, #item2Ammo{
+				width: 14px;
+				height: 14px;
+				margin-right:8px;
+				margin-top:8px;
+
+			}
+			#loading{
+				width:60px;
+				height:60px;
+			}
+			#loadingText, #takeLoot{
+				font-size: 150%;
+				line-height: 35px;
+				height:35px;
+			}
+			#spectate{
+				top:10px;
+				left:70px;
+			}
+			#spectate div{
+				font-size: 100%;
+				line-height: 25px;
+				height:25px;
+			}
+		}
+		@media screen and (max-width:500px) {
+			#zoneTimer{
+				font-size: 70%;
+			}
+		}
+		@media screen and (max-height:600px) {
+				div.infoBox{
+					top:20%;
+				}
+				#loadingText, #takeLoot{
+					font-size: 120%;
+					line-height: 25px;
+					height:25px;
+				}
+				#loading{
+					width:40px;
+					height:40px;
+				}
+		}
 	</style>
 </head>
 <body>
@@ -420,11 +595,11 @@
 	</svg>
     <div id="items">
 		
-		<div id='item1'><b>1</b> <span></span> <span id="item1Ammo"></span></div>
-		<div id='item2'><b>2</b> <span></span> <span id="item2Ammo"></span></div>
-		<div id='item3'><b>3</b> <span></span> </div>
-		<div id='item4'><b>4</b> <span></span></div>
-		<div id='item5'><b>5</b> <span></span></div>
+		<div id='item1'><b>1</b> <span class="itemName"></span> <span id="item1Ammo"></span></div>
+		<div id='item2'><b>2</b> <span class="itemName"></span> <span id="item2Ammo"></span></div>
+		<div id='item3'><b>3</b> <span class="itemName"></span> </div>
+		<div id='item4'><b>4</b> <span class="itemName"></span></div>
+		<div id='item5'><b>5</b> <span class="itemName"></span></div>
 
 		<div id='ammo'>
 			<span id='redAmmo'>0</span>
@@ -435,30 +610,36 @@
 	</div>
 	<div id="activeGunAmmo"></div>
 	<div id="healthBar"><div id="healthBarIn"></div></div>
-	<svg id="loading" viewBox="0 0 36 36">
-			<path opacity="0.5"
-			d="M18 2.0845
-			  a 15.9155 15.9155 0 0 1 0 31.831
-			  a 15.9155 15.9155 0 0 1 0 -31.831"
-			fill="none"
-			stroke="gray";
-			stroke-width="2";
-			stroke-dasharray="100, 100"
-		  />
-		<path id="loadingCircle"
-		  d="M18 2.0845
-			a 15.9155 15.9155 0 0 1 0 31.831
-			a 15.9155 15.9155 0 0 1 0 -31.831"
-		  fill="none"
-		  stroke="white";
-		  stroke-width="2";
-		  stroke-dasharray="95, 100"
-		/>
-		<text id="loadingCounter" x="8" y="23" fill="white" font-family="Sans-serif" font-size="14"></text>
-	</svg>
-	<div id="loadingText"></div>
-	<div id="takeLoot"></div>
-	<div id="spectate"></div>
+
+	<div class="infoBox">
+		<svg id="loading" viewBox="0 0 36 36">
+				<path opacity="0.3"
+				d="M18 2.0845
+					a 15.9155 15.9155 0 0 1 0 31.831
+					a 15.9155 15.9155 0 0 1 0 -31.831"
+				fill="none"
+				stroke="black";
+				stroke-width="2";
+				stroke-dasharray="100, 100"
+				/>
+			<path id="loadingCircle"
+				d="M18 2.0845
+				a 15.9155 15.9155 0 0 1 0 31.831
+				a 15.9155 15.9155 0 0 1 0 -31.831"
+				fill="none"
+				stroke="white";
+				stroke-width="2";
+				stroke-dasharray="95, 100"
+			/>
+			<text id="loadingCounter" x="8" y="23" fill="white" font-family="Sans-serif" font-size="14"></text>
+		</svg>
+		<div id="loadingText"></div>
+		<div id="takeLoot"></div>
+	</div>
+	<div id="spectate">
+		<div class="spectateLabel">Spectate</div>
+		<div id="spectateName"></div>
+	</div>
 	<div id="transparentLayer"></div>
 	<div id="hideGame"></div>
 	

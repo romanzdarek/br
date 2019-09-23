@@ -15,6 +15,7 @@ export default class MyHtmlElements {
 	readonly alive: HTMLElement;
 	readonly messages: HTMLElement;
 	readonly spectate: HTMLElement;
+	readonly spectateName: HTMLElement;
 	readonly hideGame: HTMLElement;
 
 	//<div id="healthBar"><div id="healthBarIn"></div></div>
@@ -312,6 +313,7 @@ export default class MyHtmlElements {
 		this.messages = document.getElementById('messages');
 		this.zoneTimer = document.getElementById('zoneTimer');
 		this.spectate = document.getElementById('spectate');
+		this.spectateName = document.getElementById('spectateName');
 		this.hideGame = document.getElementById('hideGame');
 	}
 

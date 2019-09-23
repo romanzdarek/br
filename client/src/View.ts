@@ -1257,7 +1257,7 @@ export default class View {
 		const progres = Math.round(betweenSnapshot.i.l / betweenSnapshot.i.lE * 100);
 		const seconds = Math.round((betweenSnapshot.i.lE - betweenSnapshot.i.l) / 1000 * 10) / 10;
 		if (seconds && this.myPlayer.alive()) {
-			el.loading.main.style.display = 'block';
+			el.loading.main.style.visibility = 'visible';
 			el.loading.text.style.display = 'block';
 			el.loading.text.textContent = betweenSnapshot.i.lT;
 			let secondsString = seconds.toString();
@@ -1285,7 +1285,7 @@ export default class View {
 			el.loading.circle.setAttribute('stroke-dasharray', progres + ', 100');
 		}
 		else {
-			el.loading.main.style.display = 'none';
+			el.loading.main.style.visibility = 'hidden';
 			el.loading.text.style.display = 'none';
 		}
 
@@ -1387,7 +1387,7 @@ export default class View {
 		if (this.snapshotManager.betweenSnapshot.z.hasOwnProperty('d')) {
 			let text = '';
 			if (this.snapshotManager.betweenSnapshot.z.d > 0) {
-				text += this.snapshotManager.betweenSnapshot.z.d + 's';
+				text += this.snapshotManager.betweenSnapshot.z.d;
 			}
 			else {
 				text = 'Zone is moving!';
@@ -1398,7 +1398,7 @@ export default class View {
 		//spectate text
 		el.spectate.style.display = 'none';
 		if (betweenSnapshot.i.spectateName) {
-			el.spectate.innerText = 'Spectate ' + betweenSnapshot.i.spectateName;
+			el.spectateName.innerText = betweenSnapshot.i.spectateName;
 			el.spectate.style.display = 'block';
 		}
 	}
