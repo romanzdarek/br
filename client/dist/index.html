@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<script src="http://192.168.0.2:8888/socket.io/socket.io.js"></script>
+	<!--http://192.168.0.2:8080-->
+	<script src="http://mbr.rostiapp.cz/socket.io/socket.io.js"></script>
 	<title>Mini battle royale</title>
 	<style>
 		*{
@@ -254,15 +255,19 @@
 			color:white;
 			border-radius: 10px;
 			background: rgba(0, 0, 0, 0.3);
-			padding:0 10px;
 		}
 		#spectate div{
 			font-size: 130%;
 			line-height: 35px;
 			height:35px;
+			padding:0 10px;
 		}
 		div.spectateLabel{
 			font-weight: bold;
+			font-size: 90% !important;
+			background: rgba(0, 0, 0, 0.5);
+			border-top-left-radius: 10px;
+			border-top-right-radius: 10px;
 		}
 		#transparentLayer{
 			width: 100%;

@@ -130,7 +130,7 @@ export default class Bullet {
 			instance.angle = 360 - instance.angle;
 		}
 		//triangle
-		const bulletSpeed = granade.fragmentSpeed;
+		const bulletSpeed = Math.floor(Math.random() * granade.fragmentSpeed / 2 ) +  granade.fragmentSpeed / 2;
 		instance.shiftX = Math.sin(instance.angle * Math.PI / 180) * bulletSpeed;
 		instance.shiftY = Math.cos(instance.angle * Math.PI / 180) * bulletSpeed;
 		return instance;

@@ -49,6 +49,7 @@ export default class Model {
 	}
 
 	getMapNames(): string[] {
+		//dist/maps/
 		const levelNames: string[] = fs.readdirSync('dist/maps/');
 		for (let i = 0; i < levelNames.length; i++) {
 			const nameLength = levelNames[i].length;

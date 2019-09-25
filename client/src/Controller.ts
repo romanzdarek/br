@@ -12,7 +12,7 @@ import MapData from './MapData';
 import PlayerStats from './PlayerStats';
 
 declare const io: {
-	connect(url: string): Socket;
+	connect(url?: string): Socket;
 };
 
 export type Keys = {
@@ -40,7 +40,6 @@ export class Controller {
 	private socket: Socket;
 	private serverClientSync: ServerClientSync;
 	private canvas: HTMLCanvasElement;
-	private pingSimulationData: any[] = [];
 	private keys: Keys = {
 		w: false,
 		a: false,
@@ -62,7 +61,8 @@ export class Controller {
 	private constructor() {
 		this.myHtmlElements = new MyHtmlElements();
 		this.canvas = document.getElementsByTagName('canvas')[0];
-		this.socket = io.connect('http://192.168.0.2:8888');
+		//http://192.168.0.2:8080 // 'http://mbr.rostiapp.cz'
+		this.socket = io.connect('http://192.168.0.2:8080');
 		this.serverClientSync = new ServerClientSync();
 		this.editor = new Editor(this.myHtmlElements, this.socket);
 		this.model = new Model(
@@ -88,16 +88,6 @@ export class Controller {
 		this.mouseController();
 		this.socketController();
 		this.menuController();
-
-		//test ping?????
-		setInterval(() => {
-			if (this.pingSimulationData.length) {
-				if (this.pingSimulationData[0].time < Date.now()) {
-					this.model.snapshotManager.addSnapshot(this.pingSimulationData[0].snapshot);
-					this.pingSimulationData.splice(0, 1);
-				}
-			}
-		}, 5);
 	}
 
 	static run(): void {
@@ -272,17 +262,7 @@ export class Controller {
 
 		//u === update positions
 		this.socket.on('u', (snapshot: Snapshot) => {
-			const ping = Math.round(Math.random() * 50);
-			let time = Date.now() + ping;
-			let biggestTime = 0;
-			for (const obj of this.pingSimulationData) {
-				if (obj.time > biggestTime) biggestTime = obj.time;
-			}
-			if (biggestTime > time) time = biggestTime;
-			const snapshotObj = { time, snapshot };
-			this.pingSimulationData.push(snapshotObj);
-
-			//this.model.snapshotManager.addSnapshot(snapshot);
+			this.model.snapshotManager.addSnapshot(snapshot);
 		});
 	}
 

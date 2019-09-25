@@ -1,2 +1,0 @@
-;
-//# sourceMappingURL=SmokeCloudSnapshot.js.map

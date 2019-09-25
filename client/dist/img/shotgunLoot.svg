@@ -1,20 +1,9 @@
-<?xml version="1.0"?>
 <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
  <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
- <defs>
-  <linearGradient id="svg_18" x1="0.514582" x2="0.518488" y1="0" y2="0.298295">
-   <stop offset="0.018488" stop-color="#000000" stop-opacity="0.996094"/>
-   <stop offset="1" stop-color="#7f3f00" stop-opacity="0.996094"/>
-  </linearGradient>
- </defs>
- <g class="layer" transform="rotate(45 150 150)">
+ <g class="layer" transform="rotate(45 150.00000000000006,149.99999999999997) ">
   <title>Layer 1</title>
-  <ellipse cx="150.353553" cy="149.646447" fill="#3f3f3f" fill-opacity="0.2" id="circle" rx="146" ry="146" stroke="#ff0000" stroke-linecap="round" stroke-width="7"/>
-  <rect fill="#333333" height="124" id="svg_6" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="round" stroke-width="0" width="0" x="104.846591" y="39.526978"/>
-  <rect fill="#6b6a6a" height="196.999998" id="svg_7" rx="2" ry="2" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="22.5" x="137.346591" y="38.526985"/>
-  <rect fill="#333333" height="0.5" id="svg_9" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="0" x="84.346591" y="117.526983"/>
-  <rect fill="#191919" height="196.999998" id="svg_10" rx="5" ry="5" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="17" x="124.843752" y="29.275576"/>
-  <rect fill="#191919" height="196.999998" id="svg_11" rx="5" ry="5" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" transform="null" width="17" x="154.843751" y="28.775578"/>
-  <rect fill="url(#svg_18)" height="101.500004" id="svg_12" rx="5" ry="5" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="47.8" x="124.5" y="169.775578"/>
+  <ellipse cx="150" cy="150" fill="#3f3f3f" fill-opacity="0.2" id="circle" rx="146" ry="146" stroke="red" stroke-linecap="round" stroke-width="7"/>
+  <line fill="none" stroke="#191919" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="round" x1="130" y1="70" x2="130" y2="230" id="svg_1" stroke-width="30"/>
+  <line id="svg_2" fill="none" stroke="#191919" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="round" x1="170" y1="70" x2="170" y2="230" stroke-width="30"/>
  </g>
 </svg>

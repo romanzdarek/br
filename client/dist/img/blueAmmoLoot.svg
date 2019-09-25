@@ -1,14 +1,11 @@
-<?xml version="1.0"?>
 <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
  <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
- <g class="layer" transform="rotate(45  150 150)">
+ <g transform="rotate(45 150.00000000000006,149.99999999999997) " class="layer">
   <title>Layer 1</title>
-  <ellipse cx="149.353553" cy="150.646447" fill="#3f3f3f" fill-opacity="0.2" id="circle" rx="146" ry="146" stroke="#005fbf" stroke-linecap="round" stroke-width="7"/>
-  <rect fill="#333333" height="124" id="svg_6" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="round" stroke-width="0" width="0" x="104.846591" y="39.526978"/>
-  <rect fill="#ff7f00" height="56.000005" id="svg_7" rx="30" ry="30" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="40" x="160.34659" y="90"/>
-  <rect fill="#333333" height="0.5" id="svg_9" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="0" x="84.346591" y="117.526983"/>
-  <rect fill="#7f7f00" height="99.419266" id="svg_11" rx="5" ry="5" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" transform="rotate(-0.284793 180.844 169.71)" width="40" x="160.843753" y="120"/>
-  <rect fill="#ff7f00" height="56.000005" id="svg_1" rx="30" ry="30" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="40" x="101.005678" y="90"/>
-  <rect fill="#7f7f00" height="99.419266" id="svg_2" rx="5" ry="5" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" transform="rotate(-0.284793 121.006 169.71)" width="40" x="101.00568" y="120"/>
+  <ellipse stroke-width="7" stroke-linecap="round" stroke="blue" ry="146" rx="146" id="circle" fill-opacity="0.2" fill="#3f3f3f" cy="150.64645" cx="149.35355"/>
+  <rect fill="#fcbb29" height="56.00001" id="svg_7" rx="30" ry="30" stroke="#333333" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="5" width="40" x="160.34659" y="90"/>
+  <rect fill="#007fff" height="99.41927" id="svg_11" rx="5" ry="5" stroke="#4c4c4c" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="5" width="40" x="160.84375" y="120"/>
+  <rect y="90" x="101.00568" width="40" stroke-width="5" stroke-linejoin="null" stroke-linecap="round" stroke-dasharray="null" stroke="#191919" ry="30" rx="30" id="svg_1" height="56.00001" fill="#fcbb29"/>
+  <rect fill="#007fff" height="99.41927" id="svg_2" rx="5" ry="5" stroke="#4c4c4c" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="5" width="40" x="101.00568" y="120"/>
  </g>
 </svg>

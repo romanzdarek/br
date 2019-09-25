@@ -24,11 +24,25 @@ export default class SnapshotManager {
 	newerExists: boolean = false;
 	olderExists: boolean = false;
 	sumaNewer: number = 0;
+	private averageSumaNewer: number[] = [];
 
 	constructor(serverClientSync: ServerClientSync, map: Map) {
 		this.serverClientSync = serverClientSync;
 		this.zone = new Zone();
 		this.map = map;
+	}
+
+	private addSumaNewer(sumaNewer: number): void {
+		const max = 100;
+		this.averageSumaNewer.push(sumaNewer);
+		if (this.averageSumaNewer.length > max) {
+			this.averageSumaNewer.splice(0, 1);
+			let totalSuma = 0;
+			for (const suma of this.averageSumaNewer) {
+				totalSuma += suma;
+			}
+			console.log('averageSumaNewer: ', totalSuma / max);
+		}
 	}
 
 	reset(): void {
@@ -53,7 +67,9 @@ export default class SnapshotManager {
 
 	addSnapshot(snapshot: Snapshot): void {
 		if (this.snapshots.length === 0) this.numberOfPlayers = snapshot.p.length;
-		const updateDelay = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
+		let updateDelay = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
+		if (updateDelay < 0) updateDelay = 0;
+
 		//blood animate
 		if (snapshot.p) {
 			for (const playerSnapshot of snapshot.p) {
@@ -83,7 +99,7 @@ export default class SnapshotManager {
 		}
 
 		//update map
-		this.updateMap(snapshot);
+		this.updateMap(snapshot, updateDelay);
 
 		//delete old snapshots
 		if (this.snapshots.length > 50) {
@@ -91,9 +107,8 @@ export default class SnapshotManager {
 		}
 	}
 
-	private updateMap(snapshot: Snapshot): void {
+	private updateMap(snapshot: Snapshot, updateDelay: number): void {
 		const obsacleSnapshots = snapshot.o;
-		const updateDelay = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
 		for (const obstacleSnapshot of obsacleSnapshots) {
 			switch (obstacleSnapshot.t) {
 				case 'w':
@@ -342,8 +357,21 @@ export default class SnapshotManager {
 			}
 
 			//change draw delay
-			if (this.sumaNewer > 3) this.serverClientSync.changeDrawDelay(-0.1);
-			if (this.sumaNewer < 3) this.serverClientSync.changeDrawDelay(0.1);
+			if (this.sumaNewer > 12) this.serverClientSync.changeDrawDelay(-5);
+			if (this.sumaNewer > 11) this.serverClientSync.changeDrawDelay(-4);
+			if (this.sumaNewer > 10) this.serverClientSync.changeDrawDelay(-3);
+			if (this.sumaNewer > 9) this.serverClientSync.changeDrawDelay(-1);
+			else if (this.sumaNewer > 8) this.serverClientSync.changeDrawDelay(-0.5);
+			else if (this.sumaNewer > 7) this.serverClientSync.changeDrawDelay(-0.2);
+			else if (this.sumaNewer > 6) this.serverClientSync.changeDrawDelay(-0.1);
+			else if (this.sumaNewer < 6) this.serverClientSync.changeDrawDelay(0.1);
+			else if (this.sumaNewer < 5) this.serverClientSync.changeDrawDelay(0.2);
+			else if (this.sumaNewer < 4) this.serverClientSync.changeDrawDelay(0.5);
+			else if (this.sumaNewer < 3) this.serverClientSync.changeDrawDelay(1);
+			else if (this.sumaNewer < 2) this.serverClientSync.changeDrawDelay(2);
+			else if (this.sumaNewer < 1) this.serverClientSync.changeDrawDelay(3);
+
+			this.addSumaNewer(this.sumaNewer);
 
 			//calc positions
 			if (olderSnapshot && newerSnapshot) {

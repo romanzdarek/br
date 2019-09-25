@@ -5,7 +5,7 @@ import CollisionPoints from './CollisionPoints';
 import { Weapon } from './Weapon';
 
 export default class Hand {
-	static readonly size: number = 35;
+	static readonly size: number = 30;
 	static readonly radius: number = Hand.size / 2;
 	readonly power: number = 25;
 	private x: number = 0;

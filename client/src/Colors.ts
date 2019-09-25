@@ -6,8 +6,8 @@ export default class Colors {
 	readonly bullet: string = 'red';
 	readonly text: string = 'white';
 	readonly collisionPoint: string = 'red';
-	readonly player: string = '#5B7324';
-	readonly hand: string = '#76952F';
-	readonly handBorder: string = '#587021';
-	readonly vest: string = '#2E3911';
+	readonly player: string = '#FFC878';
+	readonly hand: string = '#FFC878';
+	readonly handBorder: string = '#424242';
+	readonly vest: string = '#424242';
 }

@@ -1,2 +1,0 @@
-;
-//# sourceMappingURL=OpenGame.js.map

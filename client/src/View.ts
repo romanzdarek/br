@@ -860,10 +860,46 @@ export default class View {
 		//players
 		for (const player of players) {
 			if (!player.alive()) continue;
+
+			//player body
+			const { x, y, size, isOnScreen } = this.howToDraw({
+				x: player.getX(),
+				y: player.getY(),
+				size: player.size
+			});
+			if (isOnScreen) {
+				//vest
+				const radius = size / 2;
+				ctx.beginPath();
+				ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
+				let colorVest = this.colors.player;
+				if (this.snapshotManager.betweenSnapshot.i.v) colorVest = this.colors.vest;
+				ctx.fillStyle = colorVest;
+				ctx.fill();
+				//body
+				let bodyRadius = radius * 0.92;
+				ctx.beginPath();
+				ctx.arc(x + radius, y + radius, bodyRadius, 0, 2 * Math.PI);
+				ctx.fillStyle = this.colors.player;
+				ctx.fill();
+				//collisionPoints
+				/*
+				ctx.fillStyle = this.colors.collisionPoint;
+				for (const point of this.collisionPoints.body) {
+					const { x, y, size } = this.howToDraw({
+						x: player.getCenterX() + point.x,
+						y: player.getCenterY() + point.y,
+						size: 1
+					});
+					ctx.fillRect(x, y, size, size);
+				}
+				*/
+			}
+
+			const gunSize = 280;
 			//pistol
 			if (player.getWeapon() === Weapon.Pistol) {
 				//draw pistol
-				const gunSize = 200;
 				const gunX = player.getCenterX() - gunSize / 2;
 				const gunY = player.getCenterY() - gunSize / 2;
 				const { x, y, size, isOnScreen } = this.howToDraw({
@@ -882,7 +918,6 @@ export default class View {
 			}
 			//machinegun
 			if (player.getWeapon() === Weapon.Machinegun) {
-				const gunSize = 200;
 				const gunX = player.getCenterX() - gunSize / 2;
 				const gunY = player.getCenterY() - gunSize / 2;
 				const { x, y, size, isOnScreen } = this.howToDraw({
@@ -901,7 +936,6 @@ export default class View {
 			}
 			//shotgun
 			if (player.getWeapon() === Weapon.Shotgun) {
-				const gunSize = 200;
 				const gunX = player.getCenterX() - gunSize / 2;
 				const gunY = player.getCenterY() - gunSize / 2;
 				const { x, y, size, isOnScreen } = this.howToDraw({
@@ -920,7 +954,6 @@ export default class View {
 			}
 			//rifle
 			if (player.getWeapon() === Weapon.Rifle) {
-				const gunSize = 200;
 				const gunX = player.getCenterX() - gunSize / 2;
 				const gunY = player.getCenterY() - gunSize / 2;
 				const { x, y, size, isOnScreen } = this.howToDraw({
@@ -939,7 +972,6 @@ export default class View {
 			}
 			//hammer
 			if (player.getWeapon() === Weapon.Hammer) {
-				const gunSize = 200;
 				const gunX = player.getCenterX() - gunSize / 2;
 				const gunY = player.getCenterY() - gunSize / 2;
 				const { x, y, size, isOnScreen } = this.howToDraw({
@@ -990,7 +1022,7 @@ export default class View {
 						ctx.fillStyle = this.colors.handBorder;
 						ctx.fill();
 						//hand
-						const radiusHand = radius * 0.9;
+						const radiusHand = radius * 0.8;
 						ctx.beginPath();
 						ctx.arc(x + radius, y + radius, radiusHand, 0, 2 * Math.PI);
 						ctx.fillStyle = this.colors.hand;
@@ -1043,40 +1075,26 @@ export default class View {
 					}
 				}
 			}
-
-			//player body
-			const { x, y, size, isOnScreen } = this.howToDraw({
-				x: player.getX(),
-				y: player.getY(),
-				size: player.size
-			});
-			if (isOnScreen) {
-				//vest
-				const radius = size / 2;
-				ctx.beginPath();
-				ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
-				let colorVest = this.colors.handBorder;
-				if (this.snapshotManager.betweenSnapshot.i.v) colorVest = this.colors.vest;
-				ctx.fillStyle = colorVest;
-				ctx.fill();
-				//body
-				let bodyRadius = radius * 0.95;
-				ctx.beginPath();
-				ctx.arc(x + radius, y + radius, bodyRadius, 0, 2 * Math.PI);
-				ctx.fillStyle = this.colors.player;
-				ctx.fill();
-				//collisionPoints
-				/*
-				ctx.fillStyle = this.colors.collisionPoint;
-				for (const point of this.collisionPoints.body) {
-					const { x, y, size } = this.howToDraw({
-						x: player.getCenterX() + point.x,
-						y: player.getCenterY() + point.y,
-						size: 1
-					});
-					ctx.fillRect(x, y, size, size);
-				}
-				*/
+			//hand on weapon
+			if (player.getWeapon() === Weapon.Pistol) {
+				this.drawHandOnWeapon(player, 27, 0);
+				this.drawHandOnWeapon(player, 60, 12);
+			}
+			if (player.getWeapon() === Weapon.Machinegun) {
+				this.drawHandOnWeapon(player, 27, 0);
+				this.drawHandOnWeapon(player, 75, 10);
+			}
+			if (player.getWeapon() === Weapon.Shotgun) {
+				this.drawHandOnWeapon(player, 27, 0);
+				this.drawHandOnWeapon(player, 75, 10);
+			}
+			if (player.getWeapon() === Weapon.Rifle) {
+				this.drawHandOnWeapon(player, 27, 0);
+				this.drawHandOnWeapon(player, 80, 9);
+			}
+			if (player.getWeapon() === Weapon.Hammer) {
+				this.drawHandOnWeapon(player, 40, 30);
+				this.drawHandOnWeapon(player, 40, -30);
 			}
 
 			//blood
@@ -1257,6 +1275,7 @@ export default class View {
 		const progres = Math.round(betweenSnapshot.i.l / betweenSnapshot.i.lE * 100);
 		const seconds = Math.round((betweenSnapshot.i.lE - betweenSnapshot.i.l) / 1000 * 10) / 10;
 		if (seconds && this.myPlayer.alive()) {
+			el.takeLoot.style.display = 'none';
 			el.loading.main.style.visibility = 'visible';
 			el.loading.text.style.display = 'block';
 			el.loading.text.textContent = betweenSnapshot.i.lT;
@@ -1287,12 +1306,11 @@ export default class View {
 		else {
 			el.loading.main.style.visibility = 'hidden';
 			el.loading.text.style.display = 'none';
+			//take loot info
+			el.takeLoot.style.display = 'block';
+			this.takeLootInfo();
 		}
 
-		//take loot info
-		this.takeLootInfo();
-		if (!this.myPlayer.alive()) this.takeLootText = '';
-		el.takeLoot.textContent = this.takeLootText;
 		//items
 		el.items.redAmmo.textContent = this.snapshotManager.betweenSnapshot.i.r.toString();
 		el.items.greenAmmo.textContent = this.snapshotManager.betweenSnapshot.i.g.toString();
@@ -1403,6 +1421,36 @@ export default class View {
 		}
 	}
 
+	private drawHandOnWeapon(player: Player, shiftHandZ: number, shiftHandAngle: number): void {
+		const ctx = this.ctxGame;
+		let finalAngle = shiftHandAngle + player.getAngle();
+		if (player.getWeapon() === Weapon.Hammer) finalAngle = shiftHandAngle + player.getHammerAngle();
+		if (finalAngle >= 360) finalAngle -= 360;
+		const shiftHandX = Math.sin(finalAngle * Math.PI / 180) * shiftHandZ;
+		const shiftHandY = Math.cos(finalAngle * Math.PI / 180) * shiftHandZ;
+		const handX = player.getCenterX() + shiftHandX - player.hands[0].radius;
+		const handY = player.getCenterY() - shiftHandY - player.hands[0].radius;
+		const { x, y, size, isOnScreen } = this.howToDraw({
+			x: handX,
+			y: handY,
+			size: player.hands[0].size
+		});
+		if (isOnScreen) {
+			const radius = size / 2;
+			//hand border
+			ctx.beginPath();
+			ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
+			ctx.fillStyle = this.colors.handBorder;
+			ctx.fill();
+			//hand
+			const radiusHand = radius * 0.8;
+			ctx.beginPath();
+			ctx.arc(x + radius, y + radius, radiusHand, 0, 2 * Math.PI);
+			ctx.fillStyle = this.colors.hand;
+			ctx.fill();
+		}
+	}
+
 	private createBulletLines(): void {
 		for (const bullet of this.snapshotManager.betweenSnapshot.b) {
 			let thereIsLine = false;
@@ -1493,9 +1541,12 @@ export default class View {
 	}
 
 	private takeLootInfo(): void {
-		this.takeLootText = '';
-		if (!this.snapshotManager.betweenSnapshot) return;
-		if (this.snapshotManager.betweenSnapshot.i.l !== 0) return;
+		const el = this.myHtmlElements;
+		let takeLootText = '';
+		if (!this.snapshotManager.betweenSnapshot || !this.myPlayer.alive()) {
+			el.takeLoot.innerText = takeLootText;
+			return;
+		}
 
 		for (const loot of this.snapshotManager.betweenSnapshot.l) {
 			const x = this.myPlayer.getCenterX() - (loot.x + loot.size / 2);
@@ -1551,10 +1602,12 @@ export default class View {
 
 				let quantity = '';
 				if (loot.quantity) quantity += loot.quantity;
-				this.takeLootText = lootName + ' ' + quantity + ' (E)';
+				takeLootText = lootName + ' ' + quantity + ' (E)';
+				el.takeLoot.innerText = takeLootText;
 				return;
 			}
 		}
+		el.takeLoot.innerText = takeLootText;
 	}
 
 	private howToDraw(gameObject: RoundObject | RectObject | RectangleObstacle | RoundObstacle): DrawData {

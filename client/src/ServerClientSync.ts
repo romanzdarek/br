@@ -1,10 +1,10 @@
 export default class ServerClientSync {
-	private ping: number | null = null;
+	private ping: number = 0;
 	private pings: number[] = [];
-	private timeDiference: number | null = null;
+	private timeDiference: number = 0;
 	private timeDiferences: number[] = [];
-	private readonly attempts: number = 5;
-	private readonly defaultDrawDelay: number = 90;
+	private readonly attempts: number = 3;
+	private readonly defaultDrawDelay: number = 100;
 	private drawDelay: number = this.defaultDrawDelay;
 
 	constructor() {}
@@ -18,13 +18,14 @@ export default class ServerClientSync {
 	}
 
 	ready(): boolean {
-		return this.ping != null && this.timeDiference != null;
+		//return this.ping != null && this.timeDiference != null;
+		return this.pings.length === this.attempts;
 	}
 
 	reset(): void {
-		this.ping = null;
+		//this.ping = null;
 		this.pings = [];
-		this.timeDiference = null;
+		//this.timeDiference = null;
 		this.timeDiferences = [];
 	}
 
@@ -50,7 +51,7 @@ export default class ServerClientSync {
 
 	changeDrawDelay(change: number): void {
 		this.drawDelay += change;
-		if (this.drawDelay < 0) this.drawDelay = 0;
+		//if (this.drawDelay < this.minDrawDelay) this.drawDelay = this.minDrawDelay;
 	}
 
 	getDrawDelay(): number {
@@ -58,9 +59,9 @@ export default class ServerClientSync {
 	}
 
 	getServerTime(): number {
-		let serverTime = 0;
+		let serverTime = Date.now();
 		if (this.ready()) {
-			serverTime = Date.now() + this.getTimeDiference();
+			serverTime += this.getTimeDiference();
 		}
 		return serverTime;
 	}

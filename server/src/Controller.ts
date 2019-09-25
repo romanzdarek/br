@@ -9,7 +9,7 @@ export default class Controller {
 	private model: Model;
 	private editor: Editor;
 
-	constructor(http: any) {
+	constructor(http: number) {
 		this.io = SocketIO(http);
 		this.model = new Model(this.io);
 		this.editor = new Editor();
