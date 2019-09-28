@@ -88,10 +88,10 @@ export default class MyPlayerSnapshot {
 		this.b = player.inventory.blueAmmo;
 		this.o = player.inventory.orangeAmmo;
 
-		//active weapon ammo
+		//weapon ammo
 		if (player.inventory.activeItem instanceof Gun) {
 			this.a = player.inventory.activeItem.getBullets();
-			this.aM = player.inventory.activeItem.bulletsMax;
+			//this.aM = player.inventory.activeItem.bulletsMax;
 		}
 
 		this.s = player.inventory.scope;

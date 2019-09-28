@@ -65,6 +65,8 @@ export default class MyHtmlElements {
 		objectRock: document.getElementById('editorObjectRock'),
 		objectTree: document.getElementById('editorObjectTree'),
 		objectRect: document.getElementById('editorObjectRect'),
+		objectHorizontalWall: document.getElementById('editorObjectHorizontalWall'),
+		objectVerticalWall: document.getElementById('editorObjectVerticalWall'),
 		objectDelete: document.getElementById('editorObjectDelete'),
 		openMenu: document.getElementById('editorOpenMenu')
 	};

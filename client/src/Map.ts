@@ -29,14 +29,14 @@ export default class Map {
 		this.waterTerrainData = waterTerrainData;
 	}
 
-	reset():void{
-	this.blocks.splice(0,this.blocks.length)
-	this.terrain.splice(0,this.terrain.length)
-	this.impassableRoundObstacles.splice(0,this.impassableRoundObstacles.length)
-	this.bushes.splice(0,this.bushes.length)
-	this.trees.splice(0,this.trees.length)
-	this.rocks.splice(0,this.rocks.length)
-	this.rectangleObstacles.splice(0,this.rectangleObstacles.length)
+	reset(): void {
+		this.blocks.splice(0, this.blocks.length);
+		this.terrain.splice(0, this.terrain.length);
+		this.impassableRoundObstacles.splice(0, this.impassableRoundObstacles.length);
+		this.bushes.splice(0, this.bushes.length);
+		this.trees.splice(0, this.trees.length);
+		this.rocks.splice(0, this.rocks.length);
+		this.rectangleObstacles.splice(0, this.rectangleObstacles.length);
 	}
 
 	getSize(): number {
@@ -69,11 +69,11 @@ export default class Map {
 		}
 		//bushes
 		for (const bush of map.bushes) {
-			this.bushes.push(new Bush(id++, bush.x, bush.y));
+			this.bushes.push(new Bush(id++, bush.x, bush.y, bush.angle));
 		}
 		//trees
 		for (const tree of map.trees) {
-			const newTree = new Tree(id++, tree.x, tree.y);
+			const newTree = new Tree(id++, tree.x, tree.y, tree.angle);
 			this.trees.push(newTree);
 			this.impassableRoundObstacles.push(newTree);
 		}

@@ -494,14 +494,14 @@ export default class Inventory {
 				if (this.item1 === null) {
 					itemPosition = 1;
 				}
-				if (itemPosition === 1){
+				if (itemPosition === 1) {
 					this.item1 = gun;
 					this.activeItemNumber = 1;
-				} 
-				if (itemPosition === 2){
+				}
+				if (itemPosition === 2) {
 					this.item2 = gun;
 					this.activeItemNumber = 2;
-				} 
+				}
 				this.activeItem = gun;
 			}
 		}
@@ -522,6 +522,7 @@ export default class Inventory {
 				this.item4GranadeCount += loot.quantity;
 				this.item4 = Weapon.Granade;
 				this.activeItem = this.item4;
+				this.activeItemNumber = 4;
 			}
 			else if (loot.type === LootType.Smoke) {
 				this.item4SmokeCount += loot.quantity;

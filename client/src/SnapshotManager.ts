@@ -10,6 +10,7 @@ import ObstacleSnapshot from './ObstacleSnapshot';
 import Map from './Map';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import Message from './Message';
+import WaterCircle from './WaterCircle';
 
 export default class SnapshotManager {
 	private serverClientSync: ServerClientSync;
@@ -19,6 +20,7 @@ export default class SnapshotManager {
 	betweenSnapshot: Snapshot | null;
 	players: Player[] = [];
 	zone: Zone;
+	waterCircles: WaterCircle[] = [];
 	private numberOfPlayers: number;
 
 	newerExists: boolean = false;
@@ -69,6 +71,20 @@ export default class SnapshotManager {
 		if (this.snapshots.length === 0) this.numberOfPlayers = snapshot.p.length;
 		let updateDelay = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
 		if (updateDelay < 0) updateDelay = 0;
+
+		//water circles
+		if (snapshot.w) {
+			for (const waterCircleSnapshot of snapshot.w) {
+				setTimeout(() => {
+					this.waterCircles.push(new WaterCircle(waterCircleSnapshot));
+				}, updateDelay);
+			}
+		}
+		//delete old water circles
+		for (let i = this.waterCircles.length - 1; i >= 0; i--) {
+			const waterCircle = this.waterCircles[i];
+			if (!waterCircle.isActive()) this.waterCircles.splice(i, 1);
+		}
 
 		//blood animate
 		if (snapshot.p) {
@@ -371,7 +387,7 @@ export default class SnapshotManager {
 			else if (this.sumaNewer < 2) this.serverClientSync.changeDrawDelay(2);
 			else if (this.sumaNewer < 1) this.serverClientSync.changeDrawDelay(3);
 
-			this.addSumaNewer(this.sumaNewer);
+			//this.addSumaNewer(this.sumaNewer);
 
 			//calc positions
 			if (olderSnapshot && newerSnapshot) {

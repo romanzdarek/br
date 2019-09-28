@@ -6,6 +6,7 @@ import ZoneSnapshot from './ZoneSnapshot';
 import LootSnapshot from './LootSnapshot';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import ObstacleSnapshot from './ObstacleSnapshot';
+import WaterCircleSnapshot from './WaterCircleSnapshot';
 
 export type Snapshot = {
 	t: number;
@@ -18,5 +19,6 @@ export type Snapshot = {
 	l: LootSnapshot[];
 	o: ObstacleSnapshot[];
 	//messages
-	m?:string[];
+	m?: string[];
+	w?: WaterCircleSnapshot[];
 };

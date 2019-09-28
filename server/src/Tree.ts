@@ -3,14 +3,16 @@ import Point from './Point';
 
 export default class Tree extends RoundObstacle {
 	readonly treeTrankRadius: number;
+	readonly angle: number;
 
-	constructor(id: number, x: number, y: number) {
-		const size = 200;
+	constructor(id: number, x: number, y: number, angle: number) {
+		const size = 500;
 		super(id, x, y, size);
 		this.treeTrankRadius = 35;
-		this.opacity = 0.9;
+		this.opacity = 1;
 		this.healthMax = 200;
 		this.health = this.healthMax * this.opacity;
+		this.angle = angle;
 	}
 
 	isPointIn(point: Point): boolean {

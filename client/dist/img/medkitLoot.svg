@@ -1,12 +1,10 @@
-<?xml version="1.0"?>
 <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
  <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
- <g class="layer" transform="rotate(0  150 150)">
+ <g class="layer">
   <title>Layer 1</title>
-  <ellipse cx="149.353553" cy="150.646447" fill="#3f3f3f" fill-opacity="0.2" id="circle" rx="146" ry="146" stroke="#000000" stroke-linecap="round" stroke-width="7"/>
-  <rect fill="#333333" height="124" id="svg_6" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="square" stroke-linejoin="round" stroke-width="0" width="0" x="104.846591" y="39.526978"/>
-  <rect fill="#333333" height="0.5" id="svg_9" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="0" x="84.346591" y="117.526983"/>
-  <rect fill="#ff0000" height="30" id="svg_1" stroke="#ff0000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="180" x="60" y="135"/>
-  <rect fill="#ff0000" height="180" id="svg_2" stroke="#000000" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="0" width="30" x="135" y="60"/>
+  <ellipse cx="149.35355" cy="150.64645" fill="#3f3f3f" fill-opacity="0.2" id="circle" rx="146" ry="146" stroke="#000000" stroke-linecap="round" stroke-width="7"/>
+  <ellipse ry="100" rx="100" id="svg_1" cy="150" cx="150" stroke-linecap="round" stroke-linejoin="null" stroke-dasharray="null" stroke-width="7" stroke="#000000" fill="#ff5656"/>
+  <line fill="none" stroke="#ffffff" stroke-width="20" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="round" x1="150" y1="100" x2="150" y2="200" id="svg_2" class="0"/>
+  <line id="svg_3" y2="150" x2="200" y1="150" x1="100" stroke-linecap="round" stroke-linejoin="null" stroke-dasharray="null" stroke-width="20" stroke="#ffffff" fill="none"/>
  </g>
 </svg>

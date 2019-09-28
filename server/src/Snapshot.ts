@@ -6,6 +6,7 @@ import LootSnapshot from './LootSnapshot';
 import ThrowingObjectSnapshot from './ThrowingObjectSnapshot';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import ObstacleSnapshot from './ObstacleSnapshot';
+import WaterCircleSnapshot from './WaterCircleSnapshot';
 
 export default class Snapshot {
 	t: number;
@@ -18,6 +19,8 @@ export default class Snapshot {
 	l: LootSnapshot[];
 	o: ObstacleSnapshot[];
 	m?: string[];
+	w?: WaterCircleSnapshot[];
+
 	constructor(
 		time: number,
 		players: PlayerSnapshot[],
@@ -28,6 +31,7 @@ export default class Snapshot {
 		loots: LootSnapshot[],
 		obstacles: ObstacleSnapshot[],
 		messages: string[],
+		waterCircleSnapshots: WaterCircleSnapshot[],
 		myPlayerSnapshot?: MyPlayerSnapshot
 	) {
 		this.t = time;
@@ -40,5 +44,6 @@ export default class Snapshot {
 		this.o = obstacles;
 		if (messages.length) this.m = messages;
 		if (myPlayerSnapshot) this.i = myPlayerSnapshot;
+		if (waterCircleSnapshots.length) this.w = waterCircleSnapshots;
 	}
 }

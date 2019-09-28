@@ -15,6 +15,8 @@ export default class Editor {
 	bush: Bush;
 	rock: Rock;
 	tree: Tree;
+	horizontalWall: Wall;
+	verticalWall: Wall;
 	private x: number;
 	private y: number;
 	private active: boolean = false;
@@ -35,9 +37,11 @@ export default class Editor {
 		this.myHtmlElements = myHtmlElements;
 		this.socket = socket;
 		this.colors = new Colors();
-		this.bush = new Bush(0, 0, 0);
+		this.bush = new Bush(0, 0, 0, 0);
 		this.rock = new Rock(0, 0, 0);
-		this.tree = new Tree(0, 0, 0);
+		this.tree = new Tree(0, 0, 0, 0);
+		this.horizontalWall = new Wall(0, 0, 0, 612 / 2, 145 / 2);
+		this.verticalWall = new Wall(0, 0, 0, 145 / 2, 612 / 2);
 		this.controller();
 	}
 
@@ -145,10 +149,10 @@ export default class Editor {
 			this.rocks.push(new Rock(id++, item.x, item.y));
 		}
 		for (const item of mapData.trees) {
-			this.trees.push(new Tree(id++, item.x, item.y));
+			this.trees.push(new Tree(id++, item.x, item.y, item.angle));
 		}
 		for (const item of mapData.bushes) {
-			this.bushes.push(new Bush(id++, item.x, item.y));
+			this.bushes.push(new Bush(id++, item.x, item.y, item.angle));
 		}
 		for (const item of mapData.rects) {
 			this.walls.push(new Wall(id++, item.x, item.y, item.width, item.height));
@@ -228,6 +232,12 @@ export default class Editor {
 				case el.editor.objectRect:
 					this.objectType = 'rect';
 					break;
+				case el.editor.objectHorizontalWall:
+					this.objectType = 'horizontalWall';
+					break;
+				case el.editor.objectVerticalWall:
+					this.objectType = 'verticalWall';
+					break;
 				case el.editor.objectDelete:
 					this.objectType = 'delete';
 					break;
@@ -257,24 +267,45 @@ export default class Editor {
 			}
 
 			if (this.getObjectType() != null) {
+				const randomAngle = Math.floor(Math.random() * 360);
 				switch (this.getObjectType()) {
 					case 'bush':
-						this.bushes.push(new Bush(0, this.x - this.bush.size / 2, this.y - this.bush.size / 2));
+						this.bushes.push(
+							new Bush(0, this.x - this.bush.size / 2, this.y - this.bush.size / 2, randomAngle)
+						);
 						break;
 					case 'rock':
 						this.rocks.push(new Rock(0, this.x - this.rock.size / 2, this.y - this.rock.size / 2));
 						break;
 					case 'tree':
-						this.trees.push(new Tree(0, this.x - this.tree.size / 2, this.y - this.tree.size / 2));
+						this.trees.push(
+							new Tree(0, this.x - this.tree.size / 2, this.y - this.tree.size / 2, randomAngle)
+						);
 						break;
 					case 'rect':
 						this.walls.push(
+							new Wall(0, this.x - this.bush.size / 2, this.y - this.bush.size / 2, 100, 100)
+						);
+						break;
+					case 'horizontalWall':
+						this.walls.push(
 							new Wall(
 								0,
-								this.x - this.bush.size / 2,
-								this.y - this.bush.size / 2,
-								this.bush.size,
-								this.bush.size
+								this.x - this.horizontalWall.width / 2,
+								this.y - this.horizontalWall.height / 2,
+								this.horizontalWall.width,
+								this.horizontalWall.height
+							)
+						);
+						break;
+					case 'verticalWall':
+						this.walls.push(
+							new Wall(
+								0,
+								this.x - this.verticalWall.width / 2,
+								this.y - this.verticalWall.height / 2,
+								this.verticalWall.width,
+								this.verticalWall.height
 							)
 						);
 						break;

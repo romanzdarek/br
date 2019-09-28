@@ -4,7 +4,6 @@ import Map from './Map';
 import { Mouse } from './Controller';
 import WaterTerrainData from './WaterTerrainData';
 import { TerrainType } from './Terrain';
-import Bullet from './Bullet';
 import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
 import Tree from './Tree';
@@ -63,6 +62,8 @@ export default class View {
 	private bushSVG: HTMLImageElement;
 	private rockSVG: HTMLImageElement;
 	private treeSVG: HTMLImageElement;
+	private horizontalWallSVG: HTMLImageElement;
+	private verticalWallSVG: HTMLImageElement;
 	private pistolSVG: HTMLImageElement;
 	private machinegunSVG: HTMLImageElement;
 	private shotgunSVG: HTMLImageElement;
@@ -141,6 +142,12 @@ export default class View {
 		this.ctxGame = this.gameScreen.getContext('2d');
 		this.ctxMap = this.mapScreen.getContext('2d');
 		this.ctxEditor = this.editorScreen.getContext('2d');
+
+		this.horizontalWallSVG = new Image();
+		this.horizontalWallSVG.src = 'img/horizontalWall.svg';
+
+		this.verticalWallSVG = new Image();
+		this.verticalWallSVG.src = 'img/verticalWall.svg';
 
 		this.bushSVG = new Image();
 		this.bushSVG.src = 'img/bush.svg';
@@ -394,11 +401,11 @@ export default class View {
 		}
 		//player
 		{
-			const playerSize = this.mapScreen.width / 40;
-			const x = this.myPlayer.getCenterX() * sizeReduction - playerSize / 2;
-			const y = this.myPlayer.getCenterY() * sizeReduction - playerSize / 2;
+			const playerSize = this.mapScreen.width / 20;
+			const x = this.myPlayer.getCenterX() * sizeReduction;
+			const y = this.myPlayer.getCenterY() * sizeReduction;
 			ctx.beginPath();
-			ctx.arc(x, y, playerSize, 0, 2 * Math.PI);
+			ctx.arc(x, y, playerSize / 2, 0, 2 * Math.PI);
 			ctx.fillStyle = this.colors.player;
 			ctx.fill();
 		}
@@ -531,9 +538,17 @@ export default class View {
 		for (const rock of editor.rocks) {
 			ctx.drawImage(this.rockSVG, rock.x, rock.y, rock.size, rock.size);
 		}
-		ctx.fillStyle = 'black';
+
 		for (const wall of editor.walls) {
-			ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+			let svgSource = this.horizontalWallSVG;
+			if (wall.width < wall.height) svgSource = this.verticalWallSVG;
+			if (wall.width < wall.height || wall.width > wall.height) {
+				ctx.drawImage(svgSource, wall.x, wall.y, wall.width, wall.height);
+			}
+			if (wall.width === wall.height) {
+				ctx.fillStyle = 'black';
+				ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+			}
 		}
 		for (const bush of editor.bushes) {
 			ctx.drawImage(this.bushSVG, bush.x, bush.y, bush.size, bush.size);
@@ -627,6 +642,24 @@ export default class View {
 					ctx.fillStyle = 'black';
 					ctx.fillRect(editor.getX() - size / 2, editor.getY() - size / 2, size, size);
 					break;
+				case 'verticalWall':
+					ctx.drawImage(
+						this.verticalWallSVG,
+						editor.getX() - editor.verticalWall.width / 2,
+						editor.getY() - editor.verticalWall.height / 2,
+						editor.verticalWall.width,
+						editor.verticalWall.height
+					);
+					break;
+				case 'horizontalWall':
+					ctx.drawImage(
+						this.horizontalWallSVG,
+						editor.getX() - editor.horizontalWall.width / 2,
+						editor.getY() - editor.horizontalWall.height / 2,
+						editor.horizontalWall.width,
+						editor.horizontalWall.height
+					);
+					break;
 			}
 		}
 	}
@@ -706,6 +739,26 @@ export default class View {
 			}
 		}
 
+		//water circles
+		ctx.fillStyle = this.colors.waterCircle;
+		for (const waterCircle of this.snapshotManager.waterCircles) {
+			waterCircle.flow();
+			const { x, y, size, isOnScreen } = this.howToDraw({
+				x: waterCircle.getX(),
+				y: waterCircle.getY(),
+				size: waterCircle.getSize()
+			});
+			if (isOnScreen) {
+				const radius = size / 2;
+				ctx.save();
+				ctx.globalAlpha = waterCircle.getOpacity();
+				ctx.beginPath();
+				ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
+				ctx.fill();
+				ctx.restore();
+			}
+		}
+
 		//mapGrid
 		ctx.fillStyle = this.colors.blockFrame;
 		const size2 = 1 * this.resolutionAdjustment;
@@ -765,6 +818,24 @@ export default class View {
 		ctx.fillStyle = 'black';
 		for (const rectangleObstacle of this.map.rectangleObstacles) {
 			if (rectangleObstacle.isActive()) {
+				const { x, y, width, height, isOnScreen } = this.howToDraw({
+					x: rectangleObstacle.x,
+					y: rectangleObstacle.y,
+					width: rectangleObstacle.width,
+					height: rectangleObstacle.height
+				});
+				if (isOnScreen) {
+					let svgSource = this.horizontalWallSVG;
+					if (rectangleObstacle.width < rectangleObstacle.height) svgSource = this.verticalWallSVG;
+					ctx.save();
+					ctx.globalAlpha = rectangleObstacle.getOpacity();
+					ctx.drawImage(svgSource, x, y, width, height);
+					ctx.restore();
+				}
+			}
+
+			/*
+			if (rectangleObstacle.isActive()) {
 				const { x, y, width, height, isOnScreen } = this.howToDraw(rectangleObstacle);
 				if (isOnScreen) {
 					ctx.save();
@@ -773,6 +844,7 @@ export default class View {
 					ctx.restore();
 				}
 			}
+			*/
 		}
 
 		//dead players
@@ -1046,20 +1118,21 @@ export default class View {
 								player.getWeapon() === Weapon.Medkit) &&
 							i === 1
 						) {
-							const granadeShiftAngle = 30;
 							const playerAngle = player.getAngle();
-							const shiftZ = player.hands[1].radius;
+							const percentSize = 1.2;
+							const shiftZ = player.hands[i].radius * percentSize;
 							//triangle
 							const shiftX = Math.sin(playerAngle * Math.PI / 180) * shiftZ;
 							const shiftY = Math.cos(playerAngle * Math.PI / 180) * shiftZ;
 
 							const { x, y, size, isOnScreen } = this.howToDraw({
-								x: player.hands[i].getX() + shiftX,
-								y: player.hands[i].getY() - shiftY,
-								size: player.hands[i].size
+								x: player.hands[i].getCenterX() + shiftX - player.hands[i].radius * percentSize,
+								y: player.hands[i].getCenterY() - shiftY - player.hands[i].radius * percentSize,
+								size: player.hands[i].size * percentSize
 							});
 
 							if (isOnScreen) {
+								const granadeShiftAngle = 30;
 								let middleImage = size / 2;
 								ctx.save();
 								ctx.translate(x + middleImage, y + middleImage);
@@ -1096,8 +1169,10 @@ export default class View {
 				this.drawHandOnWeapon(player, 40, 30);
 				this.drawHandOnWeapon(player, 40, -30);
 			}
+		}
 
-			//blood
+		//blood
+		for (const player of this.snapshotManager.players) {
 			ctx.fillStyle = this.colors.collisionPoint;
 			for (let i = player.bloods.length - 1; i >= 0; i--) {
 				const blood = player.bloods[i];
@@ -1126,7 +1201,7 @@ export default class View {
 
 		//granades
 		for (const granade of betweenSnapshot.g) {
-			const granadeSize = 30 * granade.b;
+			const granadeSize = 40 * granade.b;
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: granade.x - granadeSize / 2,
 				y: granade.y - granadeSize / 2,
@@ -1148,13 +1223,13 @@ export default class View {
 		}
 
 		//bullet points
-		ctx.fillStyle = 'orange';
+		ctx.fillStyle = 'red';
 		for (const bullet of betweenSnapshot.b) {
 			//bullet point
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: bullet.x,
 				y: bullet.y,
-				size: 3
+				size: 10
 			});
 			if (isOnScreen) {
 				ctx.fillRect(
@@ -1175,6 +1250,7 @@ export default class View {
 					ctx.save();
 					ctx.globalAlpha = 0.7 - partLine.getAge() / 14.3;
 					ctx.beginPath();
+
 					const { x: startX, y: startY } = this.howToDraw({
 						x: partLine.startX,
 						y: partLine.startY,
@@ -1187,10 +1263,17 @@ export default class View {
 						size: 1
 					});
 					ctx.lineTo(endX, endY);
-					ctx.lineWidth = 3 - partLine.getAge() / 3.33;
+					ctx.lineWidth = (6 - partLine.getAge() / 3.33) * this.finalResolutionAdjustment;
 					ctx.strokeStyle = 'white';
 					ctx.stroke();
 					ctx.restore();
+
+					//test
+					if (Math.abs(startX - endX) > 100 || Math.abs(startY - endY) > 100) {
+						console.log('partLine', partLine);
+						debugger;
+					}
+
 					partLine.increaseAge();
 				}
 			}
@@ -1201,9 +1284,12 @@ export default class View {
 			if (bush.isActive()) {
 				const { x, y, size, isOnScreen } = this.howToDraw(bush);
 				if (isOnScreen) {
+					let middleImage = size / 2;
 					ctx.save();
+					ctx.translate(x + middleImage, y + middleImage);
+					ctx.rotate(bush.angle * Math.PI / 180);
 					ctx.globalAlpha = bush.getOpacity();
-					ctx.drawImage(this.bushSVG, x, y, size, size);
+					ctx.drawImage(this.bushSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
 			}
@@ -1214,9 +1300,12 @@ export default class View {
 			if (tree.isActive()) {
 				const { x, y, size, isOnScreen } = this.howToDraw(tree);
 				if (isOnScreen) {
+					let middleImage = size / 2;
 					ctx.save();
+					ctx.translate(x + middleImage, y + middleImage);
+					ctx.rotate(tree.angle * Math.PI / 180);
 					ctx.globalAlpha = tree.getOpacity();
-					ctx.drawImage(this.treeSVG, x, y, size, size);
+					ctx.drawImage(this.treeSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
 			}
@@ -1626,21 +1715,10 @@ export default class View {
 			width = (<RectObject>gameObject).width * this.finalResolutionAdjustment;
 			height = (<RectObject>gameObject).height * this.finalResolutionAdjustment;
 		}
-		//animate shift
-		let animateShiftX = 0;
-		let animateShiftY = 0;
-		if (gameObject instanceof RoundObstacle) {
-			const animateShift = gameObject.animate();
-			animateShiftX = animateShift.x;
-			animateShiftY = animateShift.y;
-		}
+
 		//positions on screen
-		const x =
-			this.screenCenterX +
-			(gameObject.x + animateShiftX - this.myPlayer.getCenterX()) * this.finalResolutionAdjustment;
-		const y =
-			this.screenCenterY +
-			(gameObject.y + animateShiftY - this.myPlayer.getCenterY()) * this.finalResolutionAdjustment;
+		const x = this.screenCenterX + (gameObject.x - this.myPlayer.getCenterX()) * this.finalResolutionAdjustment;
+		const y = this.screenCenterY + (gameObject.y - this.myPlayer.getCenterY()) * this.finalResolutionAdjustment;
 		//Is is on the screen?
 		let isOnScreen = true;
 		if (x > this.gameScreen.width || x < -width || y > this.gameScreen.height || y < -height) {

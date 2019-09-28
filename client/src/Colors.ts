@@ -10,4 +10,5 @@ export default class Colors {
 	readonly hand: string = '#FFC878';
 	readonly handBorder: string = '#424242';
 	readonly vest: string = '#424242';
+	readonly waterCircle: string = '#2871C1';
 }

@@ -80,8 +80,8 @@ export default class Bullet {
 		if (instance.angle < 0) {
 			instance.angle = 360 + instance.angle;
 		}
-		if (instance.angle >= 360) {
-			instance.angle = 360 - instance.angle;
+		else if (instance.angle >= 360) {
+			instance.angle = instance.angle - 360;
 		}
 		//triangle
 		const bulletSpeed = gun.bulletSpeed;
@@ -130,7 +130,7 @@ export default class Bullet {
 			instance.angle = 360 - instance.angle;
 		}
 		//triangle
-		const bulletSpeed = Math.floor(Math.random() * granade.fragmentSpeed / 2 ) +  granade.fragmentSpeed / 2;
+		const bulletSpeed = Math.floor(Math.random() * granade.fragmentSpeed / 2) + granade.fragmentSpeed / 2;
 		instance.shiftX = Math.sin(instance.angle * Math.PI / 180) * bulletSpeed;
 		instance.shiftY = Math.cos(instance.angle * Math.PI / 180) * bulletSpeed;
 		return instance;

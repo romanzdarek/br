@@ -4,7 +4,6 @@ import View from './View';
 import Player from './Player';
 import Map from './Map';
 import WaterTerrainData from './WaterTerrainData';
-import Bullet from './Bullet';
 import ServerClientSync from './ServerClientSync';
 import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';

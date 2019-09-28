@@ -56,6 +56,8 @@ export class Player {
 	private winner: boolean = false;
 	private died: boolean = false;
 	private damageTaken: number = 0;
+	private waterCircleTimer: number = 0;
+	readonly waterCircleTimerMax = 25;
 
 	private controll = {
 		up: false,
@@ -114,6 +116,14 @@ export class Player {
 
 	leaveGame(): void {
 		this.socket = null;
+	}
+
+	getWaterCircleTimer(): number {
+		return this.waterCircleTimer;
+	}
+
+	nullWaterCircleTimer(): void {
+		this.waterCircleTimer = 0;
 	}
 
 	getStats(): PlayerStats {
@@ -546,6 +556,7 @@ export class Player {
 				this.slowAroundObstacle = false;
 			}
 			//shift in water
+			let inWater = false;
 			for (let i = 0; i < this.map.terrain.length; i++) {
 				//terrain block is under my center
 				if (
@@ -555,15 +566,15 @@ export class Player {
 					this.getCenterY() >= this.map.terrain[i].y
 				) {
 					if (this.map.terrain[i].type === TerrainType.Water) {
-						shift = shift / 3 * 2;
+						inWater = true;
 					}
-					if (
+					else if (
 						this.map.terrain[i].type === TerrainType.WaterTriangle1 ||
 						this.map.terrain[i].type === TerrainType.WaterTriangle2 ||
 						this.map.terrain[i].type === TerrainType.WaterTriangle3 ||
 						this.map.terrain[i].type === TerrainType.WaterTriangle4
 					) {
-						//Math.floor!!!
+						//Math.floor()!!!
 						const myXPositionOnTerrain = Math.floor(this.getCenterX() - this.map.terrain[i].x);
 						const myYPositionOnTerrain = Math.floor(this.getCenterY() - this.map.terrain[i].y);
 						if (
@@ -573,10 +584,16 @@ export class Player {
 								myYPositionOnTerrain
 							)
 						) {
-							shift = shift / 3 * 2;
+							inWater = true;
 						}
 					}
 				}
+			}
+
+			if (inWater) {
+				//slow down
+				shift = shift / 3 * 2;
+				if (up || down || left || right) this.waterCircleTimer++;
 			}
 			//player shift
 			let shiftX = 0;

@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<!--http://192.168.0.2:8080-->
-	<script src="http://mbr.rostiapp.cz/socket.io/socket.io.js"></script>
+	<!--http://mbr.rostiapp.cz/socket.io/socket.io.js-->
+	<script src="http://192.168.0.2:8080/socket.io/socket.io.js"></script>
 	<title>Mini battle royale</title>
 	<style>
 		*{
@@ -39,8 +39,11 @@
 			background:#F1F1F1;
 			margin-bottom:20px;
 			padding:10px;
-			height:110px;
+			height:90px;
 			overflow: auto;
+		}
+		ul#lobbyMenuPlayers li{
+			list-style-type: none;
 
 		}
 		canvas#gameScreen{
@@ -651,7 +654,7 @@
 	<div class="menu" id="mainMenu">
 		<h1>Mini battle royale</h1>
 		<!--<p id="mainMenuIp">+</p>-->
-		<input id="mainMenuName" type="text" maxlength="20" placeholder="Write your name" value="" autocomplete="off" autofocus>
+		<input id="mainMenuName" type="text" maxlength="12" placeholder="Write your name" value="" autocomplete="off" autofocus>
 		<div class ="join">
 			<h2>Join</h2>
 			<select id="mainMenuGames" disabled></select>
@@ -791,7 +794,9 @@
 				<img id="editorObjectBush" src="img/bush.svg">
 				<img id="editorObjectRock" src="img/rock.svg">
 				<img id="editorObjectTree" src="img/tree.svg">
-				<img id="editorObjectRect" src="img/rect.png">
+				<!--<img id="editorObjectRect" src="img/rect.png">-->
+				<img id="editorObjectVerticalWall" src="img/verticalWall.svg">
+				<img id="editorObjectHorizontalWall" src="img/horizontalWall.svg">
 				<img id="editorObjectDelete" src="img/delete.png">
 			</div>
 		</div>

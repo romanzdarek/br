@@ -32,6 +32,7 @@ import PlayerFactory from './PlayerFactory';
 import BulletFactory from './BulletFactory';
 import ObstacleSnapshot from './ObstacleSnapshot';
 import PlayerStats from './PlayerStats';
+import WaterCircleSnapshot from './WaterCircleSnapshot';
 
 export default class Game {
 	private map: Map;
@@ -269,10 +270,10 @@ export default class Game {
 
 		//player move
 		for (const player of this.players) {
-			if (player.isActive()) player.loop();
-			//zone damage
-			if (!this.zone.playertIn(player)) {
-				player.acceptHit(this.zone.getDamage());
+			if (player.isActive()) {
+				player.loop();
+				//zone damage
+				if (!this.zone.playertIn(player)) player.acceptHit(this.zone.getDamage());
 			}
 		}
 
@@ -451,6 +452,19 @@ export default class Game {
 			}
 		}
 
+		//water circles
+		const waterCircles: WaterCircleSnapshot[] = [];
+		for (const player of this.players) {
+			if (player.isActive() && player.getWaterCircleTimer() >= player.waterCircleTimerMax) {
+				player.nullWaterCircleTimer();
+				waterCircles.push(new WaterCircleSnapshot(player.getCenterX(), player.getCenterY()));
+			}
+		}
+
+		if (waterCircles.length) {
+			console.log(waterCircles);
+		}
+
 		//save this snapshot
 		this.previousSnapshot = new Snapshot(
 			dateNow,
@@ -461,7 +475,8 @@ export default class Game {
 			zoneSnapshot,
 			lootSnapshots,
 			obstacleSnapshots,
-			[ ...this.killMessages ]
+			[ ...this.killMessages ],
+			waterCircles
 		);
 
 		//emit changes
@@ -530,6 +545,7 @@ export default class Game {
 				lootSnapshotsOptimalization,
 				obstacleSnapshots,
 				[ ...this.killMessages ],
+				waterCircles,
 				lastMyPlayerSnapshot
 			);
 			if (player.socket) player.socket.emit('u', snapshot);

@@ -11,9 +11,6 @@ export default abstract class RoundObstacle {
 	readonly size: number;
 	readonly radius: number;
 	private active: boolean = true;
-	private hitAnimateTimer: number = 0;
-	private hitAnimateShiftX: number = 0;
-	private hitAnimateShiftY: number = 0;
 
 	constructor(id: number, x: number, y: number, size: number) {
 		this.id = id;

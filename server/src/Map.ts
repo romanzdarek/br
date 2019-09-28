@@ -62,11 +62,11 @@ export default class Map {
 		}
 		//bushes
 		for (const bush of map.bushes) {
-			this.bushes.push(new Bush(mapObjectId++, bush.x, bush.y));
+			this.bushes.push(new Bush(mapObjectId++, bush.x, bush.y, bush.angle));
 		}
 		//trees
 		for (const tree of map.trees) {
-			const newTree = new Tree(mapObjectId++, tree.x, tree.y);
+			const newTree = new Tree(mapObjectId++, tree.x, tree.y, tree.angle);
 			this.trees.push(newTree);
 			this.impassableRoundObstacles.push(newTree);
 		}
