@@ -742,7 +742,7 @@ export default class View {
 		//water circles
 		ctx.fillStyle = this.colors.waterCircle;
 		for (const waterCircle of this.snapshotManager.waterCircles) {
-			if(!waterCircle.isActive()) continue;
+			if (!waterCircle.isActive()) continue;
 			waterCircle.flow();
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: waterCircle.getX(),
@@ -1280,11 +1280,13 @@ export default class View {
 					ctx.stroke();
 					ctx.restore();
 
+					/*
 					//test
 					if (Math.abs(startX - endX) > 100 || Math.abs(startY - endY) > 100) {
 						console.log('partLine', partLine);
 						debugger;
 					}
+					*/
 
 					partLine.increaseAge();
 				}
@@ -1350,6 +1352,7 @@ export default class View {
 		el.zoneCircle.setAttribute('cy', y.toString());
 
 		//info
+		/*
 		{
 			ctx.font = '20px Arial';
 			ctx.fillStyle = this.colors.text;
@@ -1368,6 +1371,7 @@ export default class View {
 				ctx.fillText('newerSnapshot missing', x, row * ++rowMultiple);
 			}
 		}
+		*/
 
 		//healthBar
 		el.healthBar.in.style.width = betweenSnapshot.i.h + '%';

@@ -49,8 +49,8 @@ export default class SnapshotManager {
 
 	reset(): void {
 		this.snapshots.splice(0, this.snapshots.length);
-		this.betweenSnapshot = null;
 		this.players.splice(0, this.players.length);
+		this.betweenSnapshot = null;
 	}
 
 	messageManager(): void {
@@ -370,7 +370,6 @@ export default class SnapshotManager {
 			//if newerSnapshot is missing use older...
 			if (!newerSnapshot) {
 				newerSnapshot = olderSnapshot;
-				//this.serverClientSync.reset();
 			}
 
 			//change draw delay

@@ -140,7 +140,6 @@ export class Controller {
 		//startGame
 		this.socket.on('startGame', (mapData: MapData) => {
 			this.model.map.openMap(mapData);
-			console.log(mapData);
 			this.model.gameStart();
 			el.close(el.lobbyMenu.main);
 			setTimeout(() => {

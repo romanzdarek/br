@@ -73,6 +73,7 @@ export default class Model {
 		this.snapshotManager.reset();
 		this.view.reset();
 		this.spectate = false;
+		this.serverClientSync.reset();
 	}
 
 	stop(): void {
@@ -137,6 +138,7 @@ export default class Model {
 
 	gameStart(): void {
 		this.gameRun = true;
+		this.snapshotManager.reset();
 	}
 
 	gameActive(): boolean {
@@ -152,7 +154,7 @@ export default class Model {
 		}
 		//sync
 		if (!this.serverClientSync.ready()) {
-			if (Math.random() > 0.9) this.socket.emit('serverClientSync', Date.now());
+			if (Math.random() > 0.8) this.socket.emit('serverClientSync', Date.now());
 		}
 		if (!this.gameRun) return;
 		this.snapshotManager.createBetweenSnapshot();

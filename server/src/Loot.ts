@@ -163,25 +163,7 @@ export default class Loot {
 
 	//loot balancer
 	createMainLootItems(players: number): void {
-		this.createLootItem(0, 0, LootType.Granade, 10);
-		this.createLootItem(0, 0, LootType.Granade, 10);
-		this.createLootItem(0, 0, LootType.Granade, 10);
-
-		this.createLootItem(0, 0, LootType.Rifle, 5000);
-		this.createLootItem(0, 0, LootType.Pistol, 10000);
-		this.createLootItem(0, 0, LootType.Machinegun, 30000);
-		this.createLootItem(0, 0, LootType.Shotgun, 20000);
-		this.createLootItem(0, 0, LootType.Vest);
-		this.createLootItem(0, 0, LootType.Scope2);
-		this.createLootItem(0, 0, LootType.Scope4);
-		this.createLootItem(0, 0, LootType.Scope6);
-		this.createLootItem(0, 0, LootType.Hammer);
-		this.createLootItem(0, 0, LootType.Hammer);
-		this.createLootItem(0, 0, LootType.Granade);
-		this.createLootItem(0, 0, LootType.Smoke, 100);
-		this.createLootItem(0, 0, LootType.Medkit);
-
-		/*
+		
 		for (let i = 0; i < players; i++) {
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Rifle, 5);
@@ -195,14 +177,20 @@ export default class Loot {
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Scope6);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Granade, 3);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Smoke, 3);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Granade, 3);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Smoke, 3);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Medkit);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Medkit);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.RedAmmo, 10);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.GreenAmmo, 20);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.BlueAmmo, 30);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.OrangeAmmo, 30);
 
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.RedAmmo, 10);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.GreenAmmo, 20);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.BlueAmmo, 30);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.OrangeAmmo, 30);
 		}
-		*/
 	}
 
 	/*
