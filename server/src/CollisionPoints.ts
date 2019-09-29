@@ -10,19 +10,29 @@ export default class CollisionPoints {
 
 	constructor() {
 		const hammerCollisionPoints = [
-			new Point(152, 36),
-			new Point(182, 36),
-			new Point(152, 56),
-			new Point(182, 56),
-			new Point(152, 78),
-			new Point(182, 78),
-			new Point(152, 95),
-			new Point(182, 95)
+			new Point(203, 67),
+			new Point(211, 68),
+			new Point(217, 73),
+			new Point(217, 84),
+			new Point(217, 95),
+			new Point(217, 115),
+			new Point(217, 125),
+			new Point(217, 134),
+			new Point(211, 140),
+			new Point(203, 141),
+			new Point(194, 140),
+			new Point(188, 134),
+			new Point(188, 125),
+			new Point(188, 115),
+			new Point(188, 95),
+			new Point(188, 83),
+			new Point(188, 73),
+			new Point(194, 68)
 		];
-		this.hammer = new RotateCollisionPoints(hammerCollisionPoints, 200);
+		this.hammer = new RotateCollisionPoints(hammerCollisionPoints, 280);
 
 		this.body = this.calculateRoundPoints(Player.radius, 10);
-		this.hand = this.calculateRoundPoints(Hand.radius, 10);
+		this.hand = this.calculateRoundPoints(Hand.radius, 20);
 	}
 
 	private calculateRoundPoints(radius: number, density: number): Point[] {

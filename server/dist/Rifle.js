@@ -3,9 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Gun_1 = require("./Gun");
 class Rifle extends Gun_1.default {
     constructor(bullets) {
-        const length = 70;
-        const range = 40;
-        const bulletSpeed = 20;
+        const length = 80;
+        const range = 30;
+        const bulletSpeed = 18;
         const spray = 1;
         const bulletsMax = 5;
         super(length, range, bulletSpeed, spray, bullets, bulletsMax);

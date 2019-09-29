@@ -6,7 +6,7 @@ class Hammer {
     constructor(myPlayer, players, map, collisionPoints) {
         this.angle = 0;
         this.power = 34;
-        this.size = 200;
+        this.size = 280;
         this.active = false;
         this.hitTimer = 0;
         this.hitTimerMax = 20;

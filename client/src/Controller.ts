@@ -62,7 +62,7 @@ export class Controller {
 		this.myHtmlElements = new MyHtmlElements();
 		this.canvas = document.getElementsByTagName('canvas')[0];
 		//http://192.168.0.2:8080 // 'http://mbr.rostiapp.cz'
-		this.socket = io.connect('http://192.168.0.2:8080');
+		this.socket = io.connect('http://mbr.rostiapp.cz');
 		this.serverClientSync = new ServerClientSync();
 		this.editor = new Editor(this.myHtmlElements, this.socket);
 		this.model = new Model(

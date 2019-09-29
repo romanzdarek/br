@@ -27,7 +27,6 @@ export default class RotateCollisionPoints {
 				x = centerX - this.points[point].x;
 				y = centerY - this.points[point].y;
 				//posun o úhel
-				//z nejakeho duvodu dochazelo o posun o 180 stupnu proto k uhlu pridame 180 stupnu
 				newX =
 					x * Math.cos((shiftAngle + 180) * Math.PI / 180) - y * Math.sin((shiftAngle + 180) * Math.PI / 180);
 				newY =

@@ -33,7 +33,7 @@ export default class Bullet {
 		this.range = range;
 		if (!gun) {
 			this.weapon = Weapon.Granade;
-			this.power = 34;
+			this.power = 50;
 		}
 		else {
 			if (gun instanceof Pistol) {
@@ -46,7 +46,7 @@ export default class Bullet {
 			}
 			if (gun instanceof Shotgun) {
 				this.weapon = Weapon.Shotgun;
-				this.power = 15;
+				this.power = 20;
 			}
 			if (gun instanceof Machinegun) {
 				this.weapon = Weapon.Machinegun;
@@ -110,7 +110,7 @@ export default class Bullet {
 		players: Player[],
 		shiftAngle: number
 	): Bullet {
-		const fragmentRange = Math.floor(Math.random() * granade.fragmentRange) + granade.fragmentRange / 3;
+		const fragmentRange = Math.floor(Math.random() * (granade.fragmentRange / 2)) + granade.fragmentRange / 2;
 		const instance = new Bullet(id, fragmentRange);
 		instance.map = map;
 		instance.players = players;
@@ -130,7 +130,7 @@ export default class Bullet {
 			instance.angle = 360 - instance.angle;
 		}
 		//triangle
-		const bulletSpeed = Math.floor(Math.random() * granade.fragmentSpeed / 2) + granade.fragmentSpeed / 2;
+		const bulletSpeed = granade.fragmentSpeed;
 		instance.shiftX = Math.sin(instance.angle * Math.PI / 180) * bulletSpeed;
 		instance.shiftY = Math.cos(instance.angle * Math.PI / 180) * bulletSpeed;
 		return instance;

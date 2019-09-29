@@ -4,9 +4,9 @@ export default class Machinegun extends Gun {
 	private delay: number;
 
 	constructor(bullets: number) {
-		const length = 70;
-		const range = 20;
-		const bulletSpeed = 15;
+		const length = 60;
+		const range = 30;
+		const bulletSpeed = 14;
 		const spray = 5;
 		const bulletsMax = 30;
 		super(length, range, bulletSpeed, spray, bullets, bulletsMax);

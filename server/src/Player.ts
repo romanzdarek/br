@@ -493,9 +493,9 @@ export class Player {
 				(this.inventory.activeItem.ready() && this.inventory.ready())
 			) {
 				if (this.inventory.activeItem instanceof Shotgun) {
-					let shotgunSpray = -12;
-					for (let i = 0; i < 7; i++) {
-						shotgunSpray += 3;
+					let shotgunSpray = -3;
+					for (let i = 0; i < 5; i++) {
+						shotgunSpray++;
 						this.bullets.push(
 							this.bulletFactory.createBullet(
 								this,

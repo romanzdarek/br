@@ -7,7 +7,7 @@ import { Weapon } from './Weapon';
 export default class Hammer {
 	private angle: number = 0;
 	readonly power: number = 34;
-	readonly size: number = 200;
+	readonly size: number = 280;
 	private active: boolean = false;
 	private hitTimer: number = 0;
 	private hitTimerMax: number = 20;

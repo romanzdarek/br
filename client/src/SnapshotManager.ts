@@ -80,6 +80,7 @@ export default class SnapshotManager {
 				}, updateDelay);
 			}
 		}
+
 		//delete old water circles
 		for (let i = this.waterCircles.length - 1; i >= 0; i--) {
 			const waterCircle = this.waterCircles[i];
@@ -369,23 +370,11 @@ export default class SnapshotManager {
 			//if newerSnapshot is missing use older...
 			if (!newerSnapshot) {
 				newerSnapshot = olderSnapshot;
-				this.serverClientSync.reset();
+				//this.serverClientSync.reset();
 			}
 
 			//change draw delay
-			if (this.sumaNewer > 12) this.serverClientSync.changeDrawDelay(-5);
-			if (this.sumaNewer > 11) this.serverClientSync.changeDrawDelay(-4);
-			if (this.sumaNewer > 10) this.serverClientSync.changeDrawDelay(-3);
-			if (this.sumaNewer > 9) this.serverClientSync.changeDrawDelay(-1);
-			else if (this.sumaNewer > 8) this.serverClientSync.changeDrawDelay(-0.5);
-			else if (this.sumaNewer > 7) this.serverClientSync.changeDrawDelay(-0.2);
-			else if (this.sumaNewer > 6) this.serverClientSync.changeDrawDelay(-0.1);
-			else if (this.sumaNewer < 6) this.serverClientSync.changeDrawDelay(0.1);
-			else if (this.sumaNewer < 5) this.serverClientSync.changeDrawDelay(0.2);
-			else if (this.sumaNewer < 4) this.serverClientSync.changeDrawDelay(0.5);
-			else if (this.sumaNewer < 3) this.serverClientSync.changeDrawDelay(1);
-			else if (this.sumaNewer < 2) this.serverClientSync.changeDrawDelay(2);
-			else if (this.sumaNewer < 1) this.serverClientSync.changeDrawDelay(3);
+			this.serverClientSync.changeSumaNewer(this.sumaNewer);
 
 			//this.addSumaNewer(this.sumaNewer);
 

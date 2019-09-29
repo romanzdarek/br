@@ -150,11 +150,11 @@ export default class Model {
 		if (this.editor.isActive()) {
 			this.view.drawEditor(this.editor);
 		}
-		if (!this.gameRun) return;
 		//sync
 		if (!this.serverClientSync.ready()) {
-			this.socket.emit('serverClientSync', Date.now());
+			if (Math.random() > 0.9) this.socket.emit('serverClientSync', Date.now());
 		}
+		if (!this.gameRun) return;
 		this.snapshotManager.createBetweenSnapshot();
 		this.view.drawGame(this.playerId);
 	}

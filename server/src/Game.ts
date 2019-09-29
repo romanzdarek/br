@@ -262,6 +262,7 @@ export default class Game {
 			if (bullet.flying()) {
 				bullet.move();
 				bullet.move();
+				bullet.move();
 			}
 			else {
 				this.bullets.splice(i, 1);

@@ -401,12 +401,12 @@ export default class View {
 		}
 		//player
 		{
-			const playerSize = this.mapScreen.width / 20;
+			const playerSize = this.mapScreen.width / 30;
 			const x = this.myPlayer.getCenterX() * sizeReduction;
 			const y = this.myPlayer.getCenterY() * sizeReduction;
 			ctx.beginPath();
 			ctx.arc(x, y, playerSize / 2, 0, 2 * Math.PI);
-			ctx.fillStyle = this.colors.player;
+			ctx.fillStyle = 'red';
 			ctx.fill();
 		}
 		//zone
@@ -742,6 +742,7 @@ export default class View {
 		//water circles
 		ctx.fillStyle = this.colors.waterCircle;
 		for (const waterCircle of this.snapshotManager.waterCircles) {
+			if(!waterCircle.isActive()) continue;
 			waterCircle.flow();
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: waterCircle.getX(),
@@ -954,16 +955,18 @@ export default class View {
 				ctx.arc(x + radius, y + radius, bodyRadius, 0, 2 * Math.PI);
 				ctx.fillStyle = this.colors.player;
 				ctx.fill();
-				//collisionPoints
 				/*
-				ctx.fillStyle = this.colors.collisionPoint;
-				for (const point of this.collisionPoints.body) {
-					const { x, y, size } = this.howToDraw({
-						x: player.getCenterX() + point.x,
-						y: player.getCenterY() + point.y,
-						size: 1
-					});
-					ctx.fillRect(x, y, size, size);
+				//collisionPoints
+				if (this.collisionPoints.isReady()){
+					ctx.fillStyle = this.colors.collisionPoint;
+					for (const point of this.collisionPoints.body) {
+						const { x, y, size } = this.howToDraw({
+							x: player.getCenterX() + point.x,
+							y: player.getCenterY() + point.y,
+							size: 1
+						});
+						ctx.fillRect(x, y, size, size);
+					}
 				}
 				*/
 			}
@@ -1058,18 +1061,20 @@ export default class View {
 					ctx.rotate(player.getHammerAngle() * Math.PI / 180);
 					ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
+					/*
 					if (this.collisionPoints.isReady()) {
 						//collisionPoints
 						ctx.fillStyle = this.colors.collisionPoint;
 						for (const point of this.collisionPoints.hammer[player.getHammerAngle()]) {
 							const { x, y, size } = this.howToDraw({
-								x: player.getCenterX() - 100 + point.x,
-								y: player.getCenterY() - 100 + point.y,
+								x: player.getCenterX() - gunSize / 2 + point.x,
+								y: player.getCenterY() - gunSize / 2 + point.y,
 								size: 1
 							});
 							ctx.fillRect(x, y, size, size);
 						}
 					}
+					*/
 				}
 			}
 
@@ -1101,16 +1106,19 @@ export default class View {
 						ctx.fill();
 						//hand collisionPoints
 						/*
-						ctx.fillStyle = this.colors.collisionPoint;
-						for (const point of this.collisionPoints.hand) {
-							const { x, y, size } = this.howToDraw({
-								x: player.hands[i].getCenterX() + point.x,
-								y: player.hands[i].getCenterY() + point.y,
-								size: 1
-							});
-							ctx.fillRect(x, y, size, size);
+						if (this.collisionPoints.isReady()){
+							ctx.fillStyle = this.colors.collisionPoint;
+							for (const point of this.collisionPoints.hand) {
+								const { x, y, size } = this.howToDraw({
+									x: player.hands[i].getCenterX() + point.x,
+									y: player.hands[i].getCenterY() + point.y,
+									size: 1
+								});
+								ctx.fillRect(x, y, size, size);
+							}
 						}
 						*/
+
 						//granade || smoke || medkit in hand
 						if (
 							(player.getWeapon() === Weapon.Granade ||
@@ -1223,32 +1231,36 @@ export default class View {
 		}
 
 		//bullet points
+		/*
 		ctx.fillStyle = 'red';
 		for (const bullet of betweenSnapshot.b) {
 			//bullet point
+			const bulletRadius = 2;
 			const { x, y, size, isOnScreen } = this.howToDraw({
-				x: bullet.x,
-				y: bullet.y,
-				size: 10
+				x: bullet.x - bulletRadius,
+				y: bullet.y - bulletRadius,
+				size: bulletRadius * 2
 			});
 			if (isOnScreen) {
-				ctx.fillRect(
-					x - 1.5 * this.finalResolutionAdjustment,
-					y - 1.5 * this.finalResolutionAdjustment,
-					size,
-					size
-				);
+				ctx.fillRect(x, y, size, size);
 			}
 		}
+		*/
 
 		this.createBulletLines();
 		//draw bullet lines
 		for (const line of this.bulletLines) {
+			let partCounter = 0;
 			for (const partLine of line.parts) {
+				partCounter++;
+				let baseAlpha = partCounter * 0.05 + 0.1;
+				if (baseAlpha > 0.8) baseAlpha = 0.8;
 				if (partLine.isActive()) {
 					//draw part
 					ctx.save();
-					ctx.globalAlpha = 0.7 - partLine.getAge() / 14.3;
+					let finalAlpha = baseAlpha - partLine.getAge() / 14.3;
+					if (finalAlpha < 0) finalAlpha = 0;
+					ctx.globalAlpha = finalAlpha;
 					ctx.beginPath();
 
 					const { x: startX, y: startY } = this.howToDraw({
