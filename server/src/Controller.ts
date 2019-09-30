@@ -195,7 +195,8 @@ export default class Controller {
 
 			//save map from editor
 			socket.on('editorSaveMap', async (mapName: string, mapData: MapData) => {
-				if (this.model.isNameOk(mapName) && mapData.size >= 5) {
+				//deny++++++++++++
+				if (false && this.model.isNameOk(mapName) && mapData.size >= 5) {
 					const saveDone = await this.editor.saveMap(mapName, mapData);
 					if (saveDone) {
 						socket.emit('mapSaved');

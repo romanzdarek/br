@@ -5,7 +5,7 @@ import Controller from './Controller';
 const express = require('express');
 const app = express();
 //../client/dist, client/dist
-app.use(express.static('../client/dist'));
+app.use(express.static('client/dist'));
 
 //start http server
 const port = 8080;

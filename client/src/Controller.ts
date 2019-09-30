@@ -60,7 +60,7 @@ export class Controller {
 		this.myHtmlElements = new MyHtmlElements();
 		this.canvas = document.getElementsByTagName('canvas')[0];
 		//http://localhost:8080, http://mbr.rostiapp.cz
-		this.socket = io.connect('http://localhost:8080');
+		this.socket = io.connect('http://mbr.rostiapp.cz');
 		this.serverClientSync = new ServerClientSync();
 		this.editor = new Editor(this.myHtmlElements, this.socket);
 		this.model = new Model(this.mouse, this.socket, this.serverClientSync, this.myHtmlElements, this.editor);
