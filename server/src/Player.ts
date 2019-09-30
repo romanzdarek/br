@@ -13,7 +13,6 @@ import { TerrainType } from './Terrain';
 import { Weapon } from './Weapon';
 import * as SocketIO from 'socket.io';
 import CollisionPoints from './CollisionPoints';
-import LootItem from './LootItem';
 import Inventory from './Inventory';
 import Loot from './Loot';
 import Gun from './Gun';

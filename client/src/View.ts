@@ -54,7 +54,6 @@ export default class View {
 	private ctxGame: CanvasRenderingContext2D;
 	private ctxMap: CanvasRenderingContext2D;
 	private ctxEditor: CanvasRenderingContext2D;
-
 	private bushSVG: HTMLImageElement;
 	private rockSVG: HTMLImageElement;
 	private treeSVG: HTMLImageElement;
@@ -73,29 +72,23 @@ export default class View {
 	private loadingProgresSVG: HTMLImageElement;
 	private loadingCircleSVG: HTMLImageElement;
 	private waterTrianglePNG: HTMLImageElement;
-
 	private pistolLootSVG: HTMLImageElement;
 	private shotgunLootSVG: HTMLImageElement;
 	private machinegunLootSVG: HTMLImageElement;
 	private rifleLootSVG: HTMLImageElement;
-
 	private hammerLootSVG: HTMLImageElement;
 	private granadeLootSVG: HTMLImageElement;
 	private smokeLootSVG: HTMLImageElement;
-
 	private redAmmoLootSVG: HTMLImageElement;
 	private greenAmmoLootSVG: HTMLImageElement;
 	private blueAmmoLootSVG: HTMLImageElement;
 	private orangeAmmoLootSVG: HTMLImageElement;
-
 	private medkitLootSVG: HTMLImageElement;
 	private vestLootSVG: HTMLImageElement;
 	private scope2LootSVG: HTMLImageElement;
 	private scope4LootSVG: HTMLImageElement;
 	private scope6LootSVG: HTMLImageElement;
-
 	private deadPlayer: HTMLImageElement;
-
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
 	private finalResolutionAdjustment: number = 1;
@@ -104,21 +97,15 @@ export default class View {
 	private map: Map;
 	private mouse: Mouse;
 	myPlayer: Player;
-
-	private serverClientSync: ServerClientSync;
 	private myHtmlElements: MyHtmlElements;
-
 	private colors: Colors;
 	private bulletLines: BulletLine[] = [];
 	private collisionPoints: CollisionPoints;
-
-	private takeLootText: string = '';
 
 	constructor(
 		map: Map,
 		mouse: Mouse,
 		waterTerrainData: WaterTerrainData,
-		serverClientSync: ServerClientSync,
 		myHtmlElements: MyHtmlElements,
 		collisionPoints: CollisionPoints,
 		snapshotManager: SnapshotManager
@@ -126,7 +113,6 @@ export default class View {
 		this.scope = new Scope();
 		this.snapshotManager = snapshotManager;
 		this.colors = new Colors();
-		this.serverClientSync = serverClientSync;
 		this.myHtmlElements = myHtmlElements;
 		this.map = map;
 		this.collisionPoints = collisionPoints;
@@ -951,7 +937,7 @@ export default class View {
 				ctx.beginPath();
 				ctx.arc(x + radius, y + radius, radius, 0, 2 * Math.PI);
 				let colorVest = this.colors.player;
-				if (this.snapshotManager.betweenSnapshot.i.v) colorVest = this.colors.vest;
+				if (player.getVest()) colorVest = this.colors.vest;
 				ctx.fillStyle = colorVest;
 				ctx.fill();
 				//body

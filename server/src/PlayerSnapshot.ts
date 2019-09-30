@@ -5,8 +5,6 @@ import Pistol from './Pistol';
 import Machinegun from './Machinegun';
 import Shotgun from './Shotgun';
 import Rifle from './Rifle';
-import Granade from './Granade';
-import Smoke from './Smoke';
 import Hammer from './Hammer';
 
 export default class PlayerSnapshot {
@@ -36,6 +34,8 @@ export default class PlayerSnapshot {
 	hSize: number;
 	//damageTaken
 	d?: number;
+	//vest
+	v?: number;
 
 	constructor(player: Player) {
 		this.i = player.id;
@@ -79,5 +79,8 @@ export default class PlayerSnapshot {
 			this.d = player.getDamageTaken();
 			player.nullDamageTaken();
 		}
+
+		if (player.inventory.vest) this.v = 1;
+		else this.v = 0;
 	}
 }

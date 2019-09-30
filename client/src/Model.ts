@@ -1,11 +1,9 @@
-import { Keys, Mouse } from './Controller';
+import { Mouse } from './Controller';
 import Socket from './Socket';
 import View from './View';
-import Player from './Player';
 import Map from './Map';
 import WaterTerrainData from './WaterTerrainData';
 import ServerClientSync from './ServerClientSync';
-import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
 import CollisionPoints from './CollisionPoints';
@@ -20,7 +18,6 @@ export default class Model {
 	view: View;
 	private socket: Socket;
 	private waterTerrainData: WaterTerrainData;
-	private keys: Keys;
 	private mouse: Mouse;
 	map: Map;
 	private serverClientSync: ServerClientSync;
@@ -30,7 +27,6 @@ export default class Model {
 	collisionPoints: CollisionPoints;
 
 	constructor(
-		keys: Keys,
 		mouse: Mouse,
 		socket: Socket,
 		serverClientSync: ServerClientSync,
@@ -42,7 +38,6 @@ export default class Model {
 		this.waterTerrainData = new WaterTerrainData();
 		this.map = new Map(this.waterTerrainData);
 		this.snapshotManager = new SnapshotManager(serverClientSync, this.map);
-		this.keys = keys;
 		this.mouse = mouse;
 		this.myHtmlElements = myHtmlElements;
 		this.editor = editor;
@@ -51,7 +46,6 @@ export default class Model {
 			this.map,
 			this.mouse,
 			this.waterTerrainData,
-			this.serverClientSync,
 			this.myHtmlElements,
 			this.collisionPoints,
 			this.snapshotManager

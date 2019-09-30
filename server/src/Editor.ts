@@ -1,7 +1,6 @@
 import MapData from './MapData';
 //node modules
 import * as fs from 'fs';
-import * as path from 'path';
 
 export default class Editor {
 	constructor() {}

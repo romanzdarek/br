@@ -1,6 +1,5 @@
 import { Player } from './Player';
 import { LootType } from './LootType';
-import Loot from './Loot';
 import Map from './Map';
 import RectangleObstacle from './RectangleObstacle';
 import RoundObstacle from './RoundObstacle';

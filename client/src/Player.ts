@@ -15,6 +15,7 @@ export default class Player {
 	readonly hands: Hand[] = [];
 	private weapon: Weapon;
 	readonly bloods: Blood[] = [];
+	private vest: boolean = false;
 
 	constructor(playerSnapshot: PlayerSnapshot) {
 		this.id = playerSnapshot.i;
@@ -34,6 +35,14 @@ export default class Player {
 		for (let i = 0; i < power / powerToBlood; i++) {
 			this.bloods.push(new Blood());
 		}
+	}
+
+	getVest(): boolean {
+		return this.vest;
+	}
+	
+	setVest(vest: boolean): void {
+		this.vest = vest;
 	}
 
 	die(): void {

@@ -1,4 +1,4 @@
-import { Terrain, TerrainType } from './Terrain';
+import { Terrain } from './Terrain';
 import Bush from './Bush';
 import Tree from './Tree';
 import Rock from './Rock';

@@ -112,7 +112,7 @@ export default class SnapshotManager {
 			if (!waterCircle.isActive()) this.waterCircles.splice(i, 1);
 		}
 
-		//blood animate
+		//blood animate + vest
 		if (snapshot.p) {
 			for (const playerSnapshot of snapshot.p) {
 				if (playerSnapshot.d) {
@@ -120,6 +120,18 @@ export default class SnapshotManager {
 						for (const player of this.players) {
 							if (player.id === playerSnapshot.i) {
 								player.createInjury(playerSnapshot.d);
+								break;
+							}
+						}
+					}, updateDelay);
+				}
+				if (playerSnapshot.hasOwnProperty('v')) {
+					setTimeout(() => {
+						for (const player of this.players) {
+							if (player.id === playerSnapshot.i) {
+								let vest = false;
+								if (playerSnapshot.v === 1) vest = true;
+								player.setVest(vest);
 								break;
 							}
 						}

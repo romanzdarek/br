@@ -26,4 +26,6 @@ export default interface PlayerSnapshot {
 	hSize?: number;
 	//damageTaken
 	d?: number;
+	//vest
+	v?: number;
 };

@@ -14,7 +14,6 @@ export default class Hand {
 	private hitTimer: number = 0;
 	private throwTimer: number = 0;
 	private throwTimerReady: number = -5;
-	private inAction: boolean = false;
 	private map: Map;
 	private player: Player;
 	private players: Player[];
@@ -243,7 +242,6 @@ export default class Hand {
 
 	hit(): void {
 		this.hitTimer = 20;
-		this.inAction = true;
 		this.hitObjects = [];
 	}
 

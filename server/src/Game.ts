@@ -15,23 +15,14 @@ import * as SocketIO from 'socket.io';
 import SmokeCloudSnapshot from './SmokeCloudSnapshot';
 import ThrowingObject from './ThrowingObject';
 import ZoneSnapshot from './ZoneSnapshot';
-import RoundObstacle from './RoundObstacle';
-import RectangleObstacle from './RectangleObstacle';
-import Point from './Point';
 import MapData from './MapData';
 import LootSnapshot from './LootSnapshot';
 import Snapshot from './Snapshot';
-import Pistol from './Pistol';
-import Machinegun from './Machinegun';
-import Shotgun from './Shotgun';
-import Rifle from './Rifle';
-import Hammer from './Hammer';
 import Loot from './Loot';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import PlayerFactory from './PlayerFactory';
 import BulletFactory from './BulletFactory';
 import ObstacleSnapshot from './ObstacleSnapshot';
-import PlayerStats from './PlayerStats';
 import WaterCircleSnapshot from './WaterCircleSnapshot';
 
 export default class Game {
@@ -356,6 +347,7 @@ export default class Game {
 						if (playerNow.w === playerBefore.w) delete playerNow.w;
 						if (playerNow.size === playerBefore.size) delete playerNow.size;
 						if (playerNow.l === playerBefore.l) delete playerNow.l;
+						if (playerNow.v === playerBefore.v) delete playerNow.v;
 						//hands
 						if (playerNow.hSize === playerBefore.hSize) delete playerNow.hSize;
 						if (playerNow.lX === playerBefore.lX) delete playerNow.lX;
@@ -382,7 +374,8 @@ export default class Game {
 				!player.hasOwnProperty('rX') &&
 				!player.hasOwnProperty('rY') &&
 				!player.hasOwnProperty('l') &&
-				!player.hasOwnProperty('d')
+				!player.hasOwnProperty('d') &&
+				!player.hasOwnProperty('v')
 			) {
 				playerSnapshotsOptimalization.splice(i, 1);
 			}
@@ -460,10 +453,6 @@ export default class Game {
 				player.nullWaterCircleTimer();
 				waterCircles.push(new WaterCircleSnapshot(player.getCenterX(), player.getCenterY()));
 			}
-		}
-
-		if (waterCircles.length) {
-			console.log(waterCircles);
 		}
 
 		//save this snapshot

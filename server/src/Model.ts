@@ -6,8 +6,6 @@ import MapData from './MapData';
 //node modules
 import * as fs from 'fs';
 import * as path from 'path';
-import { Socket } from 'dgram';
-import { Player } from './Player';
 
 export default class Model {
 	private io: SocketIO.Server;

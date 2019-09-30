@@ -1,8 +1,6 @@
 import { Weapon } from './Weapon';
 import Gun from './Gun';
 import Hammer from './Hammer';
-import Granade from './Granade';
-import ThrowingObject from './ThrowingObject';
 import Loot from './Loot';
 import { LootType } from './LootType';
 import Pistol from './Pistol';

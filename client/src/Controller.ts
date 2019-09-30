@@ -4,9 +4,7 @@ import ServerClientSync from './ServerClientSync';
 import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
-import CollisionPoints from './CollisionPoints';
 import Point from './Point';
-import { Weapon } from './Weapon';
 import OpenGame from './OpenGame';
 import MapData from './MapData';
 import PlayerStats from './PlayerStats';
@@ -61,18 +59,11 @@ export class Controller {
 	private constructor() {
 		this.myHtmlElements = new MyHtmlElements();
 		this.canvas = document.getElementsByTagName('canvas')[0];
-		//http://localhost:8080 // 'http://mbr.rostiapp.cz'
-		this.socket = io.connect('http://mbr.rostiapp.cz');
+		//http://localhost:8080, http://mbr.rostiapp.cz
+		this.socket = io.connect('http://localhost:8080');
 		this.serverClientSync = new ServerClientSync();
 		this.editor = new Editor(this.myHtmlElements, this.socket);
-		this.model = new Model(
-			this.keys,
-			this.mouse,
-			this.socket,
-			this.serverClientSync,
-			this.myHtmlElements,
-			this.editor
-		);
+		this.model = new Model(this.mouse, this.socket, this.serverClientSync, this.myHtmlElements, this.editor);
 		window.addEventListener('resize', () => {
 			this.model.view.screenResize();
 			const event = new Event('mousemove');

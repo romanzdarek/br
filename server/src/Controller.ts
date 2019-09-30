@@ -115,15 +115,6 @@ export default class Controller {
 				}
 			});
 
-			/*
-			socket.on('sendMap', () => {
-				const map = this.model.loadMap('mainMap');
-				if (map) {
-					socket.emit('sendMap', map);
-				}
-			});
-			*/
-
 			socket.on('disconnect', () => {
 				console.log(socket.id, 'disconnect');
 				for (let i = 0; i < this.model.games.length; i++) {
@@ -149,19 +140,6 @@ export default class Controller {
 			socket.on('serverClientSync', (clientDateNow) => {
 				socket.emit('serverClientSync', clientDateNow, Date.now());
 			});
-
-			//create player
-			/*
-			socket.on('createPlayer', (name: string, game: number) => {
-				if (name && this.model.games[game]) {
-					const id = this.model.games[game].createPlayer(name, socket);
-					socket.emit('createPlayer', id, name);
-				}
-				else {
-					console.log('Error: createPlayer');
-				}
-			});
-			*/
 
 			//'c' === controll player
 			socket.on('c', (game: number, key: string) => {

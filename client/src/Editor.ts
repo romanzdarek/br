@@ -1,6 +1,5 @@
 import { Terrain, TerrainType } from './Terrain';
 import MyHtmlElements from './MyHtmlElements';
-import { Mouse } from './Controller';
 import Bush from './Bush';
 import Rock from './Rock';
 import Tree from './Tree';
@@ -20,7 +19,6 @@ export default class Editor {
 	private x: number;
 	private y: number;
 	private active: boolean = false;
-	private name: string;
 	private size: number;
 	readonly blockSize: number = 300;
 	terrains: Terrain[] = [];
@@ -28,7 +26,6 @@ export default class Editor {
 	rocks: Rock[] = [];
 	trees: Tree[] = [];
 	walls: Wall[] = [];
-	private objects: any[] = [];
 	private myHtmlElements: MyHtmlElements;
 	private socket: Socket;
 	private colors: Colors;
