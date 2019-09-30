@@ -367,7 +367,7 @@ export default class View {
 			});
 		}
 		else {
-			console.log("Your browser doesn't support web workers.");
+			console.log("err: Your browser doesn't support web workers.");
 		}
 	}
 
@@ -1279,15 +1279,13 @@ export default class View {
 					ctx.strokeStyle = 'white';
 					ctx.stroke();
 					ctx.restore();
-
 					/*
 					//test
 					if (Math.abs(startX - endX) > 100 || Math.abs(startY - endY) > 100) {
 						console.log('partLine', partLine);
-						debugger;
+						//debugger;
 					}
 					*/
-
 					partLine.increaseAge();
 				}
 			}

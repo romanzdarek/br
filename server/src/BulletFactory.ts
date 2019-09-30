@@ -6,7 +6,7 @@ import Granade from './Granade';
 import Bush from './Bush';
 import Bullet from './Bullet';
 
-export default class BulletFactory {
+export default class  BulletFactory {
 	private bulletId: number = 0;
 
 	createBullet(player: Player, gun: Gun, map: Map, players: Player[], shiftAngle: number = 0): Bullet {

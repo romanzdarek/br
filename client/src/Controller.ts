@@ -248,7 +248,7 @@ export class Controller {
 				this.model.setName(name);
 			}
 			else {
-				console.log('error created player');
+				console.log('err: created player');
 			}
 		});
 
@@ -342,68 +342,79 @@ export class Controller {
 
 	private keysController(): void {
 		document.addEventListener('keydown', (e: KeyboardEvent) => {
-			if (e.code === 'Escape') {
+			//esc
+			if (e.which === 27) {
 				if (this.model.gameActive() || this.model.getSpectate()) {
 					this.myHtmlElements.escFromGameMenu.main.style.display = 'block';
 				}
 			}
 			if (!this.model.gameActive()) return;
-			switch (e.code) {
-				case 'KeyW':
+			//w
+			switch (e.which) {
+				case 87:
 					if (!this.keys.w) this.socket.emit('c', this.model.getGameId(), 'u');
 					this.keys.w = true;
 					break;
-				case 'KeyA':
+				//a
+				case 65:
 					if (!this.keys.a) this.socket.emit('c', this.model.getGameId(), 'l');
 					this.keys.a = true;
-
 					break;
-				case 'KeyS':
+				//s
+				case 83:
 					if (!this.keys.s) this.socket.emit('c', this.model.getGameId(), 'd');
 					this.keys.s = true;
 
 					break;
-				case 'KeyD':
+				//d
+				case 68:
 					if (!this.keys.d) this.socket.emit('c', this.model.getGameId(), 'r');
 					this.keys.d = true;
 					break;
-
-				case 'KeyE':
+				//e
+				case 69:
 					if (!this.keys.e) this.socket.emit('c', this.model.getGameId(), 'e');
 					this.keys.e = true;
 					break;
-
-				case 'KeyR':
+				//r
+				case 82:
 					if (!this.keys.e) this.socket.emit('c', this.model.getGameId(), 're');
 					this.keys.r = true;
 					break;
-
-				case 'Digit0':
+				//0
+				case 48:
 					this.socket.emit('i', this.model.getGameId(), 0);
 					break;
-
-				case 'Digit1':
+				//1
+				case 49:
 					this.socket.emit('i', this.model.getGameId(), 1);
 					break;
-				case 'Digit2':
+				//2
+				case 50:
 					this.socket.emit('i', this.model.getGameId(), 2);
 					break;
-				case 'Digit3':
+				//3
+				case 51:
 					this.socket.emit('i', this.model.getGameId(), 3);
 					break;
-				case 'Digit4':
+				//4
+				case 52:
 					this.socket.emit('i', this.model.getGameId(), 4);
 					break;
-				case 'Digit5':
+				//5
+				case 53:
 					this.socket.emit('i', this.model.getGameId(), 5);
 					break;
-				case 'Digit6':
+				//6
+				case 54:
 					this.socket.emit('i', this.model.getGameId(), 6);
 					break;
-				case 'Digit7':
+				//7
+				case 55:
 					this.socket.emit('i', this.model.getGameId(), 7);
 					break;
-				case 'Digit8':
+				//8
+				case 56:
 					this.socket.emit('i', this.model.getGameId(), 8);
 					break;
 			}
@@ -411,27 +422,33 @@ export class Controller {
 
 		document.addEventListener('keyup', (e: KeyboardEvent) => {
 			if (!this.model.gameActive()) return;
-			switch (e.code) {
-				case 'KeyW':
+			switch (e.which) {
+				//w
+				case 87:
 					if (this.keys.w) this.socket.emit('c', this.model.getGameId(), '-u');
 					this.keys.w = false;
 					break;
-				case 'KeyA':
+				//a
+				case 65:
 					if (this.keys.a) this.socket.emit('c', this.model.getGameId(), '-l');
 					this.keys.a = false;
 					break;
-				case 'KeyS':
+				//s
+				case 83:
 					if (this.keys.s) this.socket.emit('c', this.model.getGameId(), '-d');
 					this.keys.s = false;
 					break;
-				case 'KeyD':
+				//d
+				case 68:
 					if (this.keys.d) this.socket.emit('c', this.model.getGameId(), '-r');
 					this.keys.d = false;
 					break;
-				case 'KeyE':
+				//e
+				case 69:
 					this.keys.e = false;
 					break;
-				case 'KeyR':
+				//r
+				case 82:
 					this.keys.r = false;
 					break;
 			}

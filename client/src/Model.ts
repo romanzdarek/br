@@ -133,7 +133,6 @@ export default class Model {
 
 	setPlayerId(playerId: number): void {
 		this.playerId = playerId;
-		console.log('playerId:', playerId);
 	}
 
 	gameStart(): void {

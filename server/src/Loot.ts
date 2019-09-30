@@ -149,10 +149,10 @@ export default class Loot {
 		const gap = 2 * loot.size;
 		const lootSize = loot.size + gap;
 		if (
-			x + width >= loot.getX() - lootSize &&
 			x <= loot.getX() + lootSize &&
-			loot.getY() + lootSize >= y &&
-			loot.getY() - lootSize <= y + height
+			x + width >= loot.getX() &&
+			y <= loot.getY() + lootSize &&
+			y + height >= loot.getY()
 		) {
 			return true;
 		}
@@ -163,7 +163,6 @@ export default class Loot {
 
 	//loot balancer
 	createMainLootItems(players: number): void {
-		
 		for (let i = 0; i < players; i++) {
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Rifle, 5);

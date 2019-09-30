@@ -149,9 +149,21 @@ export default class LootItem {
 			objectCenterY = object.getCenterY();
 		}
 		else if (object instanceof RectangleObstacle) {
-			objectRadius = object.width / 2;
-			objectCenterX = object.x + object.width / 2;
-			objectCenterY = object.y + object.height / 2;
+			//rectangle rectangle
+			//loot + gap
+			const gap = 10;
+			//rectangle loot in rectangle wall
+			if (
+				this.x - gap <= object.x + object.width &&
+				this.x + this.size + gap >= object.x &&
+				this.y - gap <= object.y + object.height &&
+				this.y + this.size + gap >= object.y
+			) {
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 		const x = this.getCenterX() - objectCenterX;
 		const y = this.getCenterY() - objectCenterY;

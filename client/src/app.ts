@@ -1,3 +1,3 @@
 import { Controller } from './Controller';
 Controller.run();
-console.log('Version: 1.4');
+console.log('Version: 1.0.0');

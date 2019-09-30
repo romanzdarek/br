@@ -28,12 +28,6 @@ export default abstract class RectangleObstacle {
 		this.changed = false;
 	}
 
-	/*
-	getChangedData(): any {
-		return { id: this.id, opacity: this.opacity };
-	}
-	*/
-
 	isPointIn(point: Point): boolean {
 		const { x, y } = point;
 		if (x < this.x + this.width && x >= this.x && y >= this.y && y < this.y + this.height) {
