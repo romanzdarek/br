@@ -61,7 +61,7 @@ export class Controller {
 	private constructor() {
 		this.myHtmlElements = new MyHtmlElements();
 		this.canvas = document.getElementsByTagName('canvas')[0];
-		//http://192.168.0.2:8080 // 'http://mbr.rostiapp.cz'
+		//http://localhost:8080 // 'http://mbr.rostiapp.cz'
 		this.socket = io.connect('http://mbr.rostiapp.cz');
 		this.serverClientSync = new ServerClientSync();
 		this.editor = new Editor(this.myHtmlElements, this.socket);
@@ -84,6 +84,13 @@ export class Controller {
 			// Chrome requires returnValue to be set.
 			e.returnValue = '';
 		});
+		//itnetwork
+		this.myHtmlElements.itNetwork.addEventListener('click', () => {
+			this.myHtmlElements.itNetwork.style.display = 'none';
+		});
+		setTimeout(() => {
+			this.myHtmlElements.itNetwork.style.display = 'none';
+		}, 4000);
 		this.keysController();
 		this.mouseController();
 		this.socketController();

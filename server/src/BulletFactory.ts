@@ -1,9 +1,7 @@
 import Map from './Map';
-import Point from './Point';
 import { Player } from './Player';
 import Gun from './Gun';
 import Granade from './Granade';
-import Bush from './Bush';
 import Bullet from './Bullet';
 
 export default class  BulletFactory {

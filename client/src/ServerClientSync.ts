@@ -29,14 +29,14 @@ export default class ServerClientSync {
 		if (sumaNewer === 0) {
 			this.lags++;
 			this.lastLagTime = Date.now();
-			console.log('lag');
+			//console.log('lag');
 		}
 		//more NewerSnapshots
 		if (this.lags === this.maxLags) {
 			if (this.wantedSumaNewerSnapshots < this.maxWantedSumaNewerSnapshots) {
 				this.wantedSumaNewerSnapshots++;
-				console.clear();
-				console.log('wantedSumaNewerSnapshots', this.wantedSumaNewerSnapshots);
+				//console.clear();
+				//console.log('wantedSumaNewerSnapshots', this.wantedSumaNewerSnapshots);
 				this.lags = 0;
 			}
 		}
@@ -47,8 +47,8 @@ export default class ServerClientSync {
 				this.wantedSumaNewerSnapshots--;
 				this.lags = 0;
 				this.lastLagTime = Date.now();
-				console.clear();
-				console.log('wantedSumaNewerSnapshots', this.wantedSumaNewerSnapshots);
+				//console.clear();
+				//console.log('wantedSumaNewerSnapshots', this.wantedSumaNewerSnapshots);
 			}
 		}
 

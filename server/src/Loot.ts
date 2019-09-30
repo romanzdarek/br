@@ -1,10 +1,8 @@
 import LootItem from './LootItem';
 import { LootType } from './LootType';
-import Point from './Point';
 import Map from './Map';
 import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
-import { Weapon } from './Weapon';
 
 export default class Loot {
 	private map: Map;
@@ -163,7 +161,9 @@ export default class Loot {
 
 	//loot balancer
 	createMainLootItems(players: number): void {
+
 		for (let i = 0; i < players; i++) {
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Rifle, 5);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Shotgun, 2);

@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 class ZoneCircle {
     constructor(centerX, centerY, radius) {
         this.step = 0;
-        this.steps = 300;
+        this.steps = 600;
         this.shiftCenterX = 0;
         this.shiftCenterY = 0;
         this.radiusChange = 0;

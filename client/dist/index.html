@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<!--http://mbr.rostiapp.cz/socket.io/socket.io.js   http://192.168.0.2:8080/socket.io/socket.io.js-->
+	<!--http://mbr.rostiapp.cz/socket.io/socket.io.js   http://localhost:8080/socket.io/socket.io.js-->
 	<script src="http://mbr.rostiapp.cz/socket.io/socket.io.js"></script>
 	<title>Mini battle royale</title>
 	<style>
@@ -18,6 +18,13 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+		}
+		a{
+			color:black;
+			transition: color 0.4s;
+		}
+		a:hover{
+			color:white;
 		}
 		h1{
 			text-align: center;
@@ -99,12 +106,12 @@
 			border: 3px solid #6B6B6B;
 			background: silver;
 			width: 300px;
-			height: 300px;
+			height: 320px;
 			position: absolute;
 			top: 50%;
 			left: 50%;
 			margin-left: -150px;
-			margin-top: -150px;
+			margin-top: -160px;
 			padding: 20px;
 			display: none;
 			z-index: 10;
@@ -135,6 +142,7 @@
 			background: silver;
 			overflow: scroll;
 			z-index: 9;
+			padding: 10px;
 		}
 		#editorScreenContainer{
 			width: 85%;
@@ -146,11 +154,15 @@
 			background: white;
 			z-index: 9;
 		}
+		#editorCoordinates{
+			font-size: 120%;
+			padding-bottom: 20px;
+		}
 		#editorMenuContainer img{
-			width: 100px;
-			height: 100px;
+			width: 80px;
+			height: 80px;
 			background:#A2CB69;
-			border: 1px solid gray;
+			border: 2px solid gray;
 		}
 		#editorMenuContainer img:hover{
 			border-color: red !important;
@@ -216,12 +228,6 @@
 			top:23%;
 			left:50%;
 			margin-left: -150px;
-
-
-			/*
-			background:olivedrab;
-			Z-index: 100;
-			*/
 		}
 		#loading{
 			width:80px;
@@ -230,12 +236,6 @@
 			margin: 0 auto;
 			display: block;
 			visibility: hidden;
-
-			/*
-			display: block;
-			background: pink;
-			Z-index: 100;
-			*/
 		}
 		#loadingText, #takeLoot{
 			font-size: 200%;
@@ -431,6 +431,22 @@
 			padding: 7px;
 			color:white;
 		}
+		#itnetwork{
+			position:absolute;
+			top:50%;
+			left:50%;
+			z-index:100;
+			width: 1280px;
+			height:720px;
+			margin-left: -640px;
+			margin-top: -360px;
+			display: block;
+			background:#424242;
+		}
+		p.itnetwork{
+			font-size:95%;
+			text-align: center;
+		}
 		@media screen and (max-width: 1400px), screen and (max-height: 700px) {
 			#alive{
 				top:10px;
@@ -549,6 +565,12 @@
 				line-height: 25px;
 				height:25px;
 			}
+			#itnetwork{
+				width: 640px;
+				height:360px;
+				margin-left: -320px;
+				margin-top: -180px;
+			}
 		}
 		@media screen and (max-width:500px) {
 			#zoneTimer{
@@ -572,6 +594,7 @@
 	</style>
 </head>
 <body>
+	<img src="img/summer2019_en.jpg" alt="itnetwork summer 2019" id="itnetwork" />
 	<canvas id="gameScreen" width="1" height="1"></canvas>
 	<svg id="zoneSVG" width="0" height="0">
 		<mask id="maskSVG">
@@ -586,8 +609,8 @@
 
 
 	<div id="topItems">
-		<div id="scope"><img id="scope2" src="img/scopeTop2.svg"><img id="scope4" src="img/scopeTop4.svg"><img id="scope6" src="img/scopeTop6.svg"></div>
-		<div id="vest"><img src="img/vestTop.svg"></div>
+		<div id="scope"><img id="scope2" alt="scope" src="img/scopeTop2.svg"><img id="scope4" alt="scope" src="img/scopeTop4.svg"><img id="scope6" alt="scope" src="img/scopeTop6.svg"></div>
+		<div id="vest"><img src="img/vestTop.svg" alt="scope"></div>
 	</div>
 
 	<div id="messages"></div>
@@ -622,24 +645,8 @@
 
 	<div class="infoBox">
 		<svg id="loading" viewBox="0 0 36 36">
-				<path opacity="0.3"
-				d="M18 2.0845
-					a 15.9155 15.9155 0 0 1 0 31.831
-					a 15.9155 15.9155 0 0 1 0 -31.831"
-				fill="none"
-				stroke="black";
-				stroke-width="2";
-				stroke-dasharray="100, 100"
-				/>
-			<path id="loadingCircle"
-				d="M18 2.0845
-				a 15.9155 15.9155 0 0 1 0 31.831
-				a 15.9155 15.9155 0 0 1 0 -31.831"
-				fill="none"
-				stroke="white";
-				stroke-width="2";
-				stroke-dasharray="95, 100"
-			/>
+			<path opacity="0.3" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="black" stroke-width="2" stroke-dasharray="100, 100"/>
+			<path id="loadingCircle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="white" stroke-width="2" stroke-dasharray="95, 100"/>
 			<text id="loadingCounter" x="8" y="23" fill="white" font-family="Sans-serif" font-size="14"></text>
 		</svg>
 		<div id="loadingText"></div>
@@ -654,7 +661,6 @@
 	
 	<div class="menu" id="mainMenu">
 		<h1>Mini battle royale</h1>
-		<!--<p id="mainMenuIp">+</p>-->
 		<input id="mainMenuName" type="text" maxlength="12" placeholder="Write your name" value="" autocomplete="off" autofocus>
 		<div class ="join">
 			<h2>Join</h2>
@@ -668,10 +674,11 @@
 		</div>
 		<button id="mainMenuOpenEditor">Map editor</button>
 		<button id="mainMenuControls">Game controls</button>
+		<p class="itnetwork">Made for <a href="https://www.itnetwork.cz/programovani/programatorske-souteze/itnetwork-summer-2019">competition</a> at <a href="https://www.itnetwork.cz/">itnetwork.cz</a>.</p>
 	</div>
 
 	<div class="menu" id="lobbyMenu">
-		<h1 id="lobbyMenuGameName"></h1>
+		<h1 id="lobbyMenuGameName">Game name</h1>
 		<ul id="lobbyMenuPlayers"></ul>
 		<div id="lobbyMenuForJoinPlayer">
 			<p>Waiting for players...</p>
@@ -781,24 +788,26 @@
 
 	<div id="editorContainer">
 		<div id="editorMenuContainer">
-			<button id="editorOpenMenu">Editor menu</button>
 			<div id="editorCoordinates"></div>
+			<button id="editorOpenMenu">Editor menu</button>
+			<h2>Terrain</h2>
 			<div id="editorTerrainImgs">
-				<img id="terrainWater" src="img/water.png">
-				<img id="terrainGrass" src="img/grass.png">
-				<img id="terrainWaterTriangle3" src="img/waterTriangle.png">
-				<img id="terrainWaterTriangle4" src="img/waterTriangle.png">
-				<img id="terrainWaterTriangle2" src="img/waterTriangle.png">
-				<img id="terrainWaterTriangle1" src="img/waterTriangle.png">
+				<img id="terrainWater" alt="water" src="img/water.png">
+				<img id="terrainGrass" alt="grass" src="img/grass.png">
+				<img id="terrainWaterTriangle3" alt="water triangel" src="img/waterTriangle.png">
+				<img id="terrainWaterTriangle4" alt="water triangel" src="img/waterTriangle.png">
+				<img id="terrainWaterTriangle2" alt="water triangel" src="img/waterTriangle.png">
+				<img id="terrainWaterTriangle1" alt="water triangel" src="img/waterTriangle.png">
 			</div>
+			<h2>Objects</h2>
 			<div id="editorObjectImgs">
-				<img id="editorObjectBush" src="img/bush.svg">
-				<img id="editorObjectRock" src="img/rock.svg">
-				<img id="editorObjectTree" src="img/tree.svg">
+				<img id="editorObjectBush" alt="bush" src="img/bush.svg">
+				<img id="editorObjectRock" alt="rock" src="img/rock.svg">
+				<img id="editorObjectTree" alt="tree" src="img/tree.svg">
 				<!--<img id="editorObjectRect" src="img/rect.png">-->
-				<img id="editorObjectVerticalWall" src="img/verticalWall.svg">
-				<img id="editorObjectHorizontalWall" src="img/horizontalWall.svg">
-				<img id="editorObjectDelete" src="img/delete.png">
+				<img id="editorObjectVerticalWall" alt="wall" src="img/verticalWall.svg">
+				<img id="editorObjectHorizontalWall" alt="wall" src="img/horizontalWall.svg">
+				<img id="editorObjectDelete" alt="delete" src="img/delete.png">
 			</div>
 		</div>
 		<div id="editorScreenContainer">

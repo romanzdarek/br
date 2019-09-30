@@ -11,17 +11,13 @@ import Rock from './Rock';
 import Bush from './Bush';
 import Wall from './Wall';
 import ServerClientSync from './ServerClientSync';
-import { Snapshot } from './Snapshot';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
 import Colors from './Colors';
 import BulletLine from './BulletLine';
-import PartBulletLine from './PartBulletLine';
 import CollisionPoints from './CollisionPoints';
 import Point from './Point';
-import ZoneSnapshot from './ZoneSnapshot';
 import SnapshotManager from './SnapshotManager';
-import { PlayerOld } from './PlayerOld';
 import { LootType } from './LootType';
 import Scope from './Scope';
 import PlayerStats from './PlayerStats';
@@ -245,13 +241,18 @@ export default class View {
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
 
 		this.waterTerrainData = waterTerrainData;
+
+		/*
+		//water data
 		this.waterTrianglePNG.onload = () => {
 			this.saveWaterPixels(TerrainType.WaterTriangle1);
 			this.saveWaterPixels(TerrainType.WaterTriangle2);
 			this.saveWaterPixels(TerrainType.WaterTriangle3);
 			this.saveWaterPixels(TerrainType.WaterTriangle4);
-			//this.waterTerrainData.write();
+			this.waterTerrainData.write();
 		};
+		*/
+
 		this.screenResize();
 	}
 
@@ -616,8 +617,12 @@ export default class View {
 				ctx.drawImage(this.treeSVG, deleteObject.x, deleteObject.y, deleteObject.size, deleteObject.size);
 			}
 			if (deleteObject instanceof Wall) {
-				ctx.fillStyle = 'black';
 				ctx.fillRect(deleteObject.x, deleteObject.y, deleteObject.width, deleteObject.height);
+				let wallSVG = this.verticalWallSVG;
+				if (deleteObject.width > deleteObject.height) {
+					wallSVG = this.horizontalWallSVG;
+				}
+				ctx.drawImage(wallSVG, deleteObject.x, deleteObject.y, deleteObject.width, deleteObject.height);
 			}
 		}
 
@@ -1256,36 +1261,35 @@ export default class View {
 				let baseAlpha = partCounter * 0.05 + 0.1;
 				if (baseAlpha > 0.8) baseAlpha = 0.8;
 				if (partLine.isActive()) {
-					//draw part
-					ctx.save();
 					let finalAlpha = baseAlpha - partLine.getAge() / 14.3;
 					if (finalAlpha < 0) finalAlpha = 0;
-					ctx.globalAlpha = finalAlpha;
-					ctx.beginPath();
-
 					const { x: startX, y: startY } = this.howToDraw({
 						x: partLine.startX,
 						y: partLine.startY,
 						size: 1
 					});
-					ctx.moveTo(startX, startY);
 					const { x: endX, y: endY } = this.howToDraw({
 						x: partLine.endX,
 						y: partLine.endY,
 						size: 1
 					});
-					ctx.lineTo(endX, endY);
-					ctx.lineWidth = (6 - partLine.getAge() / 3.33) * this.finalResolutionAdjustment;
-					ctx.strokeStyle = 'white';
-					ctx.stroke();
-					ctx.restore();
-					/*
-					//test
+					//bug long bullet lines
 					if (Math.abs(startX - endX) > 100 || Math.abs(startY - endY) > 100) {
+						console.log('err: bullet lines');
 						console.log('partLine', partLine);
-						//debugger;
 					}
-					*/
+					else {
+						//draw part
+						ctx.save();
+						ctx.globalAlpha = finalAlpha;
+						ctx.beginPath();
+						ctx.moveTo(startX, startY);
+						ctx.lineTo(endX, endY);
+						ctx.lineWidth = (6 - partLine.getAge() / 3.33) * this.finalResolutionAdjustment;
+						ctx.strokeStyle = 'white';
+						ctx.stroke();
+						ctx.restore();
+					}
 					partLine.increaseAge();
 				}
 			}

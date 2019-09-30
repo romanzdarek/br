@@ -1,13 +1,12 @@
 import Map from './Map';
 import ZoneCircle from './ZoneCircle';
-import Point from './Point';
 import { Player } from './Player';
 
 export default class Zone {
 	innerCircle: ZoneCircle;
 	outerCircle: ZoneCircle;
 	createZoneTime: number | null = null;
-	moveZoneDelay: number = 1000 * 60;
+	moveZoneDelay: number = 1000 * 45;
 	private damage: number = 0.1;
 	private damageIncrease: number = 0.01;
 

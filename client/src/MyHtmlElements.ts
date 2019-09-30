@@ -17,6 +17,7 @@ export default class MyHtmlElements {
 	readonly spectate: HTMLElement;
 	readonly spectateName: HTMLElement;
 	readonly hideGame: HTMLElement;
+	readonly itNetwork: HTMLElement;
 
 	//<div id="healthBar"><div id="healthBarIn"></div></div>
 	readonly healthBar = {
@@ -317,6 +318,7 @@ export default class MyHtmlElements {
 		this.spectate = document.getElementById('spectate');
 		this.spectateName = document.getElementById('spectateName');
 		this.hideGame = document.getElementById('hideGame');
+		this.itNetwork = document.getElementById('itnetwork');
 	}
 
 	close(...elements: HTMLElement[]): void {

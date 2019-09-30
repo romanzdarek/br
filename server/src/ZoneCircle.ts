@@ -3,7 +3,7 @@ export default class ZoneCircle {
 	private centerY: number;
 	private radius: number;
 	private step: number = 0;
-	private steps: number = 300;
+	private steps: number = 600;
 	private shiftCenterX: number = 0;
 	private shiftCenterY: number = 0;
 	private radiusChange: number = 0;

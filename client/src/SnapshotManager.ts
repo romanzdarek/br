@@ -5,8 +5,6 @@ import PlayerSnapshot from './PlayerSnapshot';
 import Zone from './Zone';
 import ZoneSnapshot from './ZoneSnapshot';
 import LootSnapshot from './LootSnapshot';
-import { Weapon } from './Weapon';
-import ObstacleSnapshot from './ObstacleSnapshot';
 import Map from './Map';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import Message from './Message';
@@ -21,12 +19,11 @@ export default class SnapshotManager {
 	players: Player[] = [];
 	zone: Zone;
 	waterCircles: WaterCircle[] = [];
-	private numberOfPlayers: number;
-
 	newerExists: boolean = false;
 	olderExists: boolean = false;
 	sumaNewer: number = 0;
 	private averageSumaNewer: number[] = [];
+	private beforeSnapshotForTestBullets: Snapshot;
 
 	constructor(serverClientSync: ServerClientSync, map: Map) {
 		this.serverClientSync = serverClientSync;
@@ -51,6 +48,7 @@ export default class SnapshotManager {
 		this.snapshots.splice(0, this.snapshots.length);
 		this.players.splice(0, this.players.length);
 		this.betweenSnapshot = null;
+		this.beforeSnapshotForTestBullets = null;
 	}
 
 	messageManager(): void {
@@ -68,7 +66,34 @@ export default class SnapshotManager {
 	}
 
 	addSnapshot(snapshot: Snapshot): void {
-		if (this.snapshots.length === 0) this.numberOfPlayers = snapshot.p.length;
+		/*
+		//bullet test
+		if (this.beforeSnapshotForTestBullets && snapshot.b) {
+			const shift = 400;
+			//test
+			for (const bulletNow of snapshot.b) {
+				for (const bulletBefore of this.beforeSnapshotForTestBullets.b) {
+					if (bulletNow.id === bulletBefore.id) {
+						if (
+							Math.abs(bulletNow.x - bulletBefore.x) > shift ||
+							Math.abs(bulletNow.y - bulletBefore.y) > shift
+						) {
+							console.log('err: bullet shift');
+							console.log('before:', this.beforeSnapshotForTestBullets);
+							console.log('now:', snapshot);
+							debugger;
+						}
+						break;
+					}
+				}
+			}
+		}
+		//save snapshot
+		if (this.beforeSnapshotForTestBullets && this.beforeSnapshotForTestBullets.b) {
+			this.beforeSnapshotForTestBullets = snapshot;
+		}
+		*/
+
 		let updateDelay = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
 		if (updateDelay < 0) updateDelay = 0;
 
