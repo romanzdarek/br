@@ -1,9 +1,0 @@
-{
-	"name": "mini-battle-royale",
-	"version": "0.1.0",
-	"description": "",
-	"author": "Roman",
-	"scripts": {
-		"start": "/opt/node/bin/node server/dist/app.js"
-	}
-}

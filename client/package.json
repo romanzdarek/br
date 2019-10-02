@@ -11,6 +11,7 @@
 		"dev": "webpack-dev-server --open --config webpack.dev.js"
 	},
 	"devDependencies": {
+		"copy-webpack-plugin": "^5.0.4",
 		"ts-loader": "^6.1.0",
 		"typescript": "^3.6.3",
 		"webpack": "^4.40.2",
