@@ -341,7 +341,7 @@ export default class View {
 
 		//worker
 		if (typeof Worker !== 'undefined') {
-			const worker = new Worker('workerFindWater.js');
+			const worker = new Worker('js/workerFindWater.js');
 			worker.onmessage = (e) => {
 				this.waterTerrainData.setData(e.data.type, e.data.data);
 			};

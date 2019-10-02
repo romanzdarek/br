@@ -4,8 +4,8 @@ import Controller from './Controller';
 //express for static files
 const express = require('express');
 const app = express();
-//../client/dist, client/dist
-app.use(express.static('client/dist'));
+//static files in static folder
+app.use(express.static('static'));
 
 //start http server
 const port = process.env.PORT || 8080;

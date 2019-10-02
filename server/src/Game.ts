@@ -42,6 +42,7 @@ export default class Game {
 	private bulletFactory: BulletFactory;
 	private previousMyPlayerSnapshots: MyPlayerSnapshot[];
 	private killMessages: string[] = [];
+	readonly createTime: number;
 
 	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints, mapData: MapData) {
 		this.collisionPoints = collisionPoints;
@@ -51,6 +52,7 @@ export default class Game {
 		this.loot = new Loot(this.map);
 		this.playerFactory = new PlayerFactory();
 		this.bulletFactory = new BulletFactory();
+		this.createTime = Date.now();
 	}
 
 	isEnd(): boolean {

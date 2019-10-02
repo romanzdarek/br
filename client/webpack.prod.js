@@ -5,5 +5,6 @@ const CopyPlugin = require('copy-webpack-plugin');
 module.exports = merge(common, {
 	mode: 'production',
 	devtool: 'source-map',
-	plugins: [ new CopyPlugin([ { from: './dist', to: '../../server/static' } ]) ]
+	//copy dist folder to server static, now location is dist/js
+	plugins: [ new CopyPlugin([ { from: './dist', to: '../../../server/static' } ]) ]
 });

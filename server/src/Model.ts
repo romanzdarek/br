@@ -17,10 +17,43 @@ export default class Model {
 		this.io = io;
 		this.waterTerrainData = new WaterTerrainData();
 		this.collisionPoints = new CollisionPoints();
-		//this.games.push(new Game(this.waterTerrainData, this.collisionPoints));
+		//game loop
 		setInterval(() => {
 			this.loop();
 		}, 1000 / 60);
+		//game closer
+		setInterval(() => {
+			this.gameCloser();
+		}, 1000 * 60);
+	}
+
+	private gameCloser(): void {
+		const maxOpenLobbyTime = 1000 * 60 * 10;
+		const maxActiveGameTime = 1000 * 60 * 10;
+		for (let i = this.games.length - 1; i >= 0; i--) {
+			const game = this.games[i];
+			if (!game) continue;
+			//lobby
+			if (!game.isActive()) {
+				//close lobby
+				if (Date.now() > game.createTime + maxOpenLobbyTime) {
+					//send info
+					game.cancelGame();
+					//delete game
+					delete this.games[i];
+					this.updateListOpenGames();
+				}
+			}
+			else {
+				//active game
+				if (Date.now() > game.createTime + maxOpenLobbyTime + maxActiveGameTime) {
+					//send info
+					game.cancelGame();
+					//delete game
+					delete this.games[i];
+				}
+			}
+		}
 	}
 
 	isNameOk(name: string): boolean {
