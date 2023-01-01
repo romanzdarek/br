@@ -18,7 +18,7 @@
 		"@types/socket.io": "^2.1.2",
 		"concurrently": "^4.1.2",
 		"nodemon": "^1.19.2",
-		"ts-loader": "^5.3.3",
+		"ts-loader": "^9.4.2",
 		"typescript": "^3.3.4000"
 	},
 	"dependencies": {
