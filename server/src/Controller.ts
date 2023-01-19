@@ -3,6 +3,7 @@ import Model from './Model';
 import Point from './Point';
 import Editor from './Editor';
 import MapData from './MapData';
+import { appVariant } from './app';
 
 export default class Controller {
 	private io: SocketIO.Server;
@@ -19,14 +20,10 @@ export default class Controller {
 	private controll(): void {
 		this.io.on('connection', (socket: SocketIO.Socket) => {
 			console.log(socket.id, 'connect');
+			socket.emit('debug', `Server (${appVariant} variant) connected.`);
 			this.model.updateListOpenGames();
 			socket.emit('listOfMaps', this.model.getMapNames());
-			socket.emit(
-				'collisionPoints',
-				this.model.collisionPoints.body,
-				this.model.collisionPoints.hand,
-				this.model.collisionPoints.hammer.getAllPoints()
-			);
+			socket.emit('collisionPoints', this.model.collisionPoints.body, this.model.collisionPoints.hand, this.model.collisionPoints.hammer.getAllPoints());
 
 			//leave game
 			socket.on('leaveGame', (gameId: number) => {
@@ -58,8 +55,7 @@ export default class Controller {
 			socket.on('createGame', (playerName: string, mapName: string) => {
 				if (playerName && mapName && this.model.isNameOk(playerName) && this.model.isNameOk(mapName)) {
 					this.model.createGame(playerName, mapName, socket);
-				}
-				else {
+				} else {
 					console.log('Err: createGame');
 				}
 			});
@@ -78,8 +74,7 @@ export default class Controller {
 							socket.emit('joinGame', gameIndex, playerUniqueName);
 						}
 					}
-				}
-				else {
+				} else {
 					console.log('Err: joinGame');
 				}
 			});
@@ -88,8 +83,7 @@ export default class Controller {
 			socket.on('leaveLobby', (gameId: number) => {
 				if (this.model.games[gameId]) {
 					this.model.games[gameId].leaveLobby(socket);
-				}
-				else {
+				} else {
 					console.log('Err: leaveLobby');
 				}
 			});
@@ -98,8 +92,7 @@ export default class Controller {
 			socket.on('cancelLobby', (gameId: number) => {
 				if (this.model.games[gameId]) {
 					this.model.cancelGame(gameId, socket);
-				}
-				else {
+				} else {
 					console.log('Err: cancelLobby');
 				}
 			});
@@ -109,8 +102,7 @@ export default class Controller {
 				if (gameIndex >= 0 && this.model.games[gameIndex]) {
 					this.model.games[gameIndex].start(socket);
 					this.model.updateListOpenGames();
-				}
-				else {
+				} else {
 					console.log('Err: startGame');
 				}
 			});
@@ -125,9 +117,8 @@ export default class Controller {
 								if (!game.isActive()) {
 									//cancel lobby
 									if (player.id === 0) this.model.cancelGame(i, socket);
-									else
-										//leave lobby
-										game.leaveLobby(socket);
+									//leave lobby
+									else game.leaveLobby(socket);
 								}
 								player.leaveGame();
 							}
@@ -195,18 +186,15 @@ export default class Controller {
 
 			//save map from editor
 			socket.on('editorSaveMap', async (mapName: string, mapData: MapData) => {
-				//deny++++++++++++
-				if (false && this.model.isNameOk(mapName) && mapData.size >= 5) {
+				if (this.model.isNameOk(mapName) && mapData.size >= 5) {
 					const saveDone = await this.editor.saveMap(mapName, mapData);
 					if (saveDone) {
 						socket.emit('mapSaved');
 						this.io.emit('listOfMaps', this.model.getMapNames());
-					}
-					else {
+					} else {
 						console.log('err: save level');
 					}
-				}
-				else {
+				} else {
 					console.log('err: editorSaveMap');
 				}
 			});

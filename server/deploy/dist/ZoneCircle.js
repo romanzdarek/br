@@ -1,0 +1,79 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+class ZoneCircle {
+    constructor(centerX, centerY, radius) {
+        this.step = 0;
+        this.steps = 600;
+        this.shiftCenterX = 0;
+        this.shiftCenterY = 0;
+        this.radiusChange = 0;
+        this.changeReady = false;
+        this.centerX = centerX;
+        this.centerY = centerY;
+        this.radius = radius;
+    }
+    calcChange(innerCircle) {
+        this.radiusChange = (this.radius - innerCircle.radius) / this.steps;
+        //triangle xyz
+        let x = Math.abs(this.centerX - innerCircle.centerX);
+        let y = Math.abs(this.centerY - innerCircle.centerY);
+        const z = Math.sqrt(x * x + y * y);
+        const shiftZ = z / this.steps;
+        //can not set x and y to 0 because angle
+        if (x === 0)
+            x = 0.000001;
+        if (y === 0)
+            y = 0.000001;
+        //atangens
+        let angle = Math.abs(Math.atan(x / y) * 180 / Math.PI);
+        //1..2..3..4.. Q; 0 - 90, 90 - 180...
+        //1
+        if (this.centerX >= innerCircle.centerX && this.centerY < innerCircle.centerY) {
+            //angle = angle;
+        }
+        //2
+        if (this.centerX >= innerCircle.centerX && this.centerY >= innerCircle.centerY) {
+            angle = 90 + 90 - angle;
+        }
+        //3
+        if (this.centerX < innerCircle.centerX && this.centerY >= innerCircle.centerY) {
+            angle = 180 + angle;
+        }
+        //4
+        if (this.centerX < innerCircle.centerX && this.centerY < innerCircle.centerY) {
+            angle = 270 + 90 - angle;
+        }
+        this.shiftCenterX = Math.sin(angle * Math.PI / 180) * shiftZ;
+        this.shiftCenterY = Math.cos(angle * Math.PI / 180) * shiftZ;
+    }
+    move(inCircle) {
+        if (this.step < this.steps) {
+            if (!this.changeReady) {
+                this.calcChange(inCircle);
+                this.changeReady = true;
+            }
+            this.radius -= this.radiusChange;
+            this.centerX -= this.shiftCenterX;
+            this.centerY += this.shiftCenterY;
+            this.step++;
+        }
+    }
+    done() {
+        return this.step >= this.steps;
+    }
+    resetMove() {
+        this.changeReady = false;
+        this.step = 0;
+    }
+    getCenterX() {
+        return this.centerX;
+    }
+    getCenterY() {
+        return this.centerY;
+    }
+    getRadius() {
+        return this.radius;
+    }
+}
+exports.default = ZoneCircle;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiWm9uZUNpcmNsZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9ab25lQ2lyY2xlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUEsTUFBcUIsVUFBVTtJQVc5QixZQUFZLE9BQWUsRUFBRSxPQUFlLEVBQUUsTUFBYztRQVBwRCxTQUFJLEdBQVcsQ0FBQyxDQUFDO1FBQ2pCLFVBQUssR0FBVyxHQUFHLENBQUM7UUFDcEIsaUJBQVksR0FBVyxDQUFDLENBQUM7UUFDekIsaUJBQVksR0FBVyxDQUFDLENBQUM7UUFDekIsaUJBQVksR0FBVyxDQUFDLENBQUM7UUFDekIsZ0JBQVcsR0FBWSxLQUFLLENBQUM7UUFHcEMsSUFBSSxDQUFDLE9BQU8sR0FBRyxPQUFPLENBQUM7UUFDdkIsSUFBSSxDQUFDLE9BQU8sR0FBRyxPQUFPLENBQUM7UUFDdkIsSUFBSSxDQUFDLE1BQU0sR0FBRyxNQUFNLENBQUM7SUFDdEIsQ0FBQztJQUVELFVBQVUsQ0FBQyxXQUF1QjtRQUNqQyxJQUFJLENBQUMsWUFBWSxHQUFHLENBQUMsSUFBSSxDQUFDLE1BQU0sR0FBRyxXQUFXLENBQUMsTUFBTSxDQUFDLEdBQUcsSUFBSSxDQUFDLEtBQUssQ0FBQztRQUNwRSxjQUFjO1FBQ2QsSUFBSSxDQUFDLEdBQUcsSUFBSSxDQUFDLEdBQUcsQ0FBQyxJQUFJLENBQUMsT0FBTyxHQUFHLFdBQVcsQ0FBQyxPQUFPLENBQUMsQ0FBQztRQUNyRCxJQUFJLENBQUMsR0FBRyxJQUFJLENBQUMsR0FBRyxDQUFDLElBQUksQ0FBQyxPQUFPLEdBQUcsV0FBVyxDQUFDLE9BQU8sQ0FBQyxDQUFDO1FBQ3JELE1BQU0sQ0FBQyxHQUFHLElBQUksQ0FBQyxJQUFJLENBQUMsQ0FBQyxHQUFHLENBQUMsR0FBRyxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUM7UUFDbkMsTUFBTSxNQUFNLEdBQUcsQ0FBQyxHQUFHLElBQUksQ0FBQyxLQUFLLENBQUM7UUFFOUIsd0NBQXdDO1FBQ3hDLElB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

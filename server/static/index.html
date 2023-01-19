@@ -4,12 +4,10 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<!--
-		http://mbr.rostiapp.cz/socket.io/socket.io.js,
 		http://localhost:8080/socket.io/socket.io.js,
-		https://mini-battle-royale.appspot.com/socket.io/socket.io.js
 
 	-->
-	<script src="https://mini-battle-royale.appspot.com/socket.io/socket.io.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
 	<title>Mini battle royale</title>
 	<style>
 		*{
@@ -436,22 +434,6 @@
 			padding: 7px;
 			color:white;
 		}
-		#itnetwork{
-			position:absolute;
-			top:50%;
-			left:50%;
-			z-index:100;
-			width: 1280px;
-			height:720px;
-			margin-left: -640px;
-			margin-top: -360px;
-			display: block;
-			background:#424242;
-		}
-		p.itnetwork{
-			font-size:95%;
-			text-align: center;
-		}
 		@media screen and (max-width: 1400px), screen and (max-height: 700px) {
 			#alive{
 				top:10px;
@@ -570,12 +552,6 @@
 				line-height: 25px;
 				height:25px;
 			}
-			#itnetwork{
-				width: 640px;
-				height:360px;
-				margin-left: -320px;
-				margin-top: -180px;
-			}
 		}
 		@media screen and (max-width:500px) {
 			#zoneTimer{
@@ -599,7 +575,6 @@
 	</style>
 </head>
 <body>
-	<img src="img/summer2019_en.jpg" alt="itnetwork summer 2019" id="itnetwork" />
 	<canvas id="gameScreen" width="1" height="1"></canvas>
 	<svg id="zoneSVG" width="0" height="0">
 		<mask id="maskSVG">
@@ -679,7 +654,6 @@
 		</div>
 		<button id="mainMenuOpenEditor">Map editor</button>
 		<button id="mainMenuControls">Game controls</button>
-		<p class="itnetwork">Made for <a href="https://www.itnetwork.cz/programovani/programatorske-souteze/itnetwork-summer-2019">competition</a> at <a href="https://www.itnetwork.cz/">itnetwork.cz</a>.</p>
 	</div>
 
 	<div class="menu" id="lobbyMenu">
@@ -744,7 +718,7 @@
 	<div class="menu" id="mapEditorMenu">
 		<h1>Map editor</h1>
 		<input id="mapEditorMenuName" type="text" maxlength="20" placeholder="Map name" value="" autocomplete="off">
-		<button disabled id="mapEditorMenuSave">Save</button>
+		<button id="mapEditorMenuSave">Save</button>
 		<button id="mapEditorMenuChangeSize">Change map size</button>
 		<button id="mapEditorMenuBack">Back</button>
 		<button id="mapEditorMenuClose">Close editor</button>

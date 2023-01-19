@@ -6,6 +6,8 @@ import MapData from './MapData';
 //node modules
 import * as fs from 'fs';
 import * as path from 'path';
+import { config } from './config';
+import { AppVariant, appVariant } from './app';
 
 export default class Model {
 	private io: SocketIO.Server;
@@ -18,9 +20,29 @@ export default class Model {
 		this.waterTerrainData = new WaterTerrainData();
 		this.collisionPoints = new CollisionPoints();
 		//game loop
-		setInterval(() => {
-			this.loop();
-		}, 1000 / 60);
+
+		if (appVariant === AppVariant.Production) {
+			setInterval(() => {
+				this.loop();
+			}, 1000 / 60);
+		} else {
+			// because problem with setInterval on windows
+			let lastLoopExecutionTime = Date.now();
+			const minLoopDelay = 16;
+			const loop = () => {
+				setImmediate(() => {
+					const now = Date.now();
+					if (now - lastLoopExecutionTime >= minLoopDelay) {
+						//console.log(now - lastLoopExecutionTime);
+						this.loop();
+						lastLoopExecutionTime = now;
+					}
+					loop();
+				});
+			};
+			loop();
+		}
+
 		//game closer
 		setInterval(() => {
 			this.gameCloser();
@@ -43,8 +65,7 @@ export default class Model {
 					delete this.games[i];
 					this.updateListOpenGames();
 				}
-			}
-			else {
+			} else {
 				//active game
 				if (Date.now() > game.createTime + maxOpenLobbyTime + maxActiveGameTime) {
 					//send info
@@ -80,8 +101,7 @@ export default class Model {
 	}
 
 	getMapNames(): string[] {
-		//dist/maps/
-		const levelNames: string[] = fs.readdirSync('dist/maps/');
+		const levelNames: string[] = fs.readdirSync(config.directory.maps);
 		for (let i = 0; i < levelNames.length; i++) {
 			const nameLength = levelNames[i].length;
 			//cut .json
@@ -131,14 +151,13 @@ export default class Model {
 	}
 
 	loadMap(mapName: string): MapData | null {
-		const fullPath = path.resolve('dist/maps/' + mapName + '.json');
+		const fullPath = path.resolve(config.directory.maps + mapName + '.json');
 		if (fs.existsSync(fullPath)) {
 			//je třeba smazat keš jinak by se vracela první verze souboru z doby spuštění aplikace pokud aplikace soubor již jednou načetla
 			delete require.cache[fullPath];
 			const map = require(fullPath);
 			return map;
-		}
-		else {
+		} else {
 			console.log('err: loadMap');
 			return null;
 		}

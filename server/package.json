@@ -2,13 +2,18 @@
 	"name": "mini-battle-royale-server",
 	"version": "1.0.1",
 	"description": "",
-	"main": "app.js",
+	"main": "dist/app.js",
 	"scripts": {
 		"start": "node dist/app.js",
-		"ts": "tsc -w",
+		"ts-watch": "tsc -w",
 		"nodemon": "nodemon",
-		"dev": "concurrently -n ts,nodemon npm:ts npm:nodemon",
-		"deploy": "gcloud app deploy --version v1"
+		"dev": "concurrently -n ts-watch,nodemon npm:ts-watch npm:nodemon",
+		"build": "tsc",
+		"deploy-gcp": "gcloud app deploy --version v1",
+		"deploy-old": "npm run build && ssh ubuntu@130.61.169.112 \" pm2 stop mbr; rm -r /www/mbr/dist; mkdir /www/mbr/dist\" && scp -r ./dist/* ubuntu@130.61.169.112:/www/mbr/dist && ssh ubuntu@130.61.169.112 \" pm2 start mbr\" && echo. & echo BE deploy finished :)",
+		"deploy": "call deploy.bat",
+		"deploy-all": "call ../deploy-all.bat"
+		
 	},
 	"keywords": [],
 	"author": "",

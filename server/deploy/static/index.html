@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!--
+		http://mbr.rostiapp.cz/socket.io/socket.io.js,
+		http://localhost:8080/socket.io/socket.io.js,
+		https://mini-battle-royale.appspot.com/socket.io/socket.io.js
+
+	-->
+	<script src="/socket.io/socket.io.js"></script>
+	<title>Mini battle royale</title>
+	<style>
+		*{
+			font-family: sans-serif;
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			-webkit-touch-callout: none; 
+            -webkit-user-select: none; 
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+		}
+		a{
+			color:black;
+			transition: color 0.4s;
+		}
+		a:hover{
+			color:white;
+		}
+		h1{
+			text-align: center;
+			font-size:180%;
+			margin-bottom: 20px;
+		}
+		h2{
+			font-size:120%;
+			margin:0;
+		}
+		p{
+			margin-bottom: 10px;
+		}
+		body{
+			/*position: relative;*/
+			overflow: hidden;
+		}
+		ul#lobbyMenuPlayers{
+			border-radius: 2px;
+			background:#F1F1F1;
+			margin-bottom:20px;
+			padding:10px;
+			height:90px;
+			overflow: auto;
+		}
+		ul#lobbyMenuPlayers li{
+			list-style-type: none;
+
+		}
+		canvas#gameScreen{
+			cursor: none;
+		}
+		
+		#mapContainer{
+			border-radius: 10px;
+			position: absolute;
+			bottom:20px;
+			left:20px;
+			z-index: 5;
+			background: rgba(0, 0, 0, 0.3);
+		}
+		#zoneTimer{
+			z-index: 8;
+			position:relative;
+			top: -40px;
+			margin: auto;
+			height: 40px;
+			color:white;
+			font-size: 130%;
+			line-height: 40px;
+			text-align: center;
+		}
+		svg#mapZoneSVG{
+			border-radius: 10px;
+			position: absolute;
+			bottom:20px;
+			left:20px;
+			z-index: 5;
+			margin-left: 5px;
+			margin-bottom: 5px;
+		}
+		canvas#mapScreen{
+			border-radius: 10px;
+			position: absolute;
+			bottom:20px;
+			left:20px;
+			z-index: 5;
+			margin-left: 5px;
+			margin-bottom: 5px;
+		}
+		canvas#helperScreen{
+			display: none;
+			position: absolute;
+			top:0;
+			left:0;
+		}
+		.menu{
+			border-radius: 5px;
+			border: 3px solid #6B6B6B;
+			background: silver;
+			width: 300px;
+			height: 320px;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			margin-left: -150px;
+			margin-top: -160px;
+			padding: 20px;
+			display: none;
+			z-index: 10;
+		}
+		.menu input, button, select{
+			display: block;
+			width: 100%;
+			margin-bottom:10px;
+			padding: 5px;
+		}
+		.join{
+			width: 48%;
+			float: right;
+		}
+		.create{
+			width: 48%;
+
+		}
+		#editorContainer{
+			display: none;
+		}
+		#editorMenuContainer{
+			width: 15%;
+			height: 100%;
+			position: absolute;
+			top: 0;
+			left: 0;
+			background: silver;
+			overflow: scroll;
+			z-index: 9;
+			padding: 10px;
+		}
+		#editorScreenContainer{
+			width: 85%;
+			height: 100%;
+			position: absolute;
+			top: 0;
+			left: 15%;
+			overflow: scroll;
+			background: white;
+			z-index: 9;
+		}
+		#editorCoordinates{
+			font-size: 120%;
+			padding-bottom: 20px;
+		}
+		#editorMenuContainer img{
+			width: 80px;
+			height: 80px;
+			background:#A2CB69;
+			border: 2px solid gray;
+		}
+		#editorMenuContainer img:hover{
+			border-color: red !important;
+		}
+
+		#terrainWaterTriangle2{
+			transform:rotate(90deg);
+		}
+		#terrainWaterTriangle3{
+			transform:rotate(180deg);
+		}
+		#terrainWaterTriangle4{
+			transform:rotate(270deg);
+		}
+		#zoneSVG{
+			position: absolute;
+			top:0;
+			left:0;
+		}
+		#mainMenu{
+			display: block;
+		}
+		#alertMenu{
+			background: pink;
+		}
+		#healthBar{
+			border-radius: 10px;
+			background: rgba(0, 0, 0, 0.3);
+			padding: 5px;
+			width: 300px;
+			height:40px;
+			position: absolute;
+			bottom: 20px;
+			left:50%;
+			margin-left: -150px;
+		}
+		#healthBarIn{
+			background: rgba(255, 255, 255, 1);
+			border-radius: 7px;
+			height: 100%;
+			width:100%;
+		}
+		#activeGunAmmo{
+			position: absolute;
+			z-index: 8;
+			text-align: center;
+			line-height: 50px;
+			width: 50px;
+			height: 50px;
+			bottom: 80px;
+			left:50%;
+			margin-left:-25px;
+			font-family: sans-serif;
+			font-size: 200%;
+			color: white;
+			border-radius: 10px;
+			background: rgba(0, 0, 0, 0.3);
+		}
+		div.infoBox{
+			width: 300px;
+			position: absolute;
+			z-index: 8;
+			top:23%;
+			left:50%;
+			margin-left: -150px;
+		}
+		#loading{
+			width:80px;
+			height:80px;
+			z-index: 8;
+			margin: 0 auto;
+			display: block;
+			visibility: hidden;
+		}
+		#loadingText, #takeLoot{
+			font-size: 200%;
+			text-align: center;
+			line-height: 50px;
+			color: white;
+			height:50px;
+			z-index: 8;
+			display: none;	
+		}
+		#takeLoot{
+			display: block;
+		}
+		#spectate{
+			display: none;	
+			z-index: 8;
+			top:20px;
+			left:110px;
+			position: absolute;
+			text-align:center;
+			color:white;
+			border-radius: 10px;
+			background: rgba(0, 0, 0, 0.3);
+		}
+		#spectate div{
+			font-size: 130%;
+			line-height: 35px;
+			height:35px;
+			padding:0 10px;
+		}
+		div.spectateLabel{
+			font-weight: bold;
+			font-size: 90% !important;
+			background: rgba(0, 0, 0, 0.5);
+			border-top-left-radius: 10px;
+			border-top-right-radius: 10px;
+		}
+		#transparentLayer{
+			width: 100%;
+			height:100%;
+			position: absolute;
+			top:0;
+			left:0;
+			z-index:9;
+			cursor:url(img/cursor.png) 12 12, auto;
+		}
+		#hideGame{
+			width: 100%;
+			height:100%;
+			position: absolute;
+			top:0;
+			left:0;
+			z-index:9;
+			background:#424242;
+		}
+		#items{
+			width:200px;
+			position: absolute;
+			z-index: 8;
+			bottom:20px;
+			right:20px;
+		}
+		#items div{
+			border-radius: 10px;
+			background: rgba(0, 0, 0, 0.3);
+			color:white;
+			font-weight: bold;
+			margin-bottom:10px;
+			height: 37px;
+			line-height: 37px;
+
+		}
+		#items div:last-child{
+			margin-bottom:0;
+		}
+		.active{
+			background: rgba(0, 0, 0, 0.7) !important;
+		}
+		#items b{
+			display: block;
+			float:left;
+			height: 100%;
+			border-top-left-radius: 10px;
+			border-bottom-left-radius: 10px;
+			background: rgba(0, 0, 0, 0.5);
+			padding-left: 10px;
+			padding-right: 10px;
+		}
+		.itemName{
+			display: block;
+			float:left;
+			margin-left: 10px;
+		}
+		#ammo{
+			padding:0 !important;
+
+		}
+
+		#redAmmo, #blueAmmo, #greenAmmo, #orangeAmmo{
+			width: 25%;
+			height: 100%;
+			display:block;
+			float:left;
+			text-align: center;
+			line-height: 37px;
+		}
+		#redAmmo{
+			background: red;
+			border-top-left-radius: 10px;
+			border-bottom-left-radius: 10px;
+			
+		}
+		#blueAmmo{
+			background: blue;
+		}
+		#greenAmmo{
+			background: green;
+		}
+		#orangeAmmo{
+			background: orange;
+			border-top-right-radius: 10px;
+			border-bottom-right-radius: 10px;
+		}
+		#item1Ammo, #item2Ammo{
+			border-radius: 2px;
+			background: transparent;
+			display: block;
+			float:right;
+			width: 17px;
+			height: 17px;
+			margin-right:10px;
+			margin-top:10px;
+
+		}
+		#alive{
+			z-index: 8;
+			position:absolute;
+			top:20px;
+			left: 20px;
+			width: 70px;
+			height: 70px;
+			border-radius: 10px;
+			background: rgba(0, 0, 0, 0.3);
+			color:white;
+			font-size: 300%;
+			line-height: 70px;
+			text-align: center;
+		}
+		#aliveText{
+			z-index: 8;
+			font-size: 110%;
+			width: 70px;
+			text-align: center;
+			color:white;
+			position:absolute;
+			top:100px;
+			left: 20px;
+		}
+		#topItems{
+			z-index: 8;
+			position: absolute;
+			top: 20px;
+  			left: 50%;
+  			transform: translate(-50%, 0);
+		}
+		#vest, #scope{
+			margin: 0 10px;
+			float:left;
+			width: 50px;
+			height: 50px;
+			border-radius: 10px;
+			background: rgba(0, 0, 0, 0.3);
+			display: none;
+		}
+		#vest img, #scope img, #scope svg{
+			width: 100%;
+			height: 100%;
+		}
+
+		#messages{
+			z-index: 8;
+			position: absolute;
+			top: 20px;
+  			right: 20px;
+			width: 400px;
+		}
+		#messages p{
+			float: right;
+			clear: both;
+			background: rgba(0, 0, 0, 0.3);
+			border-radius: 10px;
+			margin-bottom: 10px;
+			padding: 7px;
+			color:white;
+		}
+		@media screen and (max-width: 1400px), screen and (max-height: 700px) {
+			#alive{
+				top:10px;
+				left: 10px;
+				width: 50px;
+				height: 50px;
+				font-size: 200%;
+				line-height: 50px;
+			}
+			#aliveText{
+				font-size: 100%;
+				width: 50px;
+				top:70px;
+				left: 10px;
+			}
+			#topItems{
+				z-index: 8;
+				position: absolute;
+				top: 10px;
+				left: 50%;
+				transform: translate(-50%, 0);
+			}
+			#vest, #scope{
+				width: 35px;
+				height: 35px;
+			}
+			#messages{
+				top: 10px;
+				right: 10px;
+				width: 300px;
+			}
+			#messages p{
+				margin-bottom: 7px;
+				padding: 5px;
+				font-size: 80%
+			}
+			#mapContainer{
+				bottom:10px;
+				left:10px;
+			}
+			#zoneTimer{
+				top: -30px;
+				height: 30px;
+				font-size: 100%;
+				line-height: 30px;
+			}
+			svg#mapZoneSVG{
+				bottom:10px;
+				left:10px;
+			}
+			canvas#mapScreen{
+				bottom:10px;
+				left:10px;
+			}
+			#healthBar{
+				width: 200px;
+				height:35px;
+				position: absolute;
+				bottom: 10px;
+				left:50%;
+				margin-left: -100px;
+			}
+			#activeGunAmmo{
+				line-height: 35px;
+				width: 35px;
+				height: 35px;
+				bottom: 55px;
+				margin-left:-17.5px;
+				font-size: 140%;
+			}
+			#items{
+				width:150px;
+				bottom:10px;
+				right:10px;
+				font-size:90%;
+			}
+			#items div{
+				height: 30px;
+				line-height: 30px;
+
+			}
+			#items b{
+				padding-left: 8px;
+				padding-right: 8px;
+			}
+			.itemName{
+				margin-left: 8px;
+			}
+
+			#redAmmo, #blueAmmo, #greenAmmo, #orangeAmmo{
+				line-height: 30px;
+			}
+			
+			#item1Ammo, #item2Ammo{
+				width: 14px;
+				height: 14px;
+				margin-right:8px;
+				margin-top:8px;
+
+			}
+			#loading{
+				width:60px;
+				height:60px;
+			}
+			#loadingText, #takeLoot{
+				font-size: 150%;
+				line-height: 35px;
+				height:35px;
+			}
+			#spectate{
+				top:10px;
+				left:70px;
+			}
+			#spectate div{
+				font-size: 100%;
+				line-height: 25px;
+				height:25px;
+			}
+			#itnetwork{
+				width: 640px;
+				height:360px;
+				margin-left: -320px;
+				margin-top: -180px;
+			}
+		}
+		@media screen and (max-width:500px) {
+			#zoneTimer{
+				font-size: 70%;
+			}
+		}
+		@media screen and (max-height:600px) {
+				div.infoBox{
+					top:20%;
+				}
+				#loadingText, #takeLoot{
+					font-size: 120%;
+					line-height: 25px;
+					height:25px;
+				}
+				#loading{
+					width:40px;
+					height:40px;
+				}
+		}
+	</style>
+</head>
+<body>
+	
+	<canvas id="gameScreen" width="1" height="1"></canvas>
+	<svg id="zoneSVG" width="0" height="0">
+		<mask id="maskSVG">
+			<rect fill="white" width="100%" height="100%" />
+			<circle id="zoneCircle" cx="0" cy="0" r="0" fill="black" />
+		</mask>
+		<rect id="zoneRect" mask="url(#maskSVG)" fill="red" width="100%" height="100%" opacity="0.5" />
+	</svg>
+
+	<div id="alive">0</div>
+	<div id="aliveText">Alive</div>
+
+
+	<div id="topItems">
+		<div id="scope"><img id="scope2" alt="scope" src="img/scopeTop2.svg"><img id="scope4" alt="scope" src="img/scopeTop4.svg"><img id="scope6" alt="scope" src="img/scopeTop6.svg"></div>
+		<div id="vest"><img src="img/vestTop.svg" alt="scope"></div>
+	</div>
+
+	<div id="messages"></div>
+
+	<div id="mapContainer"><div id="zoneTimer"></div></div>
+
+	<canvas id="mapScreen" width="1" height="1"></canvas>
+	<svg id="mapZoneSVG" width="0" height="0">
+		<mask id="mapMaskSVG">
+			<rect fill="white" width="100%" height="100%" />
+			<circle id="mapZoneCircle" cx="0" cy="0" r="0" fill="black" />
+		</mask>
+		<rect id="mapZoneRect" mask="url(#mapMaskSVG)" fill="black" width="100%" height="100%" opacity="0.5" />
+	</svg>
+    <div id="items">
+		
+		<div id='item1'><b>1</b> <span class="itemName"></span> <span id="item1Ammo"></span></div>
+		<div id='item2'><b>2</b> <span class="itemName"></span> <span id="item2Ammo"></span></div>
+		<div id='item3'><b>3</b> <span class="itemName"></span> </div>
+		<div id='item4'><b>4</b> <span class="itemName"></span></div>
+		<div id='item5'><b>5</b> <span class="itemName"></span></div>
+
+		<div id='ammo'>
+			<span id='redAmmo'>0</span>
+			<span id='blueAmmo'>0</span>
+			<span id='greenAmmo'>0</span>
+			<span id='orangeAmmo'>0</span>
+		</div>
+	</div>
+	<div id="activeGunAmmo"></div>
+	<div id="healthBar"><div id="healthBarIn"></div></div>
+
+	<div class="infoBox">
+		<svg id="loading" viewBox="0 0 36 36">
+			<path opacity="0.3" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="black" stroke-width="2" stroke-dasharray="100, 100"/>
+			<path id="loadingCircle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="white" stroke-width="2" stroke-dasharray="95, 100"/>
+			<text id="loadingCounter" x="8" y="23" fill="white" font-family="Sans-serif" font-size="14"></text>
+		</svg>
+		<div id="loadingText"></div>
+		<div id="takeLoot"></div>
+	</div>
+	<div id="spectate">
+		<div class="spectateLabel">Spectate</div>
+		<div id="spectateName"></div>
+	</div>
+	<div id="transparentLayer"></div>
+	<div id="hideGame"></div>
+	
+	<div class="menu" id="mainMenu">
+		<h1>Mini battle royale</h1>
+		<input id="mainMenuName" type="text" maxlength="12" placeholder="Write your name" value="" autocomplete="off" autofocus>
+		<div class ="join">
+			<h2>Join</h2>
+			<select id="mainMenuGames" disabled></select>
+			<button id="mainMenuJoin" disabled>Join</button>
+		</div>
+		<div class ="create">
+			<h2>Create</h2>
+			<select id="mainMenuMaps" disabled></select>
+			<button id="mainMenuCreate" disabled>Create</button>
+		</div>
+		<button id="mainMenuOpenEditor">Map editor</button>
+		<button id="mainMenuControls">Game controls</button>
+	</div>
+
+	<div class="menu" id="lobbyMenu">
+		<h1 id="lobbyMenuGameName">Game name</h1>
+		<ul id="lobbyMenuPlayers"></ul>
+		<div id="lobbyMenuForJoinPlayer">
+			<p>Waiting for players...</p>
+			<button id="lobbyMenuLeave">Leave the game</button>
+		</div>
+		<div id="lobbyMenuForCreatePlayer">
+			<button id="lobbyMenuStart">Launch the game</button>
+			<button id="lobbyMenuCancel">Cancel the game</button>
+		</div>
+	</div>
+	
+	
+	<div class="menu" id="cancelLobbyMenu">
+		<h1>Game canceled</h1>
+		<p>Your game has been canceled.</p>
+		<button id="cancelLobbyMenuBack">Back to main menu</button>
+	</div>
+
+	<div class="menu" id="mapSizeMenu">
+		<h1>Map size</h1>
+		<h2>Size [blocks]</h2>
+		<select id="mapSizeValue">
+			<option value="5">5</option>
+			<option value="6">6</option>
+			<option value="7">7</option>
+			<option value="8">8</option>
+			<option value="9">9</option>
+			<option value="10">10</option>
+			<option value="12">12</option>
+			<option value="14">14</option>
+			<option value="16">16</option>
+			<option value="18">18</option>
+			<option value="20">20</option>
+			<option value="25">25</option>
+			<option value="30">35</option>
+			<option value="40">40</option>
+			<option value="45">45</option>
+			<option value="50">50</option>
+		</select>
+		<p>
+			<button id="mapSizeOk">OK</button>
+			<button id="mapSizeBack">Back</button>
+		</p>
+	</div>
+
+	<div class="menu" id="mapMenu">
+        <h1>Map editor</h1>
+        <button id="mapMenuCreate">Create a new map</button>
+        <button id="mapMenuOpenMap">Open the created maps</button>
+        <button id="mapMenuBack">Back</button>
+	</div>
+
+	<div class="menu" id="saveMapMenu">
+        <h1>Saved</h1>
+        <button id="saveMapMenuBack">Back to main menu</button>
+	</div>
+
+	<div class="menu" id="mapEditorMenu">
+		<h1>Map editor</h1>
+		<input id="mapEditorMenuName" type="text" maxlength="20" placeholder="Map name" value="" autocomplete="off">
+		<button disabled id="mapEditorMenuSave">Save</button>
+		<button id="mapEditorMenuChangeSize">Change map size</button>
+		<button id="mapEditorMenuBack">Back</button>
+		<button id="mapEditorMenuClose">Close editor</button>
+	</div>
+
+	<div class="menu" id="openMapMenu">
+        <h1>Open map</h1>
+        <select id="openMapMenuMaps"></select>
+        <button id="openMapMenuOk">OK</button>
+        <button id="openMapMenuBack">Back</button>
+	</div>
+	
+	<div class="menu" id="controlsMenu">
+        <h1>Game controls</h1>
+		<p>Move: <b>A, W, S, D</b>.<br>
+		Items: <b>1, 2, 3, 4, 5</b>.<br>
+		Reload: <b>R</b>.<br>
+		Take loot: <b>E</b>.<br>
+		Hit, shoot, throw, heal, : <b>Left click</b>.<br>
+		Close game: <b>A, W, S, D</b>.<br>
+		Exit: <b>ESC</b>.</p>
+        <button id="controlsMenuBack">Back</button>
+		<br id="itnetwork" />
+	</div>
+
+	<div class="menu" id="gameOverMenu">
+		<h1 id="gameOverMenuH1">You win!</h1>
+		<div id="gameOverMenuStats">
+			
+		</div>
+		<button id="gameOverMenuspectate">Spectate</button>
+        <button id="gameOverMenuBack">Main menu</button>
+	</div>
+
+	<div class="menu" id="escFromGame">
+		<h1>Leave game?</h1>
+		<button id="escFromGameBack">Back to the game</button>
+        <button id="escFromGameLeave">Leave the game</button>
+	</div>
+	
+	<div class="menu" id="alertMenu">
+		<h1>Not allowed character!</h1>
+		<p>Allowed characters:</p>
+		<p><b>a-z</b>, <b>A-Z</b>, <b>0-9</b> and <b>space</b></p>
+		<button id="alertMenuOk">OK</button>
+	</div>
+
+	<div id="editorContainer">
+		<div id="editorMenuContainer">
+			<div id="editorCoordinates"></div>
+			<button id="editorOpenMenu">Editor menu</button>
+			<h2>Terrain</h2>
+			<div id="editorTerrainImgs">
+				<img id="terrainWater" alt="water" src="img/water.png">
+				<img id="terrainGrass" alt="grass" src="img/grass.png">
+				<img id="terrainWaterTriangle3" alt="water triangel" src="img/waterTriangle.png">
+				<img id="terrainWaterTriangle4" alt="water triangel" src="img/waterTriangle.png">
+				<img id="terrainWaterTriangle2" alt="water triangel" src="img/waterTriangle.png">
+				<img id="terrainWaterTriangle1" alt="water triangel" src="img/waterTriangle.png">
+			</div>
+			<h2>Objects</h2>
+			<div id="editorObjectImgs">
+				<img id="editorObjectBush" alt="bush" src="img/bush.svg">
+				<img id="editorObjectRock" alt="rock" src="img/rock.svg">
+				<img id="editorObjectTree" alt="tree" src="img/tree.svg">
+				<!--<img id="editorObjectRect" src="img/rect.png">-->
+				<img id="editorObjectVerticalWall" alt="wall" src="img/verticalWall.svg">
+				<img id="editorObjectHorizontalWall" alt="wall" src="img/horizontalWall.svg">
+				<img id="editorObjectDelete" alt="delete" src="img/delete.png">
+			</div>
+		</div>
+		<div id="editorScreenContainer">
+			<canvas id="editorScreen" width="1" height="1"></canvas>
+		</div>
+	</div>
+	<canvas id="helperScreen"></canvas>
+	<script src="js/app.js"></script>
+</body>
+</html>

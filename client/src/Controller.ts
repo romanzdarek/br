@@ -13,6 +13,11 @@ declare const io: {
 	connect(url?: string): Socket;
 };
 
+enum AppVariant {
+	Production,
+	Localhost,
+}
+
 export type Keys = {
 	w: boolean;
 	a: boolean;
@@ -38,29 +43,34 @@ export class Controller {
 	private socket: Socket;
 	private serverClientSync: ServerClientSync;
 	private canvas: HTMLCanvasElement;
+	private appVariant: AppVariant;
 	private keys: Keys = {
 		w: false,
 		a: false,
 		s: false,
 		d: false,
 		e: false,
-		r: false
+		r: false,
 	};
 	private mouse: Mouse = {
 		x: 0,
 		y: 0,
 		left: false,
 		middle: false,
-		right: false
+		right: false,
 	};
 
 	private playerAngle: number = 0;
 
 	private constructor() {
+		this.appVariant = window.location.hostname === 'localhost' ? AppVariant.Localhost : AppVariant.Production;
 		this.myHtmlElements = new MyHtmlElements();
 		this.canvas = document.getElementsByTagName('canvas')[0];
-		//http://localhost:8080, http://mbr.rostiapp.cz, https://mini-battle-royale.appspot.com
-		this.socket = io.connect('https://mini-battle-royale.appspot.com');
+		if (this.appVariant === AppVariant.Localhost) {
+			this.socket = io.connect('http://localhost:8000');
+		} else {
+			this.socket = io.connect();
+		}
 		this.serverClientSync = new ServerClientSync();
 		this.editor = new Editor(this.myHtmlElements, this.socket);
 		this.model = new Model(this.mouse, this.socket, this.serverClientSync, this.myHtmlElements, this.editor);
@@ -75,13 +85,6 @@ export class Controller {
 			// Chrome requires returnValue to be set.
 			e.returnValue = '';
 		});
-		//itnetwork
-		this.myHtmlElements.itNetwork.addEventListener('click', () => {
-			this.myHtmlElements.itNetwork.style.display = 'none';
-		});
-		setTimeout(() => {
-			this.myHtmlElements.itNetwork.style.display = 'none';
-		}, 4000);
 		this.keysController();
 		this.mouseController();
 		this.socketController();
@@ -91,8 +94,7 @@ export class Controller {
 	static run(): void {
 		if (!Controller.instance) {
 			Controller.instance = new Controller();
-		}
-		else {
+		} else {
 			throw new Error('Only one controller!');
 		}
 	}
@@ -117,6 +119,10 @@ export class Controller {
 
 	private socketController(): void {
 		const el = this.myHtmlElements;
+
+		this.socket.on('debug', (data: any) => {
+			console.log('debug:', data);
+		});
 
 		//gameOver
 		this.socket.on('winner', (stats: PlayerStats) => {
@@ -191,8 +197,7 @@ export class Controller {
 			if (openGames.length && (<HTMLInputElement>el.mainMenu.name).value.length) {
 				(<HTMLInputElement>el.mainMenu.games).disabled = false;
 				(<HTMLInputElement>el.mainMenu.join).disabled = false;
-			}
-			else {
+			} else {
 				(<HTMLInputElement>el.mainMenu.games).disabled = true;
 				(<HTMLInputElement>el.mainMenu.join).disabled = true;
 			}
@@ -244,8 +249,7 @@ export class Controller {
 		this.socket.on('createPlayer', (name: string) => {
 			if (name) {
 				this.model.setName(name);
-			}
-			else {
+			} else {
 				console.log('err: created player');
 			}
 		});
@@ -266,11 +270,11 @@ export class Controller {
 
 	private mouseController(): void {
 		//deny right click menu
-		document.addEventListener('contextmenu', function(e) {
+		document.addEventListener('contextmenu', function (e) {
 			e.preventDefault();
 		});
 		//deny middle button
-		document.addEventListener('mousedown', function(e) {
+		document.addEventListener('mousedown', function (e) {
 			if (e.which === 2) e.preventDefault();
 		});
 
@@ -280,8 +284,7 @@ export class Controller {
 			if (e.x == undefined) {
 				this.mouse.x = this.canvas.width / 2;
 				this.mouse.y = this.canvas.height / 2;
-			}
-			else {
+			} else {
 				this.mouse.x = e.x;
 				this.mouse.y = e.y;
 			}
@@ -316,7 +319,7 @@ export class Controller {
 		//can not set x and y to 0 because angle
 		if (x === 0) x = 0.1;
 		//atangens
-		let angle = Math.abs(Math.atan(x / y) * 180 / Math.PI);
+		let angle = Math.abs((Math.atan(x / y) * 180) / Math.PI);
 		//1..2..3..4.. Q; 0 - 90, 90 - 180...
 		//1
 		if (mouseX >= centerX && mouseY < centerY) {
@@ -497,8 +500,7 @@ export class Controller {
 			el.close(el.mapSizeMenu.main);
 			if (this.editor.isActive()) {
 				el.open(el.mapEditorMenu.main);
-			}
-			else {
+			} else {
 				el.open(el.mapMenu.main);
 			}
 		});
@@ -553,8 +555,7 @@ export class Controller {
 			const mapName = (<HTMLInputElement>el.mapEditorMenu.name).value;
 			if (this.model.isNameOk(mapName)) {
 				this.socket.emit('editorSaveMap', mapName, mapData);
-			}
-			else {
+			} else {
 				el.open(el.alertMenu.main);
 			}
 		});
@@ -598,8 +599,7 @@ export class Controller {
 				const selectedMap = (<HTMLInputElement>el.mainMenu.maps).value;
 				if (this.model.isNameOk(playerName)) {
 					this.socket.emit('createGame', playerName, selectedMap);
-				}
-				else {
+				} else {
 					el.open(el.alertMenu.main);
 				}
 			}
@@ -611,8 +611,7 @@ export class Controller {
 				const gameIndex = parseInt((<HTMLInputElement>el.mainMenu.games).value);
 				if (this.model.isNameOk(playerName)) {
 					this.socket.emit('joinGame', playerName, gameIndex);
-				}
-				else {
+				} else {
 					el.open(el.alertMenu.main);
 				}
 			}

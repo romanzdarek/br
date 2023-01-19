@@ -1,0 +1,29 @@
+{
+	"name": "mini-battle-royale-server",
+	"version": "1.0.1",
+	"description": "",
+	"main": "app.js",
+	"scripts": {
+		"start": "node dist/app.js",
+		"ts": "tsc -w",
+		"nodemon": "nodemon",
+		"dev": "concurrently -n ts,nodemon npm:ts npm:nodemon",
+		"deploy": "gcloud app deploy --version v1"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/node": "^11.11.6",
+		"@types/socket.io": "^2.1.2",
+		"concurrently": "^4.1.2",
+		"nodemon": "^1.19.2",
+		"ts-loader": "^5.3.3",
+		"typescript": "^3.3.4000"
+	},
+	"dependencies": {
+		"express": "^4.17.1",
+		"socket.io": "^2.2.0",
+		"source-map-support": "^0.5.11"
+	}
+}
