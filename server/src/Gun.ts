@@ -6,14 +6,7 @@ export default class Gun {
 	private bullets: number;
 	readonly bulletsMax: number;
 
-	constructor(
-		length: number,
-		range: number,
-		bulletSpeed: number,
-		spray: number,
-		bullets: number,
-		bulletsMax: number
-	) {
+	constructor(length: number, range: number, bulletSpeed: number, spray: number, bullets: number, bulletsMax: number) {
 		this.range = range;
 		this.bulletSpeed = bulletSpeed;
 		this.length = length;
@@ -24,6 +17,10 @@ export default class Gun {
 
 	ready(): boolean {
 		return this.bullets > 0;
+	}
+
+	empty(): boolean {
+		return this.bullets === 0;
 	}
 
 	fire(): void {

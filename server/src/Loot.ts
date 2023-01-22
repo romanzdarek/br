@@ -3,6 +3,7 @@ import { LootType } from './LootType';
 import Map from './Map';
 import RoundObstacle from './RoundObstacle';
 import RectangleObstacle from './RectangleObstacle';
+import { AppVariant, appVariant } from './app';
 
 export default class Loot {
 	private map: Map;
@@ -32,8 +33,7 @@ export default class Loot {
 		//repeat
 		if (this.randomPositionCollision(loot) && this.randomPositionAttempts < this.maxRandomPositionAttempts) {
 			this.setRandomPosition(loot);
-		}
-		else {
+		} else {
 			//done
 			const lootItemGap = loot.size;
 			if (loot.type === LootType.Pistol) {
@@ -51,8 +51,7 @@ export default class Loot {
 						30
 					)
 				);
-			}
-			else if (loot.type === LootType.Rifle) {
+			} else if (loot.type === LootType.Rifle) {
 				let directionX = 1;
 				let directionY = 1;
 				if (Math.random() > 0.5) directionX = -1;
@@ -67,8 +66,7 @@ export default class Loot {
 						20
 					)
 				);
-			}
-			else if (loot.type === LootType.Shotgun) {
+			} else if (loot.type === LootType.Shotgun) {
 				//+ammo
 				let directionX = 1;
 				let directionY = 1;
@@ -83,8 +81,7 @@ export default class Loot {
 						10
 					)
 				);
-			}
-			else if (loot.type === LootType.Machinegun) {
+			} else if (loot.type === LootType.Machinegun) {
 				//+ammo
 				let directionX = 1;
 				let directionY = 1;
@@ -146,21 +143,19 @@ export default class Loot {
 		//bigger loot size
 		const gap = 2 * loot.size;
 		const lootSize = loot.size + gap;
-		if (
-			x <= loot.getX() + lootSize &&
-			x + width >= loot.getX() &&
-			y <= loot.getY() + lootSize &&
-			y + height >= loot.getY()
-		) {
+		if (x <= loot.getX() + lootSize && x + width >= loot.getX() && y <= loot.getY() + lootSize && y + height >= loot.getY()) {
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
 
 	//loot balancer
 	createMainLootItems(players: number): void {
+		if (appVariant == AppVariant.Localhost) {
+			// TODO
+			players = 3;
+		}
 
 		for (let i = 0; i < players; i++) {
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);

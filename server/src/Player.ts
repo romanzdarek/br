@@ -64,7 +64,7 @@ export class Player {
 		left: false,
 		right: false,
 		action: false,
-		reload: false
+		reload: false,
 	};
 
 	private mouseControll = {
@@ -72,14 +72,14 @@ export class Player {
 		middle: false,
 		right: false,
 		x: 0,
-		y: 0
+		y: 0,
 	};
 
 	private stats: PlayerStats = {
 		kills: 0,
 		damageTaken: 0,
 		damageDealt: 0,
-		survive: 0
+		survive: 0,
 	};
 
 	constructor(
@@ -130,7 +130,7 @@ export class Player {
 			kills: this.stats.kills,
 			damageDealt: Math.round(this.stats.damageDealt),
 			damageTaken: Math.round(this.stats.damageTaken),
-			survive: Math.round(this.stats.survive)
+			survive: Math.round(this.stats.survive),
 		};
 	}
 
@@ -212,8 +212,7 @@ export class Player {
 		//object in object
 		if (x + width >= this.x && x <= this.x + Player.size && this.y + Player.size >= y && this.y <= y + height) {
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
@@ -235,8 +234,7 @@ export class Player {
 	spectatePlayer(): Player {
 		if (this.spectateThatPlayer.isActive()) {
 			return this.spectateThatPlayer;
-		}
-		else {
+		} else {
 			let alive = 0;
 			for (const player of this.players) {
 				if (player.isActive()) alive++;
@@ -251,11 +249,7 @@ export class Player {
 			//reduce bullet / fragment power
 			if (
 				weapon &&
-				(weapon === Weapon.Pistol ||
-					weapon === Weapon.Rifle ||
-					weapon === Weapon.Shotgun ||
-					weapon === Weapon.Machinegun ||
-					weapon === Weapon.Granade)
+				(weapon === Weapon.Pistol || weapon === Weapon.Rifle || weapon === Weapon.Shotgun || weapon === Weapon.Machinegun || weapon === Weapon.Granade)
 			) {
 				power *= 0.67;
 			}
@@ -274,8 +268,7 @@ export class Player {
 			this.die(attacker, weapon);
 			if (attacker) {
 				this.spectateThatPlayer = attacker;
-			}
-			else {
+			} else {
 				let activePlayer;
 				for (const player of this.players) {
 					if (player.isActive()) {
@@ -483,58 +476,46 @@ export class Player {
 		if (this.mouseControll.left) {
 			if (this.inventory.activeItem === Weapon.Hand) {
 				this.hit();
-			}
-			else if (
+			} else if (
 				(this.inventory.activeItem instanceof Pistol ||
 					this.inventory.activeItem instanceof Machinegun ||
 					this.inventory.activeItem instanceof Shotgun ||
 					this.inventory.activeItem instanceof Rifle) &&
-				(this.inventory.activeItem.ready() && this.inventory.ready())
+				this.inventory.activeItem.ready() &&
+				this.inventory.ready()
 			) {
 				if (this.inventory.activeItem instanceof Shotgun) {
 					let shotgunSpray = -3;
 					for (let i = 0; i < 5; i++) {
 						shotgunSpray++;
-						this.bullets.push(
-							this.bulletFactory.createBullet(
-								this,
-								this.inventory.activeItem,
-								this.map,
-								this.players,
-								shotgunSpray
-							)
-						);
+						this.bullets.push(this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players, shotgunSpray));
 					}
-				}
-				else {
-					this.bullets.push(
-						this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players)
-					);
+				} else {
+					this.bullets.push(this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players));
 				}
 				this.inventory.activeItem.fire();
+				if (this.inventory.activeItem.empty()) this.inventory.reload(this.inventory.activeItem);
 				if (!(this.inventory.activeItem instanceof Machinegun)) this.mouseControll.left = false;
-			}
-			else if (this.inventory.activeItem instanceof Hammer) {
+			} else if (this.inventory.activeItem instanceof Gun && this.inventory.activeItem.empty() && this.inventory.ready()) {
+				this.inventory.reload(this.inventory.activeItem);
+			} else if (this.inventory.activeItem instanceof Hammer) {
 				if (this.inventory.activeItem.ready()) {
 					this.inventory.activeItem.hit();
 					this.mouseControll.left = false;
 				}
-			}
-			else if (this.inventory.activeItem === Weapon.Granade) {
+			} else if (this.inventory.activeItem === Weapon.Granade) {
 				if (this.hands[1].throwReady()) {
 					this.throw();
 					this.granades.push(new Granade(this, this.hands[1], this.mouseControll.x, this.mouseControll.y));
 					this.mouseControll.left = false;
 				}
-			}
-			else if (this.inventory.activeItem === Weapon.Smoke) {
+			} else if (this.inventory.activeItem === Weapon.Smoke) {
 				if (this.hands[1].throwReady()) {
 					this.throw();
 					this.granades.push(new Smoke(this, this.hands[1], this.mouseControll.x, this.mouseControll.y));
 					this.mouseControll.left = false;
 				}
-			}
-			else if (this.inventory.activeItem === Weapon.Medkit) {
+			} else if (this.inventory.activeItem === Weapon.Medkit) {
 				this.inventory.heal();
 				this.mouseControll.left = false;
 			}
@@ -566,8 +547,7 @@ export class Player {
 				) {
 					if (this.map.terrain[i].type === TerrainType.Water) {
 						inWater = true;
-					}
-					else if (
+					} else if (
 						this.map.terrain[i].type === TerrainType.WaterTriangle1 ||
 						this.map.terrain[i].type === TerrainType.WaterTriangle2 ||
 						this.map.terrain[i].type === TerrainType.WaterTriangle3 ||
@@ -576,13 +556,7 @@ export class Player {
 						//Math.floor()!!!
 						const myXPositionOnTerrain = Math.floor(this.getCenterX() - this.map.terrain[i].x);
 						const myYPositionOnTerrain = Math.floor(this.getCenterY() - this.map.terrain[i].y);
-						if (
-							this.map.waterTerrainData.includeWater(
-								this.map.terrain[i].type,
-								myXPositionOnTerrain,
-								myYPositionOnTerrain
-							)
-						) {
+						if (this.map.waterTerrainData.includeWater(this.map.terrain[i].type, myXPositionOnTerrain, myYPositionOnTerrain)) {
 							inWater = true;
 						}
 					}
@@ -591,7 +565,7 @@ export class Player {
 
 			if (inWater) {
 				//slow down
-				shift = shift / 3 * 2;
+				shift = (shift / 3) * 2;
 				if (up || down || left || right) this.waterCircleTimer++;
 			}
 			//player shift
@@ -665,10 +639,7 @@ export class Player {
 				) {
 					for (let j = 0; j < this.collisionPoints.body.length; j++) {
 						const point = this.collisionPoints.body[j];
-						const pointOnMyPosition = new Point(
-							this.getCenterX() + shiftX + point.x,
-							this.getCenterY() + shiftY + point.y
-						);
+						const pointOnMyPosition = new Point(this.getCenterX() + shiftX + point.x, this.getCenterY() + shiftY + point.y);
 						//point collisions
 						if (rectangleObstacle.isPointIn(pointOnMyPosition)) {
 							if (this.goAroundObstacleCalls <= this.goAroundObstacleMaxCalls) {
@@ -704,12 +675,7 @@ export class Player {
 		return true;
 	}
 
-	private goAroundRectangleObstacle(
-		shiftX: number,
-		shiftY: number,
-		countShifts: number,
-		rectangleObstacle: RectangleObstacle
-	): void {
+	private goAroundRectangleObstacle(shiftX: number, shiftY: number, countShifts: number, rectangleObstacle: RectangleObstacle): void {
 		this.slowAroundObstacle = true;
 		const maxObstacleOverlap = Player.size * 0.75;
 		if (countShifts === 1) {
@@ -718,11 +684,9 @@ export class Player {
 				//go up
 				if (this.getCenterY() <= rectangleObstacle.y + rectangleObstacle.height / 2) {
 					if (this.y + Player.size - rectangleObstacle.y < maxObstacleOverlap) this.shiftOnPosition(0, -1);
-				}
-				else {
+				} else {
 					//go down
-					if (rectangleObstacle.y + rectangleObstacle.height - this.y < maxObstacleOverlap)
-						this.shiftOnPosition(0, 1);
+					if (rectangleObstacle.y + rectangleObstacle.height - this.y < maxObstacleOverlap) this.shiftOnPosition(0, 1);
 				}
 			}
 			if (shiftY !== 0) {
@@ -730,11 +694,9 @@ export class Player {
 				//go left
 				if (this.getCenterX() <= rectangleObstacle.x + rectangleObstacle.width / 2) {
 					if (this.x + Player.size - rectangleObstacle.x < maxObstacleOverlap) this.shiftOnPosition(-1, 0);
-				}
-				else {
+				} else {
 					//go right
-					if (rectangleObstacle.x + rectangleObstacle.width - this.x < maxObstacleOverlap)
-						this.shiftOnPosition(1, 0);
+					if (rectangleObstacle.x + rectangleObstacle.width - this.x < maxObstacleOverlap) this.shiftOnPosition(1, 0);
 				}
 			}
 		}
@@ -747,57 +709,43 @@ export class Player {
 				this.getCenterY() > rectangleObstacle.y + rectangleObstacle.height / 2
 			) {
 				const xDistanceFromCorner = Math.abs(this.getCenterX() - rectangleObstacle.x);
-				const yDistanceFromCorner = Math.abs(
-					this.getCenterY() - (rectangleObstacle.y + rectangleObstacle.height)
-				);
+				const yDistanceFromCorner = Math.abs(this.getCenterY() - (rectangleObstacle.y + rectangleObstacle.height));
 				//x shift right
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
 					this.shiftOnPosition(0.1, 0);
-				}
-				else {
+				} else {
 					//y shift up
 					this.shiftOnPosition(0, -0.1);
 				}
-			}
-			else if (
+			} else if (
 				this.getCenterX() > rectangleObstacle.x + rectangleObstacle.width / 2 &&
 				this.getCenterY() > rectangleObstacle.y + rectangleObstacle.height / 2
 			) {
 				//obstacle is up and left
-				const xDistanceFromCorner = Math.abs(
-					this.getCenterX() - (rectangleObstacle.x + rectangleObstacle.width)
-				);
-				const yDistanceFromCorner = Math.abs(
-					this.getCenterY() - (rectangleObstacle.y + rectangleObstacle.height)
-				);
+				const xDistanceFromCorner = Math.abs(this.getCenterX() - (rectangleObstacle.x + rectangleObstacle.width));
+				const yDistanceFromCorner = Math.abs(this.getCenterY() - (rectangleObstacle.y + rectangleObstacle.height));
 				//x shift left
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
 					this.shiftOnPosition(-0.1, 0);
-				}
-				else {
+				} else {
 					//y shift up
 					this.shiftOnPosition(0, -0.1);
 				}
-			}
-			else if (
+			} else if (
 				this.getCenterX() > rectangleObstacle.x + rectangleObstacle.width / 2 &&
 				this.getCenterY() < rectangleObstacle.y + rectangleObstacle.height / 2
 			) {
 				//obstacle is down and left
-				const xDistanceFromCorner = Math.abs(
-					this.getCenterX() - (rectangleObstacle.x + rectangleObstacle.width)
-				);
+				const xDistanceFromCorner = Math.abs(this.getCenterX() - (rectangleObstacle.x + rectangleObstacle.width));
 				const yDistanceFromCorner = Math.abs(this.getCenterY() - rectangleObstacle.y);
 				//x shift left
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
 					this.shiftOnPosition(-0.1, 0);
-				}
-				else {
+				} else {
 					//y shift down
 					this.shiftOnPosition(0, 0.1);
 				}
-			}
-			else if (
+			} else if (
 				this.getCenterX() < rectangleObstacle.x + rectangleObstacle.width / 2 &&
 				this.getCenterY() < rectangleObstacle.y + rectangleObstacle.height / 2
 			) {
@@ -807,8 +755,7 @@ export class Player {
 				//x shift right
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
 					this.shiftOnPosition(0.1, 0);
-				}
-				else {
+				} else {
 					//y shift down
 					this.shiftOnPosition(0, 0.1);
 				}
@@ -816,12 +763,7 @@ export class Player {
 		}
 	}
 
-	private goAroundRoundObstacle(
-		shiftX: number,
-		shiftY: number,
-		countShifts: number,
-		roundObstacle: RoundObstacle
-	): void {
+	private goAroundRoundObstacle(shiftX: number, shiftY: number, countShifts: number, roundObstacle: RoundObstacle): void {
 		this.slowAroundObstacle = true;
 		if (countShifts === 1) {
 			if (shiftX !== 0) {
@@ -866,8 +808,7 @@ export class Player {
 					//go left
 					this.shiftOnPosition(-0.5, 0);
 				}
-			}
-			else {
+			} else {
 				//y shift
 				//obstacle below
 				if (this.getCenterY() <= roundObstacle.getCenterY()) {

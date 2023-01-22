@@ -58,9 +58,12 @@ export default abstract class RoundObstacle {
 	}
 
 	acceptHit(power: number): void {
+		// TODO: delete return to enable destroy...
+		return;
+
 		if (this.active) {
 			this.health -= power;
-			this.opacity = Math.round(this.health / this.healthMax * 10) / 10;
+			this.opacity = Math.round((this.health / this.healthMax) * 10) / 10;
 			if (this.opacity <= 0) {
 				this.opacity = 0;
 				this.active = false;

@@ -27,9 +27,9 @@ export default class WaterCircle {
 		return this.opacity;
 	}
 
-	flow() {
-		this.size += 2;
-		this.opacity -= 0.02;
+	flow(frameRateAdjust: number = 1) {
+		this.size += 2 * frameRateAdjust;
+		this.opacity -= 0.02 * frameRateAdjust;
 	}
 
 	isActive(): boolean {

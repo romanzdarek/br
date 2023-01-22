@@ -23,7 +23,7 @@ module.exports = {
 	devtool: 'source-map',
 	devServer: {
 		contentBase: './dist',
-		port: 88,
+		port: 8888,
 	},
 	plugins: [
 		//new HtmlWebpackPlugin({template: './src/index.html', inject: false,})

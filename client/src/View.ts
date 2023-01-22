@@ -102,6 +102,8 @@ export default class View {
 	private bulletLines: BulletLine[] = [];
 	private collisionPoints: CollisionPoints;
 
+	private lastdrawTime = Date.now();
+
 	constructor(
 		map: Map,
 		mouse: Mouse,
@@ -275,14 +277,12 @@ export default class View {
 		let x, y;
 		if (this.screenCenterX > point.x) {
 			x = (this.screenCenterX - point.x) * -1;
-		}
-		else {
+		} else {
 			x = point.x - this.screenCenterX;
 		}
 		if (this.screenCenterY > point.y) {
 			y = (this.screenCenterY - point.y) * -1;
-		}
-		else {
+		} else {
 			y = point.y - this.screenCenterY;
 		}
 		x /= this.finalResolutionAdjustment;
@@ -324,16 +324,16 @@ export default class View {
 		ctx.translate(middleImage, middleImage);
 		switch (waterType) {
 			case TerrainType.WaterTriangle1:
-				ctx.rotate(0 * Math.PI / 180);
+				ctx.rotate((0 * Math.PI) / 180);
 				break;
 			case TerrainType.WaterTriangle2:
-				ctx.rotate(90 * Math.PI / 180);
+				ctx.rotate((90 * Math.PI) / 180);
 				break;
 			case TerrainType.WaterTriangle3:
-				ctx.rotate(180 * Math.PI / 180);
+				ctx.rotate((180 * Math.PI) / 180);
 				break;
 			case TerrainType.WaterTriangle4:
-				ctx.rotate(270 * Math.PI / 180);
+				ctx.rotate((270 * Math.PI) / 180);
 				break;
 		}
 		ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage);
@@ -350,10 +350,9 @@ export default class View {
 				data,
 				size: this.waterTrianglePNG.width,
 				type: waterType,
-				time: new Date().getTime()
+				time: new Date().getTime(),
 			});
-		}
-		else {
+		} else {
 			console.log("err: Your browser doesn't support web workers.");
 		}
 	}
@@ -381,7 +380,7 @@ export default class View {
 				const middleImage = biggerBlockSize / 2;
 				ctx.save();
 				ctx.translate(x + middleImage, y + middleImage);
-				ctx.rotate(terrain.angle * Math.PI / 180);
+				ctx.rotate((terrain.angle * Math.PI) / 180);
 				ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage, blockSize, blockSize);
 				ctx.restore();
 			}
@@ -444,14 +443,8 @@ export default class View {
 					let middleImage = editor.blockSize / 2;
 					ctx.save();
 					ctx.translate(terrain.x + middleImage, terrain.y + middleImage);
-					ctx.rotate(terrain.angle * Math.PI / 180);
-					ctx.drawImage(
-						this.waterTrianglePNG,
-						-middleImage,
-						-middleImage,
-						editor.blockSize,
-						editor.blockSize
-					);
+					ctx.rotate((terrain.angle * Math.PI) / 180);
+					ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage, editor.blockSize, editor.blockSize);
 					ctx.restore();
 					break;
 			}
@@ -493,7 +486,7 @@ export default class View {
 				let middleImage = editor.blockSize / 2;
 				ctx.save();
 				ctx.translate(blockX + middleImage, blockY + middleImage);
-				ctx.rotate(angle * Math.PI / 180);
+				ctx.rotate((angle * Math.PI) / 180);
 				ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage, editor.blockSize, editor.blockSize);
 				ctx.restore();
 			}
@@ -655,6 +648,22 @@ export default class View {
 		}
 	}
 
+	private frameRateAdjuster() {
+		const now = Date.now();
+		const delayFromLastFrame = now - this.lastdrawTime;
+		const defaultDelayBetweenFrame = 16.66666;
+		this.lastdrawTime = now;
+		return delayFromLastFrame / defaultDelayBetweenFrame;
+	}
+
+	private isPlayerUnderRoundObject(player: Player, roudObject: Tree | Bush): boolean {
+		//triangle
+		const x = player.getCenterX() - roudObject.getCenterX();
+		const y = player.getCenterY() - roudObject.getCenterY();
+		const radius = Math.sqrt(x * x + y * y);
+		return radius < player.radius + roudObject.radius;
+	}
+
 	drawGame(myPlayerId: number): void {
 		const betweenSnapshot = this.snapshotManager.betweenSnapshot;
 		const players = this.snapshotManager.players;
@@ -706,16 +715,14 @@ export default class View {
 			const { x, y, width, height, isOnScreen } = this.howToDraw({
 				x: terrain.x,
 				y: terrain.y,
-				size: terrain.size
+				size: terrain.size,
 			});
 			if (isOnScreen) {
 				if (terrain.type === TerrainType.Water) {
 					ctx.fillRect(x, y, width, height);
-				}
-				else if (terrain.type === TerrainType.WaterTriangle1) {
+				} else if (terrain.type === TerrainType.WaterTriangle1) {
 					ctx.drawImage(this.waterTrianglePNG, x, y, width, height);
-				}
-				else if (
+				} else if (
 					terrain.type === TerrainType.WaterTriangle2 ||
 					terrain.type === TerrainType.WaterTriangle3 ||
 					terrain.type === TerrainType.WaterTriangle4
@@ -723,7 +730,7 @@ export default class View {
 					let middleImage = width / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
-					ctx.rotate(terrain.angle * Math.PI / 180);
+					ctx.rotate((terrain.angle * Math.PI) / 180);
 					ctx.drawImage(this.waterTrianglePNG, -middleImage, -middleImage, width, height);
 					ctx.restore();
 				}
@@ -732,13 +739,15 @@ export default class View {
 
 		//water circles
 		ctx.fillStyle = this.colors.waterCircle;
+
+		const adjustFrameRate = this.frameRateAdjuster();
 		for (const waterCircle of this.snapshotManager.waterCircles) {
 			if (!waterCircle.isActive()) continue;
-			waterCircle.flow();
+			waterCircle.flow(adjustFrameRate);
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: waterCircle.getX(),
 				y: waterCircle.getY(),
-				size: waterCircle.getSize()
+				size: waterCircle.getSize(),
 			});
 			if (isOnScreen) {
 				const radius = size / 2;
@@ -760,7 +769,7 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: block.x,
 					y: block.y,
-					size: blockSize
+					size: blockSize,
 				});
 				if (isOnScreen) ctx.fillRect(x, y, size, size2);
 			}
@@ -769,7 +778,7 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: block.x,
 					y: block.y + blockSize,
-					size: blockSize
+					size: blockSize,
 				});
 				if (isOnScreen) ctx.fillRect(x, y, size, size2);
 			}
@@ -778,7 +787,7 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: block.x,
 					y: block.y,
-					size: blockSize
+					size: blockSize,
 				});
 				if (isOnScreen) ctx.fillRect(x, y, size2, size);
 			}
@@ -787,7 +796,7 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: block.x + blockSize,
 					y: block.y,
-					size: blockSize
+					size: blockSize,
 				});
 				if (isOnScreen) ctx.fillRect(x, y, size2, size);
 			}
@@ -814,7 +823,7 @@ export default class View {
 					x: rectangleObstacle.x,
 					y: rectangleObstacle.y,
 					width: rectangleObstacle.width,
-					height: rectangleObstacle.height
+					height: rectangleObstacle.height,
 				});
 				if (isOnScreen) {
 					let svgSource = this.horizontalWallSVG;
@@ -845,7 +854,7 @@ export default class View {
 			const { x, y, width, height, isOnScreen } = this.howToDraw({
 				x: player.getX(),
 				y: player.getY(),
-				size: player.size
+				size: player.size,
 			});
 			if (isOnScreen) {
 				ctx.drawImage(this.deadPlayer, x, y, width, height);
@@ -929,7 +938,7 @@ export default class View {
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: player.getX(),
 				y: player.getY(),
-				size: player.size
+				size: player.size,
 			});
 			if (isOnScreen) {
 				//vest
@@ -971,13 +980,13 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: gunX,
 					y: gunY,
-					size: gunSize
+					size: gunSize,
 				});
 				if (isOnScreen) {
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
-					ctx.rotate(player.getAngle() * Math.PI / 180);
+					ctx.rotate((player.getAngle() * Math.PI) / 180);
 					ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
@@ -989,13 +998,13 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: gunX,
 					y: gunY,
-					size: gunSize
+					size: gunSize,
 				});
 				if (isOnScreen) {
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
-					ctx.rotate(player.getAngle() * Math.PI / 180);
+					ctx.rotate((player.getAngle() * Math.PI) / 180);
 					ctx.drawImage(this.machinegunSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
@@ -1007,13 +1016,13 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: gunX,
 					y: gunY,
-					size: gunSize
+					size: gunSize,
 				});
 				if (isOnScreen) {
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
-					ctx.rotate(player.getAngle() * Math.PI / 180);
+					ctx.rotate((player.getAngle() * Math.PI) / 180);
 					ctx.drawImage(this.shotgunSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
@@ -1025,13 +1034,13 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: gunX,
 					y: gunY,
-					size: gunSize
+					size: gunSize,
 				});
 				if (isOnScreen) {
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
-					ctx.rotate(player.getAngle() * Math.PI / 180);
+					ctx.rotate((player.getAngle() * Math.PI) / 180);
 					ctx.drawImage(this.rifleSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
@@ -1043,13 +1052,13 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: gunX,
 					y: gunY,
-					size: gunSize
+					size: gunSize,
 				});
 				if (isOnScreen) {
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
-					ctx.rotate(player.getHammerAngle() * Math.PI / 180);
+					ctx.rotate((player.getHammerAngle() * Math.PI) / 180);
 					ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 					/*
@@ -1080,7 +1089,7 @@ export default class View {
 					const { x, y, size, isOnScreen } = this.howToDraw({
 						x: player.hands[i].getX(),
 						y: player.hands[i].getY(),
-						size: player.hands[i].size
+						size: player.hands[i].size,
 					});
 					if (isOnScreen) {
 						const radius = size / 2;
@@ -1111,23 +1120,18 @@ export default class View {
 						*/
 
 						//granade || smoke || medkit in hand
-						if (
-							(player.getWeapon() === Weapon.Granade ||
-								player.getWeapon() === Weapon.Smoke ||
-								player.getWeapon() === Weapon.Medkit) &&
-							i === 1
-						) {
+						if ((player.getWeapon() === Weapon.Granade || player.getWeapon() === Weapon.Smoke || player.getWeapon() === Weapon.Medkit) && i === 1) {
 							const playerAngle = player.getAngle();
 							const percentSize = 1.2;
 							const shiftZ = player.hands[i].radius * percentSize;
 							//triangle
-							const shiftX = Math.sin(playerAngle * Math.PI / 180) * shiftZ;
-							const shiftY = Math.cos(playerAngle * Math.PI / 180) * shiftZ;
+							const shiftX = Math.sin((playerAngle * Math.PI) / 180) * shiftZ;
+							const shiftY = Math.cos((playerAngle * Math.PI) / 180) * shiftZ;
 
 							const { x, y, size, isOnScreen } = this.howToDraw({
 								x: player.hands[i].getCenterX() + shiftX - player.hands[i].radius * percentSize,
 								y: player.hands[i].getCenterY() - shiftY - player.hands[i].radius * percentSize,
-								size: player.hands[i].size * percentSize
+								size: player.hands[i].size * percentSize,
 							});
 
 							if (isOnScreen) {
@@ -1135,7 +1139,7 @@ export default class View {
 								let middleImage = size / 2;
 								ctx.save();
 								ctx.translate(x + middleImage, y + middleImage);
-								ctx.rotate((playerAngle - granadeShiftAngle) * Math.PI / 180);
+								ctx.rotate(((playerAngle - granadeShiftAngle) * Math.PI) / 180);
 								let SVG;
 								if (player.getWeapon() === Weapon.Granade) SVG = this.granadeSVG;
 								if (player.getWeapon() === Weapon.Smoke) SVG = this.smokeSVG;
@@ -1182,7 +1186,7 @@ export default class View {
 					const { x, y, size, isOnScreen } = this.howToDraw({
 						x: bloodX,
 						y: bloodY,
-						size: blood.size
+						size: blood.size,
 					});
 					if (isOnScreen) {
 						const alpha = 1 - blood.getTimer() / blood.timerMax;
@@ -1191,8 +1195,7 @@ export default class View {
 						ctx.fillRect(x, y, size, size);
 						ctx.restore();
 					}
-				}
-				else {
+				} else {
 					player.bloods.splice(i, 1);
 				}
 			}
@@ -1204,13 +1207,13 @@ export default class View {
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: granade.x - granadeSize / 2,
 				y: granade.y - granadeSize / 2,
-				size: granadeSize
+				size: granadeSize,
 			});
 			if (isOnScreen) {
 				let middleImage = size / 2;
 				ctx.save();
 				ctx.translate(x + middleImage, y + middleImage);
-				ctx.rotate(granade.a * Math.PI / 180);
+				ctx.rotate((granade.a * Math.PI) / 180);
 				if (granade.t === 'g') {
 					ctx.drawImage(this.granadeSVG, -middleImage, -middleImage, size, size);
 				}
@@ -1252,19 +1255,18 @@ export default class View {
 					const { x: startX, y: startY } = this.howToDraw({
 						x: partLine.startX,
 						y: partLine.startY,
-						size: 1
+						size: 1,
 					});
 					const { x: endX, y: endY } = this.howToDraw({
 						x: partLine.endX,
 						y: partLine.endY,
-						size: 1
+						size: 1,
 					});
 					//bug long bullet lines
 					if (Math.abs(startX - endX) > 100 || Math.abs(startY - endY) > 100) {
 						console.log('err: bullet lines');
 						console.log('partLine', partLine);
-					}
-					else {
+					} else {
 						//draw part
 						ctx.save();
 						ctx.globalAlpha = finalAlpha;
@@ -1286,11 +1288,15 @@ export default class View {
 			if (bush.isActive()) {
 				const { x, y, size, isOnScreen } = this.howToDraw(bush);
 				if (isOnScreen) {
+					// am i under the tree?
+					let opacityUnderTree = 1;
+					if (this.isPlayerUnderRoundObject(this.myPlayer, bush)) opacityUnderTree = 0.8;
+
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
-					ctx.rotate(bush.angle * Math.PI / 180);
-					ctx.globalAlpha = bush.getOpacity();
+					ctx.rotate((bush.angle * Math.PI) / 180);
+					ctx.globalAlpha = bush.getOpacity() * opacityUnderTree;
 					ctx.drawImage(this.bushSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
@@ -1302,11 +1308,15 @@ export default class View {
 			if (tree.isActive()) {
 				const { x, y, size, isOnScreen } = this.howToDraw(tree);
 				if (isOnScreen) {
+					// am i under the tree?
+					let opacityUnderTree = 1;
+					if (this.isPlayerUnderRoundObject(this.myPlayer, tree)) opacityUnderTree = 0.8;
+
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
-					ctx.rotate(tree.angle * Math.PI / 180);
-					ctx.globalAlpha = tree.getOpacity();
+					ctx.rotate((tree.angle * Math.PI) / 180);
+					ctx.globalAlpha = tree.getOpacity() * opacityUnderTree;
 					ctx.drawImage(this.treeSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
@@ -1318,7 +1328,7 @@ export default class View {
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: smoke.x - smoke.s / 2,
 				y: smoke.y - smoke.s / 2,
-				size: smoke.s
+				size: smoke.s,
 			});
 			if (isOnScreen) {
 				ctx.save();
@@ -1329,10 +1339,14 @@ export default class View {
 		}
 
 		//zone
-		const { x, y, size: outerRadius } = this.howToDraw({
+		const {
+			x,
+			y,
+			size: outerRadius,
+		} = this.howToDraw({
 			x: this.snapshotManager.zone.outerCircle.getCenterX(),
 			y: this.snapshotManager.zone.outerCircle.getCenterY(),
-			size: this.snapshotManager.zone.outerCircle.getRadius()
+			size: this.snapshotManager.zone.outerCircle.getRadius(),
 		});
 
 		el.zoneCircle.setAttribute('r', outerRadius.toString());
@@ -1365,8 +1379,8 @@ export default class View {
 		el.healthBar.in.style.width = betweenSnapshot.i.h + '%';
 
 		//loading
-		const progres = Math.round(betweenSnapshot.i.l / betweenSnapshot.i.lE * 100);
-		const seconds = Math.round((betweenSnapshot.i.lE - betweenSnapshot.i.l) / 1000 * 10) / 10;
+		const progres = Math.round((betweenSnapshot.i.l / betweenSnapshot.i.lE) * 100);
+		const seconds = Math.round(((betweenSnapshot.i.lE - betweenSnapshot.i.l) / 1000) * 10) / 10;
 		if (seconds && this.myPlayer.alive()) {
 			el.takeLoot.style.display = 'none';
 			el.loading.main.style.visibility = 'visible';
@@ -1395,8 +1409,7 @@ export default class View {
 			}
 			el.loading.counter.textContent = secondsString;
 			el.loading.circle.setAttribute('stroke-dasharray', progres + ', 100');
-		}
-		else {
+		} else {
 			el.loading.main.style.visibility = 'hidden';
 			el.loading.text.style.display = 'none';
 			//take loot info
@@ -1437,15 +1450,29 @@ export default class View {
 			this.myPlayer.getWeapon() === Weapon.Machinegun ||
 			this.myPlayer.getWeapon() === Weapon.Shotgun
 		) {
-			ammo = betweenSnapshot.i.a.toString();
-		}
-		else if (this.myPlayer.getWeapon() === Weapon.Hand || this.myPlayer.getWeapon() === Weapon.Hammer) {
+			let extraAmmoForActiveGun = 0;
+			switch (this.myPlayer.getWeapon()) {
+				// r g b o
+				case Weapon.Pistol:
+					extraAmmoForActiveGun = betweenSnapshot.i.o;
+					break;
+				case Weapon.Rifle:
+					extraAmmoForActiveGun = betweenSnapshot.i.g;
+					break;
+				case Weapon.Machinegun:
+					extraAmmoForActiveGun = betweenSnapshot.i.b;
+					break;
+				case Weapon.Shotgun:
+					extraAmmoForActiveGun = betweenSnapshot.i.r;
+					break;
+			}
+
+			ammo = betweenSnapshot.i.a.toString() + ' / ' + extraAmmoForActiveGun;
+		} else if (this.myPlayer.getWeapon() === Weapon.Hand || this.myPlayer.getWeapon() === Weapon.Hammer) {
 			ammo = '∞';
-		}
-		else if (this.myPlayer.getWeapon() === Weapon.Granade || this.myPlayer.getWeapon() === Weapon.Smoke) {
+		} else if (this.myPlayer.getWeapon() === Weapon.Granade || this.myPlayer.getWeapon() === Weapon.Smoke) {
 			ammo = item4Count.toString();
-		}
-		else if (this.myPlayer.getWeapon() === Weapon.Medkit) {
+		} else if (this.myPlayer.getWeapon() === Weapon.Medkit) {
 			ammo = item5Count.toString();
 		}
 		el.activeGunAmmo.textContent = ammo;
@@ -1499,8 +1526,7 @@ export default class View {
 			let text = '';
 			if (this.snapshotManager.betweenSnapshot.z.d > 0) {
 				text += this.snapshotManager.betweenSnapshot.z.d;
-			}
-			else {
+			} else {
 				text = 'Zone is moving!';
 			}
 			el.zoneTimer.innerText = text;
@@ -1519,14 +1545,14 @@ export default class View {
 		let finalAngle = shiftHandAngle + player.getAngle();
 		if (player.getWeapon() === Weapon.Hammer) finalAngle = shiftHandAngle + player.getHammerAngle();
 		if (finalAngle >= 360) finalAngle -= 360;
-		const shiftHandX = Math.sin(finalAngle * Math.PI / 180) * shiftHandZ;
-		const shiftHandY = Math.cos(finalAngle * Math.PI / 180) * shiftHandZ;
+		const shiftHandX = Math.sin((finalAngle * Math.PI) / 180) * shiftHandZ;
+		const shiftHandY = Math.cos((finalAngle * Math.PI) / 180) * shiftHandZ;
 		const handX = player.getCenterX() + shiftHandX - player.hands[0].radius;
 		const handY = player.getCenterY() - shiftHandY - player.hands[0].radius;
 		const { x, y, size, isOnScreen } = this.howToDraw({
 			x: handX,
 			y: handY,
-			size: player.hands[0].size
+			size: player.hands[0].size,
 		});
 		if (isOnScreen) {
 			const radius = size / 2;
@@ -1597,8 +1623,7 @@ export default class View {
 		let el;
 		if (item === 1) {
 			el = this.myHtmlElements.items.item1Ammo;
-		}
-		else if (item === 2) {
+		} else if (item === 2) {
 			el = this.myHtmlElements.items.item2Ammo;
 		}
 		let background = 'transparent';
@@ -1713,8 +1738,7 @@ export default class View {
 			size = (<RoundObject>gameObject).size * this.finalResolutionAdjustment;
 			width = size;
 			height = size;
-		}
-		else {
+		} else {
 			//rect
 			width = (<RectObject>gameObject).width * this.finalResolutionAdjustment;
 			height = (<RectObject>gameObject).height * this.finalResolutionAdjustment;
@@ -1734,7 +1758,7 @@ export default class View {
 			size,
 			width,
 			height,
-			isOnScreen
+			isOnScreen,
 		};
 	}
 
@@ -1745,8 +1769,7 @@ export default class View {
 				el.gameOverMenu.h1.textContent = 'Winner!';
 				if (winnerName) el.gameOverMenu.h1.textContent = winnerName + ' win';
 				el.gameOverMenu.spectate.style.display = 'none';
-			}
-			else {
+			} else {
 				el.gameOverMenu.h1.textContent = 'You died';
 				el.gameOverMenu.spectate.style.display = 'block';
 			}

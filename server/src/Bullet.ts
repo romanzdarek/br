@@ -34,8 +34,7 @@ export default class Bullet {
 		if (!gun) {
 			this.weapon = Weapon.Granade;
 			this.power = 50;
-		}
-		else {
+		} else {
 			if (gun instanceof Pistol) {
 				this.weapon = Weapon.Pistol;
 				this.power = 20;
@@ -56,14 +55,7 @@ export default class Bullet {
 	}
 
 	//constructor
-	static createBullet(
-		id: number,
-		player: Player,
-		gun: Gun,
-		map: Map,
-		players: Player[],
-		shiftAngle: number = 0
-	): Bullet {
+	static createBullet(id: number, player: Player, gun: Gun, map: Map, players: Player[], shiftAngle: number = 0): Bullet {
 		const bulletRange = Math.floor(Math.random() * 3) + gun.range;
 		const instance = new Bullet(id, bulletRange, gun);
 		instance.map = map;
@@ -71,6 +63,16 @@ export default class Bullet {
 		instance.player = player;
 		instance.x = player.getCenterX();
 		instance.y = player.getCenterY();
+
+		// TODO
+		// triangel
+		const hypotenuse = Player.size / 2 + gun.length;
+		const xShift = Math.sin((player.getAngle() * Math.PI) / 180) * (hypotenuse + 10);
+		const yShift = Math.cos((player.getAngle() * Math.PI) / 180) * (hypotenuse + 10);
+
+		instance.x += xShift;
+		instance.y -= yShift;
+
 		//spray
 		let randomchange = Math.round(Math.random() * gun.spray * 100) / 100;
 		let randomDirection = Math.round(Math.random());
@@ -79,19 +81,20 @@ export default class Bullet {
 		instance.angle += shiftAngle;
 		if (instance.angle < 0) {
 			instance.angle = 360 + instance.angle;
-		}
-		else if (instance.angle >= 360) {
+		} else if (instance.angle >= 360) {
 			instance.angle = instance.angle - 360;
 		}
 		//triangle
 		const bulletSpeed = gun.bulletSpeed;
-		instance.shiftX = Math.sin(instance.angle * Math.PI / 180) * bulletSpeed;
-		instance.shiftY = Math.cos(instance.angle * Math.PI / 180) * bulletSpeed;
+		instance.shiftX = Math.sin((instance.angle * Math.PI) / 180) * bulletSpeed;
+		instance.shiftY = Math.cos((instance.angle * Math.PI) / 180) * bulletSpeed;
 
 		//start shift to edge the of player
+		/*
 		const bulletStartShift = Player.radius / gun.bulletSpeed + 0.1;
 		instance.x += instance.shiftX * bulletStartShift;
 		instance.y -= instance.shiftY * bulletStartShift;
+		*/
 
 		//shift to the edge of gun
 		const bulletShiftToTheGunEdge = Math.ceil(gun.length / gun.bulletSpeed);
@@ -102,14 +105,7 @@ export default class Bullet {
 	}
 
 	//constructor
-	static createFragment(
-		id: number,
-		player: Player,
-		granade: Granade,
-		map: Map,
-		players: Player[],
-		shiftAngle: number
-	): Bullet {
+	static createFragment(id: number, player: Player, granade: Granade, map: Map, players: Player[], shiftAngle: number): Bullet {
 		const fragmentRange = Math.floor(Math.random() * (granade.fragmentRange / 2)) + granade.fragmentRange / 2;
 		const instance = new Bullet(id, fragmentRange);
 		instance.map = map;
@@ -131,8 +127,8 @@ export default class Bullet {
 		}
 		//triangle
 		const bulletSpeed = granade.fragmentSpeed;
-		instance.shiftX = Math.sin(instance.angle * Math.PI / 180) * bulletSpeed;
-		instance.shiftY = Math.cos(instance.angle * Math.PI / 180) * bulletSpeed;
+		instance.shiftX = Math.sin((instance.angle * Math.PI) / 180) * bulletSpeed;
+		instance.shiftY = Math.cos((instance.angle * Math.PI) / 180) * bulletSpeed;
 		return instance;
 	}
 
