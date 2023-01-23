@@ -31,6 +31,15 @@ export default class SnapshotManager {
 		this.map = map;
 	}
 
+	getMyPlayer(myPlayerId: number) {
+		for (const player of this.players) {
+			if (player.id === myPlayerId) {
+				return player;
+			}
+		}
+		return null;
+	}
+
 	private addSumaNewer(sumaNewer: number): void {
 		const max = 100;
 		this.averageSumaNewer.push(sumaNewer);
@@ -231,10 +240,7 @@ export default class SnapshotManager {
 		if (!lastSnapshot.z.hasOwnProperty('d')) lastSnapshot.z.d = previousSnapshot.z.d;
 	}
 
-	private completeMyPlayerSnapshot(
-		previousMyPlayerSnapshot: MyPlayerSnapshot,
-		lastMyPlayerSnapshot: MyPlayerSnapshot
-	): void {
+	private completeMyPlayerSnapshot(previousMyPlayerSnapshot: MyPlayerSnapshot, lastMyPlayerSnapshot: MyPlayerSnapshot): void {
 		if (!lastMyPlayerSnapshot.hasOwnProperty('h')) lastMyPlayerSnapshot.h = previousMyPlayerSnapshot.h;
 
 		if (!lastMyPlayerSnapshot.hasOwnProperty('i1')) lastMyPlayerSnapshot.i1 = previousMyPlayerSnapshot.i1;
@@ -259,10 +265,8 @@ export default class SnapshotManager {
 		if (!lastMyPlayerSnapshot.hasOwnProperty('l')) lastMyPlayerSnapshot.l = previousMyPlayerSnapshot.l;
 		if (!lastMyPlayerSnapshot.hasOwnProperty('lE')) lastMyPlayerSnapshot.lE = previousMyPlayerSnapshot.lE;
 		if (!lastMyPlayerSnapshot.hasOwnProperty('lT')) lastMyPlayerSnapshot.lT = previousMyPlayerSnapshot.lT;
-		if (!lastMyPlayerSnapshot.hasOwnProperty('spectate'))
-			lastMyPlayerSnapshot.spectate = previousMyPlayerSnapshot.spectate;
-		if (!lastMyPlayerSnapshot.hasOwnProperty('spectateName'))
-			lastMyPlayerSnapshot.spectateName = previousMyPlayerSnapshot.spectateName;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('spectate')) lastMyPlayerSnapshot.spectate = previousMyPlayerSnapshot.spectate;
+		if (!lastMyPlayerSnapshot.hasOwnProperty('spectateName')) lastMyPlayerSnapshot.spectateName = previousMyPlayerSnapshot.spectateName;
 		if (!lastMyPlayerSnapshot.hasOwnProperty('ai')) lastMyPlayerSnapshot.ai = previousMyPlayerSnapshot.ai;
 	}
 
@@ -317,10 +321,7 @@ export default class SnapshotManager {
 		}
 	}
 
-	private completePlayerSnapshots(
-		previousSnapshotPlayers: PlayerSnapshot[],
-		lastSnapshotPlayers: PlayerSnapshot[]
-	): void {
+	private completePlayerSnapshots(previousSnapshotPlayers: PlayerSnapshot[], lastSnapshotPlayers: PlayerSnapshot[]): void {
 		//copy missing values
 		for (const lastSnapshotPlayer of lastSnapshotPlayers) {
 			let previousSnapshotPlayer;
@@ -336,8 +337,7 @@ export default class SnapshotManager {
 				if (!lastSnapshotPlayer.hasOwnProperty('y')) lastSnapshotPlayer.y = previousSnapshotPlayer.y;
 				if (!lastSnapshotPlayer.hasOwnProperty('l')) lastSnapshotPlayer.l = previousSnapshotPlayer.l;
 				//hands
-				if (!lastSnapshotPlayer.hasOwnProperty('hSize'))
-					lastSnapshotPlayer.hSize = previousSnapshotPlayer.hSize;
+				if (!lastSnapshotPlayer.hasOwnProperty('hSize')) lastSnapshotPlayer.hSize = previousSnapshotPlayer.hSize;
 				if (!lastSnapshotPlayer.hasOwnProperty('lX')) lastSnapshotPlayer.lX = previousSnapshotPlayer.lX;
 				if (!lastSnapshotPlayer.hasOwnProperty('lY')) lastSnapshotPlayer.lY = previousSnapshotPlayer.lY;
 				if (!lastSnapshotPlayer.hasOwnProperty('rX')) lastSnapshotPlayer.rX = previousSnapshotPlayer.rX;
@@ -438,7 +438,7 @@ export default class SnapshotManager {
 					s: [],
 					z: { ...copyFrom.z },
 					l: [],
-					o: []
+					o: [],
 				};
 
 				for (const player of copyFrom.p) {
@@ -465,26 +465,10 @@ export default class SnapshotManager {
 					//hands
 					//deny between snapshot...
 					if (!player.h) {
-						player.lX = this.positionBetweenSnapshots(
-							olderSnapshot.p[i].lX,
-							newerSnapshot.p[i].lX,
-							percentShift
-						);
-						player.lY = this.positionBetweenSnapshots(
-							olderSnapshot.p[i].lY,
-							newerSnapshot.p[i].lY,
-							percentShift
-						);
-						player.rX = this.positionBetweenSnapshots(
-							olderSnapshot.p[i].rX,
-							newerSnapshot.p[i].rX,
-							percentShift
-						);
-						player.rY = this.positionBetweenSnapshots(
-							olderSnapshot.p[i].rY,
-							newerSnapshot.p[i].rY,
-							percentShift
-						);
+						player.lX = this.positionBetweenSnapshots(olderSnapshot.p[i].lX, newerSnapshot.p[i].lX, percentShift);
+						player.lY = this.positionBetweenSnapshots(olderSnapshot.p[i].lY, newerSnapshot.p[i].lY, percentShift);
+						player.rX = this.positionBetweenSnapshots(olderSnapshot.p[i].rX, newerSnapshot.p[i].rX, percentShift);
+						player.rY = this.positionBetweenSnapshots(olderSnapshot.p[i].rY, newerSnapshot.p[i].rY, percentShift);
 					}
 				}
 
@@ -510,21 +494,9 @@ export default class SnapshotManager {
 				}
 
 				//zone
-				this.betweenSnapshot.z.oR = this.positionBetweenSnapshots(
-					olderSnapshot.z.oR,
-					newerSnapshot.z.oR,
-					percentShift
-				);
-				this.betweenSnapshot.z.oX = this.positionBetweenSnapshots(
-					olderSnapshot.z.oX,
-					newerSnapshot.z.oX,
-					percentShift
-				);
-				this.betweenSnapshot.z.oY = this.positionBetweenSnapshots(
-					olderSnapshot.z.oY,
-					newerSnapshot.z.oY,
-					percentShift
-				);
+				this.betweenSnapshot.z.oR = this.positionBetweenSnapshots(olderSnapshot.z.oR, newerSnapshot.z.oR, percentShift);
+				this.betweenSnapshot.z.oX = this.positionBetweenSnapshots(olderSnapshot.z.oX, newerSnapshot.z.oX, percentShift);
+				this.betweenSnapshot.z.oY = this.positionBetweenSnapshots(olderSnapshot.z.oY, newerSnapshot.z.oY, percentShift);
 			}
 		}
 		this.updatePlayers();

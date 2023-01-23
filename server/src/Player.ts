@@ -244,6 +244,29 @@ export class Player {
 		}
 	}
 
+	changeSpectatePlayer(direction: number) {
+		let alivePlayers = [];
+		for (const player of this.players) {
+			if (player.isActive()) alivePlayers.push(player);
+		}
+
+		if (alivePlayers.length > 1) {
+			for (let i = 0; i < alivePlayers.length; i++) {
+				if (alivePlayers[i] === this.spectateThatPlayer) {
+					if (direction === 1) {
+						if (i < alivePlayers.length - 1) this.spectateThatPlayer = alivePlayers[i + 1];
+						else this.spectateThatPlayer = alivePlayers[0];
+					} else {
+						if (i === 0) this.spectateThatPlayer = alivePlayers[alivePlayers.length - 1];
+						else this.spectateThatPlayer = alivePlayers[i - 1];
+					}
+
+					break;
+				}
+			}
+		}
+	}
+
 	acceptHit(power: number, attacker?: Player, weapon?: Weapon): void {
 		if (this.inventory.vest) {
 			//reduce bullet / fragment power

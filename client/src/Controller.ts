@@ -296,6 +296,7 @@ export class Controller {
 				this.socket.emit('a', this.model.getGameId(), this.playerAngle);
 			}
 		});
+
 		this.myHtmlElements.transparentLayer.addEventListener('mousedown', (e: MouseEvent) => {
 			if (!this.model.gameActive()) return;
 			this.mouse.left = true;
@@ -303,10 +304,18 @@ export class Controller {
 			const serverPosition = this.model.view.calculateServerPosition(clickPoint);
 			this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
 		});
+
 		this.myHtmlElements.transparentLayer.addEventListener('mouseup', (e: MouseEvent) => {
 			if (!this.model.gameActive()) return;
 			this.mouse.left = false;
 			this.socket.emit('m', this.model.getGameId(), '-l');
+		});
+
+		this.myHtmlElements.transparentLayer.addEventListener('wheel', (e: any) => {
+			if (!this.model.gameActive()) return;
+			const wheelDirection = e.deltaY < 0 ? -1 : 1;
+			if (this.model.spectate) this.socket.emit('wheelChangeSpectate', this.model.getGameId(), wheelDirection);
+			else this.socket.emit('wheelChangeInventory', this.model.getGameId(), wheelDirection);
 		});
 	}
 
@@ -452,6 +461,12 @@ export class Controller {
 				case 82:
 					this.keys.r = false;
 					break;
+				//q
+				/*
+				case 81:
+					this.socket.emit('changeSpectate', this.model.getGameId());
+					break;
+					*/
 			}
 		});
 	}

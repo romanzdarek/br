@@ -186,6 +186,76 @@ export default class Inventory {
 		this.loadingNow = 0;
 	}
 
+	changeActiveItemByWheel(wheelDirection: number): void {
+		if (wheelDirection === 1)
+			switch (this.activeItemNumber) {
+				case 1:
+					if (this.item2) this.changeActiveItem(2);
+					else if (this.item3) this.changeActiveItem(3);
+					else if (this.item4) this.changeActiveItem(4);
+					else if (this.item5) this.changeActiveItem(5);
+					break;
+				case 2:
+					if (this.item3) this.changeActiveItem(3);
+					else if (this.item4) this.changeActiveItem(4);
+					else if (this.item5) this.changeActiveItem(5);
+					else if (this.item1) this.changeActiveItem(1);
+					break;
+				case 3:
+					if (this.item4) this.changeActiveItem(4);
+					else if (this.item5) this.changeActiveItem(5);
+					else if (this.item1) this.changeActiveItem(1);
+					else if (this.item2) this.changeActiveItem(2);
+					break;
+				case 4:
+					if (this.item5) this.changeActiveItem(5);
+					else if (this.item1) this.changeActiveItem(1);
+					else if (this.item2) this.changeActiveItem(2);
+					else if (this.item3) this.changeActiveItem(3);
+					break;
+				case 5:
+					if (this.item1) this.changeActiveItem(1);
+					else if (this.item2) this.changeActiveItem(2);
+					else if (this.item3) this.changeActiveItem(3);
+					else if (this.item4) this.changeActiveItem(4);
+					break;
+			}
+
+		if (wheelDirection === -1)
+			switch (this.activeItemNumber) {
+				case 5:
+					if (this.item4) this.changeActiveItem(4);
+					else if (this.item3) this.changeActiveItem(3);
+					else if (this.item2) this.changeActiveItem(2);
+					else if (this.item1) this.changeActiveItem(1);
+					break;
+				case 4:
+					if (this.item3) this.changeActiveItem(3);
+					else if (this.item2) this.changeActiveItem(2);
+					else if (this.item1) this.changeActiveItem(1);
+					else if (this.item5) this.changeActiveItem(5);
+					break;
+				case 3:
+					if (this.item2) this.changeActiveItem(2);
+					else if (this.item1) this.changeActiveItem(1);
+					else if (this.item4) this.changeActiveItem(4);
+					else if (this.item5) this.changeActiveItem(5);
+					break;
+				case 2:
+					if (this.item1) this.changeActiveItem(1);
+					else if (this.item5) this.changeActiveItem(5);
+					else if (this.item4) this.changeActiveItem(4);
+					else if (this.item3) this.changeActiveItem(3);
+					break;
+				case 1:
+					if (this.item5) this.changeActiveItem(5);
+					else if (this.item4) this.changeActiveItem(4);
+					else if (this.item3) this.changeActiveItem(3);
+					else if (this.item2) this.changeActiveItem(2);
+					break;
+			}
+	}
+
 	changeActiveItem(item: number): void {
 		//if (!this.ready()) return;
 		if (!this.ready()) this.cancelLoading();

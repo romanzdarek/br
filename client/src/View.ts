@@ -673,14 +673,9 @@ export default class View {
 		if (betweenSnapshot.i.spectate !== -1) {
 			myPlayerId = betweenSnapshot.i.spectate;
 		}
-
 		//my player or spectate
-		for (const player of players) {
-			if (player.id === myPlayerId) {
-				this.myPlayer = player;
-				break;
-			}
-		}
+		this.myPlayer = this.snapshotManager.getMyPlayer(myPlayerId);
+
 		if (!this.myPlayer) return;
 
 		//scope
@@ -834,18 +829,6 @@ export default class View {
 					ctx.restore();
 				}
 			}
-
-			/*
-			if (rectangleObstacle.isActive()) {
-				const { x, y, width, height, isOnScreen } = this.howToDraw(rectangleObstacle);
-				if (isOnScreen) {
-					ctx.save();
-					ctx.globalAlpha = rectangleObstacle.getOpacity();
-					ctx.fillRect(x, y, width, height);
-					ctx.restore();
-				}
-			}
-			*/
 		}
 
 		//dead players
@@ -1290,7 +1273,7 @@ export default class View {
 				if (isOnScreen) {
 					// am i under the tree?
 					let opacityUnderTree = 1;
-					if (this.isPlayerUnderRoundObject(this.myPlayer, bush)) opacityUnderTree = 0.8;
+					if (this.isPlayerUnderRoundObject(this.myPlayer, bush)) opacityUnderTree = 0.9;
 
 					let middleImage = size / 2;
 					ctx.save();
@@ -1310,7 +1293,7 @@ export default class View {
 				if (isOnScreen) {
 					// am i under the tree?
 					let opacityUnderTree = 1;
-					if (this.isPlayerUnderRoundObject(this.myPlayer, tree)) opacityUnderTree = 0.8;
+					if (this.isPlayerUnderRoundObject(this.myPlayer, tree)) opacityUnderTree = 0.9;
 
 					let middleImage = size / 2;
 					ctx.save();

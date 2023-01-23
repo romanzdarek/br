@@ -51,6 +51,21 @@ export default class Controller {
 				console.log('Err: spectate');
 			});
 
+			//changeSpectate
+			socket.on('wheelChangeSpectate', (gameId: number, direction: number) => {
+				if (gameId >= 0 && this.model.games[gameId]) {
+					for (const player of this.model.games[gameId].players) {
+						if (player.socket === socket) {
+							if (!player.isActive()) {
+								player.changeSpectatePlayer(direction);
+								return;
+							}
+						}
+					}
+				}
+				console.log('Err: wheelChangeSpectate');
+			});
+
 			//create a new game
 			socket.on('createGame', (playerName: string, mapName: string) => {
 				if (playerName && mapName && this.model.isNameOk(playerName) && this.model.isNameOk(mapName)) {
@@ -182,6 +197,19 @@ export default class Controller {
 					}
 				}
 				console.log('Error: i (controll player)');
+			});
+
+			//change item
+			socket.on('wheelChangeInventory', (game: number, wheelDirection: number) => {
+				if (this.model.games[game]) {
+					for (const player of this.model.games[game].players) {
+						if (player.socket === socket) {
+							player.inventory.changeActiveItemByWheel(wheelDirection);
+							return;
+						}
+					}
+				}
+				console.log('Error: wheelChangeInventory (controll player)');
 			});
 
 			//save map from editor

@@ -10,7 +10,7 @@ import CollisionPoints from './CollisionPoints';
 import SnapshotManager from './SnapshotManager';
 
 export default class Model {
-	private spectate: boolean = false;
+	spectate: boolean = false;
 	private gameRun: boolean = false;
 	private gameId: number = -1;
 	private playerId: number = -1;
@@ -26,13 +26,7 @@ export default class Model {
 	private editor: Editor;
 	collisionPoints: CollisionPoints;
 
-	constructor(
-		mouse: Mouse,
-		socket: Socket,
-		serverClientSync: ServerClientSync,
-		myHtmlElements: MyHtmlElements,
-		editor: Editor
-	) {
+	constructor(mouse: Mouse, socket: Socket, serverClientSync: ServerClientSync, myHtmlElements: MyHtmlElements, editor: Editor) {
 		this.socket = socket;
 		this.serverClientSync = serverClientSync;
 		this.waterTerrainData = new WaterTerrainData();
@@ -42,14 +36,7 @@ export default class Model {
 		this.myHtmlElements = myHtmlElements;
 		this.editor = editor;
 		this.collisionPoints = new CollisionPoints();
-		this.view = new View(
-			this.map,
-			this.mouse,
-			this.waterTerrainData,
-			this.myHtmlElements,
-			this.collisionPoints,
-			this.snapshotManager
-		);
+		this.view = new View(this.map, this.mouse, this.waterTerrainData, this.myHtmlElements, this.collisionPoints, this.snapshotManager);
 		setTimeout(() => {
 			this.loop();
 		}, 200);
