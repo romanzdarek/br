@@ -10,7 +10,7 @@
 		"build": "webpack",
 		"dev": "concurrently -n serve,watch npm:serve npm:watch",
 		"deploy-old": "npm run build && ssh ubuntu@130.61.169.112 \" rm -r /www/mbr/static; mkdir /www/mbr/static\" && scp -r ./dist/* ubuntu@130.61.169.112:/www/mbr/static && echo. & echo FE deploy finished :)",
-		"deploy": "call deploy.bat && pause"  
+		"deploy": "call deploy-zip.bat && pause"  
 	},
 	"author": "",
 	"license": "ISC",
