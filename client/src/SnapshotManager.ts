@@ -9,6 +9,7 @@ import Map from './Map';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import Message from './Message';
 import WaterCircle from './WaterCircle';
+import Sound from './Sound';
 
 export default class SnapshotManager {
 	private serverClientSync: ServerClientSync;
@@ -19,6 +20,7 @@ export default class SnapshotManager {
 	players: Player[] = [];
 	zone: Zone;
 	waterCircles: WaterCircle[] = [];
+	soundsToPlay: Sound[] = [];
 	newerExists: boolean = false;
 	olderExists: boolean = false;
 	sumaNewer: number = 0;
@@ -105,6 +107,15 @@ export default class SnapshotManager {
 
 		let updateDelay = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
 		if (updateDelay < 0) updateDelay = 0;
+
+		// play sounds
+		if (snapshot.sounds) {
+			for (const sound of snapshot.sounds) {
+				setTimeout(() => {
+					this.soundsToPlay.push(sound);
+				}, updateDelay);
+			}
+		}
 
 		//water circles
 		if (snapshot.w) {
@@ -439,6 +450,7 @@ export default class SnapshotManager {
 					z: { ...copyFrom.z },
 					l: [],
 					o: [],
+					sounds: [],
 				};
 
 				for (const player of copyFrom.p) {

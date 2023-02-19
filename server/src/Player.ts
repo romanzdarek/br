@@ -22,6 +22,7 @@ import Granade from './Granade';
 import ThrowingObject from './ThrowingObject';
 import BulletFactory from './BulletFactory';
 import PlayerStats from './PlayerStats';
+import Sound, { SoundType } from './Sound';
 
 export class Player {
 	socket: SocketIO.Socket | null;
@@ -38,6 +39,7 @@ export class Player {
 	private angle: number = 0;
 	private map: Map;
 	private bullets: Bullet[];
+	private sounds: Sound[];
 	private granades: ThrowingObject[];
 	private loot: Loot;
 	private players: Player[];
@@ -93,7 +95,8 @@ export class Player {
 		granades: ThrowingObject[],
 		loot: Loot,
 		bulletFactory: BulletFactory,
-		killMessages: string[]
+		killMessages: string[],
+		sounds: Sound[]
 	) {
 		this.id = id;
 		this.socket = socket;
@@ -110,6 +113,7 @@ export class Player {
 		this.inventory = new Inventory(this, loot, hammer);
 		this.bulletFactory = bulletFactory;
 		this.killMessages = killMessages;
+		this.sounds = sounds;
 		this.setRandomPosition();
 	}
 
@@ -513,8 +517,12 @@ export class Player {
 						shotgunSpray++;
 						this.bullets.push(this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players, shotgunSpray));
 					}
+					// create sound
+					this.sounds.push(new Sound(SoundType.Pistol, this.getCenterX(), this.getCenterY()));
 				} else {
 					this.bullets.push(this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players));
+					// create sound
+					this.sounds.push(new Sound(SoundType.Pistol, this.getCenterX(), this.getCenterY()));
 				}
 				this.inventory.activeItem.fire();
 				if (this.inventory.activeItem.empty()) this.inventory.reload(this.inventory.activeItem);
@@ -529,7 +537,7 @@ export class Player {
 			} else if (this.inventory.activeItem === Weapon.Granade) {
 				if (this.hands[1].throwReady()) {
 					this.throw();
-					this.granades.push(new Granade(this, this.hands[1], this.mouseControll.x, this.mouseControll.y));
+					this.granades.push(new Granade(this, this.hands[1], this.mouseControll.x, this.mouseControll.y, this.sounds));
 					this.mouseControll.left = false;
 				}
 			} else if (this.inventory.activeItem === Weapon.Smoke) {

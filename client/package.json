@@ -10,11 +10,12 @@
 		"build": "webpack",
 		"dev": "concurrently -n serve,watch npm:serve npm:watch",
 		"deploy-old": "npm run build && ssh ubuntu@130.61.169.112 \" rm -r /www/mbr/static; mkdir /www/mbr/static\" && scp -r ./dist/* ubuntu@130.61.169.112:/www/mbr/static && echo. & echo FE deploy finished :)",
-		"deploy": "call deploy-zip.bat && pause"  
+		"deploy": "call deploy.bat && pause"
 	},
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
+		"@types/howler": "^2.2.7",
 		"html-webpack-plugin": "^5.3.1",
 		"ts-loader": "^8.0.18",
 		"typescript": "^4.2.3",
@@ -23,6 +24,7 @@
 		"webpack-dev-server": "^3.11.2"
 	},
 	"dependencies": {
-		"concurrently": "^7.6.0"
+		"concurrently": "^7.6.0",
+		"howler": "^2.2.3"
 	}
 }

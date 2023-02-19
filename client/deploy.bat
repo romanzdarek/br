@@ -1,7 +1,12 @@
 echo FE deploy started...
-echo.
+echo .
 call npm run build
+:: make zip file
+tar.exe -C dist -a -cvf static.zip .
 ssh ubuntu@130.61.169.112 "rm -r /www/mbr/static; mkdir /www/mbr/static"
-scp -r ./dist/* ubuntu@130.61.169.112:/www/mbr/static
-echo.
+scp ./static.zip ubuntu@130.61.169.112:/www/mbr
+ssh ubuntu@130.61.169.112 "unzip /www/mbr/static.zip -d /www/mbr/static; rm /www/mbr/static.zip"
+:: ssh ubuntu@130.61.169.112 "rm -r /www/mbr/static; mkdir /www/mbr/static"
+del static.zip
+echo .
 echo FE deploy finished. 

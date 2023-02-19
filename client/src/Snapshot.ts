@@ -7,6 +7,7 @@ import LootSnapshot from './LootSnapshot';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import ObstacleSnapshot from './ObstacleSnapshot';
 import WaterCircleSnapshot from './WaterCircleSnapshot';
+import Sound from './Sound';
 
 export type Snapshot = {
 	t: number;
@@ -21,4 +22,5 @@ export type Snapshot = {
 	//messages
 	m?: string[];
 	w?: WaterCircleSnapshot[];
+	sounds?: Sound[];
 };

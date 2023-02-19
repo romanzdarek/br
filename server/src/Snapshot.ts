@@ -7,6 +7,7 @@ import ThrowingObjectSnapshot from './ThrowingObjectSnapshot';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import ObstacleSnapshot from './ObstacleSnapshot';
 import WaterCircleSnapshot from './WaterCircleSnapshot';
+import Sound from './Sound';
 
 export default class Snapshot {
 	t: number;
@@ -20,6 +21,7 @@ export default class Snapshot {
 	o: ObstacleSnapshot[];
 	m?: string[];
 	w?: WaterCircleSnapshot[];
+	sounds?: Sound[];
 
 	constructor(
 		time: number,
@@ -32,6 +34,7 @@ export default class Snapshot {
 		obstacles: ObstacleSnapshot[],
 		messages: string[],
 		waterCircleSnapshots: WaterCircleSnapshot[],
+		sounds: Sound[],
 		myPlayerSnapshot?: MyPlayerSnapshot
 	) {
 		this.t = time;
@@ -45,5 +48,6 @@ export default class Snapshot {
 		if (messages.length) this.m = messages;
 		if (myPlayerSnapshot) this.i = myPlayerSnapshot;
 		if (waterCircleSnapshots.length) this.w = waterCircleSnapshots;
+		if (sounds.length) this.sounds = sounds;
 	}
 }

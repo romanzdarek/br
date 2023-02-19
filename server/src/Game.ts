@@ -24,6 +24,7 @@ import PlayerFactory from './PlayerFactory';
 import BulletFactory from './BulletFactory';
 import ObstacleSnapshot from './ObstacleSnapshot';
 import WaterCircleSnapshot from './WaterCircleSnapshot';
+import Sound from './Sound';
 
 export default class Game {
 	private map: Map;
@@ -32,6 +33,7 @@ export default class Game {
 	players: Player[] = [];
 	private previousSnapshot: Snapshot;
 	private bullets: Bullet[] = [];
+	private sounds: Sound[] = [];
 	private loot: Loot;
 	private smokeClouds: SmokeCloud[] = [];
 	private granades: ThrowingObject[] = [];
@@ -175,7 +177,8 @@ export default class Game {
 			this.granades,
 			this.loot,
 			this.bulletFactory,
-			this.killMessages
+			this.killMessages,
+			this.sounds
 		);
 		this.players.push(newPlayer);
 		//send it to the client
@@ -213,8 +216,7 @@ export default class Game {
 			if (!granade.explode()) {
 				granade.move();
 				granade.tick();
-			}
-			else {
+			} else {
 				//explode
 				//create fragments
 				if (granade instanceof Granade) {
@@ -225,6 +227,9 @@ export default class Game {
 						fragments.push(this.bulletFactory.createFragment(granade, this.map, this.players, angle));
 					}
 					this.bullets.push(...this.shuffleFragments(fragments));
+
+					//
+					granade.createExplodeSound();
 				}
 				//create smoke clouds
 				if (granade instanceof Smoke) {
@@ -243,8 +248,7 @@ export default class Game {
 			const smokeCloud = this.smokeClouds[i];
 			if (smokeCloud.isActive()) {
 				smokeCloud.move();
-			}
-			else {
+			} else {
 				this.smokeClouds.splice(i, 1);
 			}
 		}
@@ -256,8 +260,7 @@ export default class Game {
 				bullet.move();
 				bullet.move();
 				bullet.move();
-			}
-			else {
+			} else {
 				this.bullets.splice(i, 1);
 			}
 		}
@@ -321,6 +324,10 @@ export default class Game {
 			playerSnapshotsOptimalization.push({ ...player });
 		}
 
+		//Sounds
+		const sounds: Sound[] = [...this.sounds];
+		this.sounds.splice(0, this.sounds.length);
+
 		//find same values and delete them
 		//players
 		for (const playerNow of playerSnapshotsOptimalization) {
@@ -329,14 +336,11 @@ export default class Game {
 					if (playerNow.i === playerBefore.i) {
 						//for deny create beetween snapshot for hands
 						if (
-							(playerNow.w === Weapon.Hand ||
-								playerNow.w === Weapon.Smoke ||
-								playerNow.w === Weapon.Granade ||
-								playerNow.w === Weapon.Medkit) &&
-							(playerBefore.w !== Weapon.Hand &&
-								playerBefore.w !== Weapon.Smoke &&
-								playerBefore.w !== Weapon.Granade &&
-								playerBefore.w !== Weapon.Medkit)
+							(playerNow.w === Weapon.Hand || playerNow.w === Weapon.Smoke || playerNow.w === Weapon.Granade || playerNow.w === Weapon.Medkit) &&
+							playerBefore.w !== Weapon.Hand &&
+							playerBefore.w !== Weapon.Smoke &&
+							playerBefore.w !== Weapon.Granade &&
+							playerBefore.w !== Weapon.Medkit
 						) {
 							playerNow.h = 1;
 						}
@@ -467,8 +471,9 @@ export default class Game {
 			zoneSnapshot,
 			lootSnapshots,
 			obstacleSnapshots,
-			[ ...this.killMessages ],
-			waterCircles
+			[...this.killMessages],
+			waterCircles,
+			sounds
 		);
 
 		//emit changes
@@ -518,10 +523,8 @@ export default class Game {
 
 						if (previousMyPlayerSnapshot.ai === lastMyPlayerSnapshot.ai) delete lastMyPlayerSnapshot.ai;
 
-						if (previousMyPlayerSnapshot.spectateName === lastMyPlayerSnapshot.spectateName)
-							delete lastMyPlayerSnapshot.spectateName;
-						if (previousMyPlayerSnapshot.spectate === lastMyPlayerSnapshot.spectate)
-							delete lastMyPlayerSnapshot.spectate;
+						if (previousMyPlayerSnapshot.spectateName === lastMyPlayerSnapshot.spectateName) delete lastMyPlayerSnapshot.spectateName;
+						if (previousMyPlayerSnapshot.spectate === lastMyPlayerSnapshot.spectate) delete lastMyPlayerSnapshot.spectate;
 					}
 				}
 			}
@@ -536,8 +539,9 @@ export default class Game {
 				zoneSnapshotOptimalization,
 				lootSnapshotsOptimalization,
 				obstacleSnapshots,
-				[ ...this.killMessages ],
+				[...this.killMessages],
 				waterCircles,
+				sounds,
 				lastMyPlayerSnapshot
 			);
 			if (player.socket) player.socket.emit('u', snapshot);

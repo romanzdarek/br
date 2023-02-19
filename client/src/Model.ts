@@ -8,6 +8,7 @@ import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
 import CollisionPoints from './CollisionPoints';
 import SnapshotManager from './SnapshotManager';
+import SurroundSound from './SurroundSound';
 
 export default class Model {
 	spectate: boolean = false;
@@ -25,6 +26,7 @@ export default class Model {
 	private myHtmlElements: MyHtmlElements;
 	private editor: Editor;
 	collisionPoints: CollisionPoints;
+	private surroundSound: SurroundSound = new SurroundSound();
 
 	constructor(mouse: Mouse, socket: Socket, serverClientSync: ServerClientSync, myHtmlElements: MyHtmlElements, editor: Editor) {
 		this.socket = socket;
@@ -139,5 +141,12 @@ export default class Model {
 		if (!this.gameRun) return;
 		this.snapshotManager.createBetweenSnapshot();
 		this.view.drawGame(this.playerId);
+
+		//sounds
+		for (const sound of this.snapshotManager.soundsToPlay) {
+			const myPlayer = this.snapshotManager.getMyPlayer(this.playerId);
+			this.surroundSound.play(myPlayer.getCenterX(), myPlayer.getCenterY(), sound);
+		}
+		this.snapshotManager.soundsToPlay.splice(0, this.snapshotManager.soundsToPlay.length);
 	}
 }

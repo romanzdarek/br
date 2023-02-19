@@ -5,6 +5,7 @@ import Bullet from './Bullet';
 import ThrowingObject from './ThrowingObject';
 import Loot from './Loot';
 import BulletFactory from './BulletFactory';
+import Sound from './Sound';
 
 export default class PlayerFactory {
 	private playerId: number = 0;
@@ -18,20 +19,9 @@ export default class PlayerFactory {
 		granades: ThrowingObject[],
 		loot: Loot,
 		bulletFacory: BulletFactory,
-		killmessages: string[]
+		killmessages: string[],
+		sounds: Sound[]
 	): Player {
-		return new Player(
-			this.playerId++,
-			name,
-			socket,
-			map,
-			collisionPoints,
-			players,
-			bullets,
-			granades,
-			loot,
-			bulletFacory,
-			killmessages
-		);
+		return new Player(this.playerId++, name, socket, map, collisionPoints, players, bullets, granades, loot, bulletFacory, killmessages, sounds);
 	}
 }
