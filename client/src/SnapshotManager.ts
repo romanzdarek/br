@@ -76,42 +76,7 @@ export default class SnapshotManager {
 		}
 	}
 
-	bullets: any = {};
 	addSnapshot(snapshot: Snapshot): void {
-		for (const bullet of snapshot.b) {
-			if (!this.bullets[bullet.id]) {
-				this.bullets[bullet.id] = [];
-			}
-			this.bullets[bullet.id].push({ ...bullet, time: Date.now() });
-		}
-		/*
-		//bullet test
-		if (this.beforeSnapshotForTestBullets && snapshot.b) {
-			const shift = 400;
-			//test
-			for (const bulletNow of snapshot.b) {
-				for (const bulletBefore of this.beforeSnapshotForTestBullets.b) {
-					if (bulletNow.id === bulletBefore.id) {
-						if (
-							Math.abs(bulletNow.x - bulletBefore.x) > shift ||
-							Math.abs(bulletNow.y - bulletBefore.y) > shift
-						) {
-							console.log('err: bullet shift');
-							console.log('before:', this.beforeSnapshotForTestBullets);
-							console.log('now:', snapshot);
-							debugger;
-						}
-						break;
-					}
-				}
-			}
-		}
-		//save snapshot
-		if (this.beforeSnapshotForTestBullets && this.beforeSnapshotForTestBullets.b) {
-			this.beforeSnapshotForTestBullets = snapshot;
-		}
-		*/
-
 		let updateDelay = this.serverClientSync.getDrawDelay() - (this.serverClientSync.getServerTime() - snapshot.t);
 		if (updateDelay < 0) updateDelay = 0;
 

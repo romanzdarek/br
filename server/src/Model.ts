@@ -164,16 +164,7 @@ export default class Model {
 		}
 	}
 
-	private lastLoopTime = Date.now();
 	private loop(): void {
-		const now = Date.now();
-		const timeGap = 17;
-		const diference = now - this.lastLoopTime;
-		if (diference > timeGap) {
-			console.error('loop is slow, last time before:', diference);
-		}
-		this.lastLoopTime = now;
-
 		for (let i = this.games.length - 1; i >= 0; i--) {
 			const game = this.games[i];
 			if (game && game.isActive()) {
@@ -183,11 +174,8 @@ export default class Model {
 					for (const player of game.players) {
 						if (player.socket) {
 							player.socket.emit('stopGame');
-
-							player.socket.emit('debug', 'model.loop() stopGame');
 						}
 					}
-					console.log('model.loop() delete game', i);
 					delete this.games[i];
 				}
 			}

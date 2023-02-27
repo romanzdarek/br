@@ -67,7 +67,6 @@ export default class Bullet {
 
 		// posunutí počáteční pozice kvuli dvou hlavním
 		if (gun instanceof Shotgun) {
-			console.log('Shotgun');
 			const angle = 90 - player.getAngle();
 			const hypotenuse = 6;
 			const xShift = Math.sin((angle * Math.PI) / 180) * hypotenuse;

@@ -8,7 +8,7 @@ export default class Tree extends RoundObstacle {
 	constructor(id: number, x: number, y: number, angle: number) {
 		const size = 500;
 		super(id, x, y, size);
-		this.treeTrankRadius = 35;
+		this.treeTrankRadius = 38.5;
 		this.opacity = 1;
 		this.healthMax = 200;
 		this.health = this.healthMax * this.opacity;

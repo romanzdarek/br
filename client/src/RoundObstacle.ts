@@ -10,7 +10,6 @@ export default abstract class RoundObstacle {
 	readonly radius: number;
 	private active: boolean = true;
 
-
 	constructor(id: number, x: number, y: number, size: number) {
 		this.id = id;
 		this.x = x;
@@ -54,5 +53,15 @@ export default abstract class RoundObstacle {
 
 	isActive(): boolean {
 		return this.active;
+	}
+
+	increaseOpacity(adjustFrameRate: number) {
+		this.opacity += 0.01 * adjustFrameRate;
+		if (this.opacity > 1) this.opacity = 1;
+	}
+
+	decreaseOpacity(adjustFrameRate: number) {
+		this.opacity -= 0.01 * adjustFrameRate;
+		if (this.opacity < 0.5) this.opacity = 0.5;
 	}
 }

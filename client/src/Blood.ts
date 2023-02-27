@@ -1,5 +1,5 @@
 export default class Blood {
-	readonly size: number = 12;
+	readonly size: number = 8;
 	private x: number;
 	private y: number;
 	private timer: number = 0;
@@ -11,8 +11,8 @@ export default class Blood {
 	}
 
 	shift(): void {
-		this.x += 20;
-		this.y -= 20;
+		this.x += 0.7;
+		this.y -= 0.7;
 		this.timer++;
 	}
 

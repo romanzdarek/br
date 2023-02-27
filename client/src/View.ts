@@ -247,6 +247,9 @@ export default class View {
 	reset(): void {
 		this.myPlayer = null;
 		this.scope = new Scope();
+		// solves bullet line error
+		// in some caces there can stay bullet lines without lineparts
+		this.bulletLines = [];
 	}
 
 	screenResize(): void {
@@ -664,9 +667,7 @@ export default class View {
 		return radius < player.radius + roudObject.radius;
 	}
 
-	debugger = false;
 	drawGame(myPlayerId: number): void {
-		if (this.debugger) return;
 		const betweenSnapshot = this.snapshotManager.betweenSnapshot;
 		const players = this.snapshotManager.players;
 		if (!betweenSnapshot) return;
@@ -1229,6 +1230,7 @@ export default class View {
 		this.createBulletLines();
 		//draw bullet lines
 		for (const line of this.bulletLines) {
+			//if (!line.parts.length) console.log('empty bullet line');
 			let partCounter = 0;
 			for (const partLine of line.parts) {
 				partCounter++;
@@ -1248,48 +1250,17 @@ export default class View {
 						size: 1,
 					});
 
-					//make it slower
-					/*
-					for (let index = 0; index < 10000; index++) {
-						if (Date.now() < 1) return;
-					}
-					*/
-
-					//bug long bullet lines
-					if (Math.abs(partLine.startX - partLine.endX) > 600 || Math.abs(partLine.startY - partLine.endY) > 600) {
-						//console.log('err: bullet lines');
-						console.log('bulletLine', partLine.bulletLine);
-						console.log('bullet positions', this.snapshotManager.bullets[partLine.bulletLine.id]);
-						//console.log('partLine', partLine);
-
-						//console.log('startX, startY ', startX, startY);
-						//console.log('endX, endY ', endX, endY);
-
-						//this.debugger = true;
-
-						ctx.save();
-						ctx.globalAlpha = finalAlpha;
-						ctx.beginPath();
-						ctx.moveTo(startX, startY);
-						ctx.lineTo(endX, endY);
-						ctx.lineWidth = (6 - partLine.getAge() / 3.33) * this.finalResolutionAdjustment;
-						ctx.strokeStyle = 'red';
-						ctx.stroke();
-						ctx.restore();
-						partLine.increaseAge();
-					} else {
-						//draw part
-						ctx.save();
-						ctx.globalAlpha = finalAlpha;
-						ctx.beginPath();
-						ctx.moveTo(startX, startY);
-						ctx.lineTo(endX, endY);
-						ctx.lineWidth = (6 - partLine.getAge() / 3.33) * this.finalResolutionAdjustment;
-						ctx.strokeStyle = 'white';
-						ctx.stroke();
-						ctx.restore();
-						partLine.increaseAge();
-					}
+					//draw part
+					ctx.save();
+					ctx.globalAlpha = finalAlpha;
+					ctx.beginPath();
+					ctx.moveTo(startX, startY);
+					ctx.lineTo(endX, endY);
+					ctx.lineWidth = (6 - partLine.getAge() / 3.33) * this.finalResolutionAdjustment;
+					ctx.strokeStyle = 'white';
+					ctx.stroke();
+					ctx.restore();
+					partLine.increaseAge();
 				}
 			}
 		}
@@ -1300,14 +1271,17 @@ export default class View {
 				const { x, y, size, isOnScreen } = this.howToDraw(bush);
 				if (isOnScreen) {
 					// am i under the tree?
-					let opacityUnderTree = 1;
-					if (this.isPlayerUnderRoundObject(this.myPlayer, bush)) opacityUnderTree = 0.9;
+					if (this.isPlayerUnderRoundObject(this.myPlayer, bush)) {
+						bush.decreaseOpacity(adjustFrameRate);
+					} else {
+						bush.increaseOpacity(adjustFrameRate);
+					}
 
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
 					ctx.rotate((bush.angle * Math.PI) / 180);
-					ctx.globalAlpha = bush.getOpacity() * opacityUnderTree;
+					ctx.globalAlpha = bush.getOpacity();
 					ctx.drawImage(this.bushSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
@@ -1319,15 +1293,17 @@ export default class View {
 			if (tree.isActive()) {
 				const { x, y, size, isOnScreen } = this.howToDraw(tree);
 				if (isOnScreen) {
-					// am i under the tree?
-					let opacityUnderTree = 1;
-					if (this.isPlayerUnderRoundObject(this.myPlayer, tree)) opacityUnderTree = 0.9;
+					if (this.isPlayerUnderRoundObject(this.myPlayer, tree)) {
+						tree.decreaseOpacity(adjustFrameRate);
+					} else {
+						tree.increaseOpacity(adjustFrameRate);
+					}
 
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
 					ctx.rotate((tree.angle * Math.PI) / 180);
-					ctx.globalAlpha = tree.getOpacity() * opacityUnderTree;
+					ctx.globalAlpha = tree.getOpacity();
 					ctx.drawImage(this.treeSVG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}

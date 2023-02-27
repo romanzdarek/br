@@ -172,7 +172,7 @@ export default class Inventory {
 			this.item4 = this.activeItem;
 		} else if (this.item4SmokeCount === 0 && this.item4GranadeCount === 0) {
 			this.item4 = null;
-			//hnad
+
 			if (this.item3 !== Weapon.Hand) {
 				this.activeItem = this.item3;
 			}
