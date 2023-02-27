@@ -157,15 +157,17 @@ export class Controller {
 		});
 
 		//createGame
-		this.socket.on('createGame', (gameId: number, playerName: string) => {
+		this.socket.on('createGame', (gameId: number, playerName: string, mapName: string) => {
 			this.model.setGameId(gameId);
+			el.lobbyMenu.mapName.textContent = mapName;
 			el.close(el.mainMenu.main, el.lobbyMenu.forJoinPlayers);
 			el.open(el.lobbyMenu.main, el.lobbyMenu.forCreatePlayer);
 		});
 
 		//joinGame
-		this.socket.on('joinGame', (gameId: number, playerName: string) => {
+		this.socket.on('joinGame', (gameId: number, playerName: string, mapName: string) => {
 			this.model.setGameId(gameId);
+			el.lobbyMenu.mapName.textContent = mapName;
 			el.close(el.mainMenu.main, el.lobbyMenu.forCreatePlayer);
 			el.open(el.lobbyMenu.main, el.lobbyMenu.forJoinPlayers);
 		});
@@ -258,6 +260,7 @@ export class Controller {
 		this.socket.on('serverClientSync', (clientDateNow, serverDateNow) => {
 			const timeNow = Date.now();
 			const ping = timeNow - clientDateNow;
+			console.log('serverClientSync ping:', ping);
 			const timeDiferenceClientServer = serverDateNow - (timeNow - ping / 2);
 			this.serverClientSync.addData(ping, timeDiferenceClientServer);
 		});

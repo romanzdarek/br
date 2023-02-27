@@ -1,4 +1,6 @@
 import Hand from './hand';
+import Map from './Map';
+import MapData from './MapData';
 import { Player } from './Player';
 
 export default class ThrowingObject {
@@ -12,27 +14,25 @@ export default class ThrowingObject {
 	private shiftX: number;
 	private shiftY: number;
 	//shiftZ == speed
-	private shiftZ: number = 7;
+	private shiftZ: number = 9;
 	private distance: number = 0;
-    private steps: number;
-    private countdown: number = 100;
+	private steps: number;
+	private countdown: number = 120;
 
-	constructor(player: Player, hand: Hand, targetX: number, targetY: number, range: number = 80) {
-		this.player = player
+	constructor(player: Player, hand: Hand, targetX: number, targetY: number, range: number = 85) {
+		this.player = player;
 		this.x = hand.getCenterX();
 		this.y = hand.getCenterY();
 		//triangle
 		let x, y;
 		if (hand.getCenterX() >= targetX) {
 			x = hand.getCenterX() - targetX;
-		}
-		else {
+		} else {
 			x = targetX - hand.getCenterX();
 		}
 		if (hand.getCenterY() >= targetY) {
 			y = hand.getCenterY() - targetY;
-		}
-		else {
+		} else {
 			y = targetY - hand.getCenterY();
 		}
 		const z = Math.sqrt(x * x + y * y);
@@ -40,16 +40,14 @@ export default class ThrowingObject {
 
 		if (hand.getCenterX() <= targetX) {
 			this.shiftX = x / this.steps;
-		}
-		else {
-			this.shiftX = x / this.steps * -1;
+		} else {
+			this.shiftX = (x / this.steps) * -1;
 		}
 
 		if (hand.getCenterY() <= targetY) {
 			this.shiftY = y / this.steps;
-		}
-		else {
-			this.shiftY = y / this.steps * -1;
+		} else {
+			this.shiftY = (y / this.steps) * -1;
 		}
 		if (this.steps > range) this.steps = range;
 	}
@@ -61,8 +59,7 @@ export default class ThrowingObject {
 			//up
 			if (this.distance < this.steps / 2) {
 				this.aboveGround += 0.05;
-			}
-			else {
+			} else {
 				//down
 				this.aboveGround -= 0.05;
 			}
@@ -100,13 +97,51 @@ export default class ThrowingObject {
 
 	flying(): boolean {
 		return this.distance < this.steps;
-    }
-    
-    tick(): void {
+	}
+
+	tick(): void {
 		if (this.countdown > 0) this.countdown--;
 	}
 
 	explode(): boolean {
 		return this.countdown === 0;
+	}
+
+	moveFromObstacle(map: Map) {
+		if (this.aboveGround > 1.05) return;
+
+		const minGap = 5;
+
+		for (const rock of map.rocks) {
+			const minDistance = rock.radius + minGap;
+			const xDistance = Math.abs(rock.getCenterX() - this.x);
+			const yDistance = Math.abs(rock.getCenterY() - this.y);
+			const zDistance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
+			if (zDistance < minDistance) {
+				this.x += this.shiftX * Math.random();
+				this.y += this.shiftY * Math.random();
+				return;
+			}
+		}
+
+		for (const tree of map.trees) {
+			const minDistance = tree.treeTrankRadius + minGap;
+			const xDistance = Math.abs(tree.getCenterX() - this.x);
+			const yDistance = Math.abs(tree.getCenterY() - this.y);
+			const zDistance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
+			if (zDistance < minDistance) {
+				this.x += this.shiftX * Math.random();
+				this.y += this.shiftY * Math.random();
+				return;
+			}
+		}
+
+		for (const rectangle of map.rectangleObstacles) {
+			if (this.x >= rectangle.x && this.x <= rectangle.x + rectangle.width && this.y >= rectangle.y && this.y <= rectangle.y + rectangle.height) {
+				this.x += this.shiftX * Math.random();
+				this.y += this.shiftY * Math.random();
+				return;
+			}
+		}
 	}
 }

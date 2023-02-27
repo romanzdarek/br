@@ -2,7 +2,7 @@ import Gun from './Gun';
 
 export default class Pistol extends Gun {
 	constructor(bullets: number) {
-		const length = 50;
+		const length = 48;
 		const range = 30;
 		const bulletSpeed = 14;
 		const spray = 3;

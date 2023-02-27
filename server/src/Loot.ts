@@ -154,7 +154,7 @@ export default class Loot {
 	createMainLootItems(players: number): void {
 		if (appVariant == AppVariant.Localhost) {
 			// TODO
-			players = 3;
+			players = 5;
 		}
 
 		for (let i = 0; i < players; i++) {

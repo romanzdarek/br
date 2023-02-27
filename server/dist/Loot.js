@@ -130,7 +130,7 @@ class Loot {
     createMainLootItems(players) {
         if (app_1.appVariant == app_1.AppVariant.Localhost) {
             // TODO
-            players = 3;
+            players = 5;
         }
         for (let i = 0; i < players; i++) {
             if (Math.random() > 0.5)

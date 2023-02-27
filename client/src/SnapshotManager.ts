@@ -76,7 +76,14 @@ export default class SnapshotManager {
 		}
 	}
 
+	bullets: any = {};
 	addSnapshot(snapshot: Snapshot): void {
+		for (const bullet of snapshot.b) {
+			if (!this.bullets[bullet.id]) {
+				this.bullets[bullet.id] = [];
+			}
+			this.bullets[bullet.id].push({ ...bullet, time: Date.now() });
+		}
 		/*
 		//bullet test
 		if (this.beforeSnapshotForTestBullets && snapshot.b) {
@@ -481,6 +488,27 @@ export default class SnapshotManager {
 						player.lY = this.positionBetweenSnapshots(olderSnapshot.p[i].lY, newerSnapshot.p[i].lY, percentShift);
 						player.rX = this.positionBetweenSnapshots(olderSnapshot.p[i].rX, newerSnapshot.p[i].rX, percentShift);
 						player.rY = this.positionBetweenSnapshots(olderSnapshot.p[i].rY, newerSnapshot.p[i].rY, percentShift);
+					}
+				}
+
+				//bullets
+				for (const bullet of this.betweenSnapshot.b) {
+					let olderBullet, newerbullet;
+					for (const older of olderSnapshot.b) {
+						if (bullet.id === older.id) {
+							olderBullet = older;
+							break;
+						}
+					}
+					for (const newer of newerSnapshot.b) {
+						if (bullet.id === newer.id) {
+							newerbullet = newer;
+							break;
+						}
+					}
+					if (olderBullet && newerbullet) {
+						bullet.x = this.positionBetweenSnapshots(olderBullet.x, newerbullet.x, percentShift);
+						bullet.y = this.positionBetweenSnapshots(olderBullet.y, newerbullet.y, percentShift);
 					}
 				}
 

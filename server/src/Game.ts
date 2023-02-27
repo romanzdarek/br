@@ -24,7 +24,7 @@ import PlayerFactory from './PlayerFactory';
 import BulletFactory from './BulletFactory';
 import ObstacleSnapshot from './ObstacleSnapshot';
 import WaterCircleSnapshot from './WaterCircleSnapshot';
-import Sound from './Sound';
+import Sound, { SoundType } from './Sound';
 
 export default class Game {
 	private map: Map;
@@ -45,8 +45,9 @@ export default class Game {
 	private previousMyPlayerSnapshots: MyPlayerSnapshot[];
 	private killMessages: string[] = [];
 	readonly createTime: number;
+	readonly mapName: string;
 
-	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints, mapData: MapData) {
+	constructor(waterTerrainData: WaterTerrainData, collisionPoints: CollisionPoints, mapData: MapData, mapName: string) {
 		this.collisionPoints = collisionPoints;
 		this.mapData = mapData;
 		this.map = new Map(waterTerrainData, mapData);
@@ -55,6 +56,7 @@ export default class Game {
 		this.playerFactory = new PlayerFactory();
 		this.bulletFactory = new BulletFactory();
 		this.createTime = Date.now();
+		this.mapName = mapName;
 	}
 
 	isEnd(): boolean {
@@ -215,6 +217,7 @@ export default class Game {
 			const granade = this.granades[i];
 			if (!granade.explode()) {
 				granade.move();
+				granade.moveFromObstacle(this.map);
 				granade.tick();
 			} else {
 				//explode
@@ -246,6 +249,11 @@ export default class Game {
 		//move or delete smoke clouds
 		for (let i = this.smokeClouds.length - 1; i >= 0; i--) {
 			const smokeCloud = this.smokeClouds[i];
+
+			for (const player of this.players) {
+				smokeCloud.hitPlayer(player);
+			}
+
 			if (smokeCloud.isActive()) {
 				smokeCloud.move();
 			} else {
@@ -458,6 +466,7 @@ export default class Game {
 			if (player.isActive() && player.getWaterCircleTimer() >= player.waterCircleTimerMax) {
 				player.nullWaterCircleTimer();
 				waterCircles.push(new WaterCircleSnapshot(player.getCenterX(), player.getCenterY()));
+				this.sounds.push(new Sound(SoundType.Water, player.getCenterX(), player.getCenterY()));
 			}
 		}
 

@@ -1,5 +1,15 @@
 export enum SoundType {
 	Pistol,
+	Shotgun,
+	Rifle,
+	Machinegun,
+	Granade,
+	Punch,
+	Water,
+	Hit,
+	Footstep,
+	Hammer,
+	Throw,
 }
 
 export default class Sound {

@@ -22,7 +22,7 @@ export default class MyHtmlElements {
 	//<div id="healthBar"><div id="healthBarIn"></div></div>
 	readonly healthBar = {
 		main: document.getElementById('healthBar'),
-		in: document.getElementById('healthBarIn')
+		in: document.getElementById('healthBarIn'),
 	};
 
 	readonly items = {
@@ -47,7 +47,7 @@ export default class MyHtmlElements {
 		scope4: document.getElementById('scope4'),
 		scope6: document.getElementById('scope6'),
 		scopeSVG: document.getElementById('scope').getElementsByTagName('img')[0],
-		vest: document.getElementById('vest')
+		vest: document.getElementById('vest'),
 	};
 
 	readonly editor = {
@@ -69,7 +69,7 @@ export default class MyHtmlElements {
 		objectHorizontalWall: document.getElementById('editorObjectHorizontalWall'),
 		objectVerticalWall: document.getElementById('editorObjectVerticalWall'),
 		objectDelete: document.getElementById('editorObjectDelete'),
-		openMenu: document.getElementById('editorOpenMenu')
+		openMenu: document.getElementById('editorOpenMenu'),
 	};
 
 	/*
@@ -80,7 +80,7 @@ export default class MyHtmlElements {
 	*/
 	readonly saveMapMenu = {
 		main: document.getElementById('saveMapMenu'),
-		back: document.getElementById('saveMapMenuBack')
+		back: document.getElementById('saveMapMenuBack'),
 	};
 
 	/*
@@ -111,7 +111,7 @@ export default class MyHtmlElements {
 		back: document.getElementById('gameOverMenuBack'),
 		h1: document.getElementById('gameOverMenuH1'),
 		stats: document.getElementById('gameOverMenuStats'),
-		spectate: document.getElementById('gameOverMenuspectate')
+		spectate: document.getElementById('gameOverMenuspectate'),
 	};
 
 	readonly mapEditorMenu = {
@@ -120,7 +120,7 @@ export default class MyHtmlElements {
 		save: document.getElementById('mapEditorMenuSave'),
 		changeSize: document.getElementById('mapEditorMenuChangeSize'),
 		back: document.getElementById('mapEditorMenuBack'),
-		close: document.getElementById('mapEditorMenuClose')
+		close: document.getElementById('mapEditorMenuClose'),
 	};
 
 	/*
@@ -135,7 +135,7 @@ export default class MyHtmlElements {
 
 	readonly alertMenu = {
 		main: document.getElementById('alertMenu'),
-		ok: document.getElementById('alertMenuOk')
+		ok: document.getElementById('alertMenuOk'),
 	};
 
 	/*<div class="menu" id="openMapMenu">
@@ -149,7 +149,7 @@ export default class MyHtmlElements {
 		main: document.getElementById('openMapMenu'),
 		maps: document.getElementById('openMapMenuMaps'),
 		ok: document.getElementById('openMapMenuOk'),
-		back: document.getElementById('openMapMenuBack')
+		back: document.getElementById('openMapMenuBack'),
 	};
 
 	/*
@@ -163,7 +163,7 @@ export default class MyHtmlElements {
 
 	readonly controlsMenu = {
 		main: document.getElementById('controlsMenu'),
-		back: document.getElementById('controlsMenuBack')
+		back: document.getElementById('controlsMenuBack'),
 	};
 
 	/*
@@ -195,7 +195,7 @@ export default class MyHtmlElements {
 		maps: document.getElementById('mainMenuMaps'),
 		create: document.getElementById('mainMenuCreate'),
 		openEditor: document.getElementById('mainMenuOpenEditor'),
-		controls: document.getElementById('mainMenuControls')
+		controls: document.getElementById('mainMenuControls'),
 	};
 	/*
 	<div class="menu" id="gameCanceledMenu">
@@ -206,7 +206,7 @@ export default class MyHtmlElements {
 	*/
 	readonly gameCanceledMenu = {
 		main: document.getElementById('cancelLobbyMenu'),
-		back: document.getElementById('cancelLobbyMenuBack')
+		back: document.getElementById('cancelLobbyMenuBack'),
 	};
 
 	/*
@@ -235,7 +235,7 @@ export default class MyHtmlElements {
 		main: document.getElementById('mapSizeMenu'),
 		value: document.getElementById('mapSizeValue'),
 		ok: document.getElementById('mapSizeOk'),
-		back: document.getElementById('mapSizeBack')
+		back: document.getElementById('mapSizeBack'),
 	};
 
 	/*
@@ -251,7 +251,7 @@ export default class MyHtmlElements {
 		main: document.getElementById('mapMenu'),
 		create: document.getElementById('mapMenuCreate'),
 		open: document.getElementById('mapMenuOpenMap'),
-		back: document.getElementById('mapMenuBack')
+		back: document.getElementById('mapMenuBack'),
 	};
 
 	/**
@@ -271,19 +271,20 @@ export default class MyHtmlElements {
 	readonly lobbyMenu = {
 		main: document.getElementById('lobbyMenu'),
 		gameName: document.getElementById('lobbyMenuGameName'),
+		mapName: document.getElementById('lobbyMapName'),
 		players: document.getElementById('lobbyMenuPlayers'),
 		forJoinPlayers: document.getElementById('lobbyMenuForJoinPlayer'),
 		leave: document.getElementById('lobbyMenuLeave'),
 		forCreatePlayer: document.getElementById('lobbyMenuForCreatePlayer'),
 		start: document.getElementById('lobbyMenuStart'),
-		cancel: document.getElementById('lobbyMenuCancel')
+		cancel: document.getElementById('lobbyMenuCancel'),
 	};
 
 	readonly loading = {
 		main: document.getElementById('loading'),
 		counter: document.getElementById('loadingCounter'),
 		circle: document.getElementById('loadingCircle'),
-		text: document.getElementById('loadingText')
+		text: document.getElementById('loadingText'),
 	};
 
 	/*
@@ -296,7 +297,7 @@ export default class MyHtmlElements {
 	readonly escFromGameMenu = {
 		main: document.getElementById('escFromGame'),
 		back: document.getElementById('escFromGameBack'),
-		leave: document.getElementById('escFromGameLeave')
+		leave: document.getElementById('escFromGameLeave'),
 	};
 
 	constructor() {

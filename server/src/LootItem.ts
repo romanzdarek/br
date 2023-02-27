@@ -17,7 +17,7 @@ export default class LootItem {
 
 	constructor(id: number, centerX: number, centerY: number, type: LootType, quantity: number) {
 		this.id = id;
-		this.size = 60;
+		this.size = 60; //60 default
 		this.radius = this.size / 2;
 		this.x = centerX - this.radius;
 		this.y = centerY - this.radius;
@@ -67,22 +67,19 @@ export default class LootItem {
 		if (x === 0) x += 0.1;
 		if (y === 0) y -= 0.1;
 		//atangens
-		let angle = Math.abs(Math.atan(x / y) * 180 / Math.PI);
+		let angle = Math.abs((Math.atan(x / y) * 180) / Math.PI);
 		let finalAngle = 0;
 		//1..2..3..4.. Q; 0 - 90, 90 - 180...
 		//1
 		if (objectCenterX >= this.getCenterX() && objectCenterY < this.getCenterY()) {
 			finalAngle = angle;
-		}
-		else if (objectCenterX >= this.getCenterX() && objectCenterY >= this.getCenterY()) {
+		} else if (objectCenterX >= this.getCenterX() && objectCenterY >= this.getCenterY()) {
 			//2
 			finalAngle = 180 - angle;
-		}
-		else if (objectCenterX < this.getCenterX() && objectCenterY >= this.getCenterY()) {
+		} else if (objectCenterX < this.getCenterX() && objectCenterY >= this.getCenterY()) {
 			//3
 			finalAngle = 180 + angle;
-		}
-		else if (objectCenterX < this.getCenterX() && objectCenterY < this.getCenterY()) {
+		} else if (objectCenterX < this.getCenterX() && objectCenterY < this.getCenterY()) {
 			//4
 			finalAngle = 360 - angle;
 		}
@@ -126,8 +123,8 @@ export default class LootItem {
 
 	private shift(angle: number, map: Map): void {
 		const shiftZ = 5 * Math.random();
-		let shiftX = Math.sin(angle * Math.PI / 180) * shiftZ;
-		let shiftY = Math.cos(angle * Math.PI / 180) * shiftZ;
+		let shiftX = Math.sin((angle * Math.PI) / 180) * shiftZ;
+		let shiftY = Math.cos((angle * Math.PI) / 180) * shiftZ;
 		this.x -= shiftX;
 		this.y += shiftY;
 
@@ -146,8 +143,7 @@ export default class LootItem {
 			if (object instanceof Tree) objectRadius = object.treeTrankRadius;
 			objectCenterX = object.getCenterX();
 			objectCenterY = object.getCenterY();
-		}
-		else if (object instanceof RectangleObstacle) {
+		} else if (object instanceof RectangleObstacle) {
 			//rectangle rectangle
 			//loot + gap
 			const gap = 10;
@@ -159,8 +155,7 @@ export default class LootItem {
 				this.y + this.size + gap >= object.y
 			) {
 				return true;
-			}
-			else {
+			} else {
 				return false;
 			}
 		}

@@ -24,7 +24,7 @@ export default class Gun {
 	}
 
 	fire(): void {
-		this.bullets--;
+		//this.bullets--;
 	}
 
 	reload(bullets: number): void {

@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+	<link rel="shortcut icon" href="favicon-32x32.png" type="image/x-icon">
 	<script id="socket.io.js" src="//localhost:8000/socket.io/socket.io.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 
@@ -43,6 +43,11 @@
 		body{
 			/*position: relative;*/
 			overflow: hidden;
+		}
+		p#lobbyMapName{
+			text-align: center;
+			margin-top: -15px;
+			margin-bottom: 5;
 		}
 		ul#lobbyMenuPlayers{
 			border-radius: 2px;
@@ -657,6 +662,7 @@
 
 	<div class="menu" id="lobbyMenu">
 		<h1 id="lobbyMenuGameName">Game name</h1>
+		<p id="lobbyMapName"></p>
 		<ul id="lobbyMenuPlayers"></ul>
 		<div id="lobbyMenuForJoinPlayer">
 			<p>Waiting for players...</p>
@@ -705,7 +711,7 @@
 	<div class="menu" id="mapMenu">
         <h1>Map editor</h1>
         <button id="mapMenuCreate">Create a new map</button>
-        <button id="mapMenuOpenMap">Open the created maps</button>
+        <button id="mapMenuOpenMap">Stored maps</button>
         <button id="mapMenuBack">Back</button>
 	</div>
 

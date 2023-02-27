@@ -664,7 +664,9 @@ export default class View {
 		return radius < player.radius + roudObject.radius;
 	}
 
+	debugger = false;
 	drawGame(myPlayerId: number): void {
+		if (this.debugger) return;
 		const betweenSnapshot = this.snapshotManager.betweenSnapshot;
 		const players = this.snapshotManager.players;
 		if (!betweenSnapshot) return;
@@ -1216,7 +1218,7 @@ export default class View {
 			const { x, y, size, isOnScreen } = this.howToDraw({
 				x: bullet.x - bulletRadius,
 				y: bullet.y - bulletRadius,
-				size: bulletRadius * 2
+				size: bulletRadius * 2,
 			});
 			if (isOnScreen) {
 				ctx.fillRect(x, y, size, size);
@@ -1245,10 +1247,36 @@ export default class View {
 						y: partLine.endY,
 						size: 1,
 					});
+
+					//make it slower
+					/*
+					for (let index = 0; index < 10000; index++) {
+						if (Date.now() < 1) return;
+					}
+					*/
+
 					//bug long bullet lines
-					if (Math.abs(startX - endX) > 100 || Math.abs(startY - endY) > 100) {
-						console.log('err: bullet lines');
-						console.log('partLine', partLine);
+					if (Math.abs(partLine.startX - partLine.endX) > 600 || Math.abs(partLine.startY - partLine.endY) > 600) {
+						//console.log('err: bullet lines');
+						console.log('bulletLine', partLine.bulletLine);
+						console.log('bullet positions', this.snapshotManager.bullets[partLine.bulletLine.id]);
+						//console.log('partLine', partLine);
+
+						//console.log('startX, startY ', startX, startY);
+						//console.log('endX, endY ', endX, endY);
+
+						//this.debugger = true;
+
+						ctx.save();
+						ctx.globalAlpha = finalAlpha;
+						ctx.beginPath();
+						ctx.moveTo(startX, startY);
+						ctx.lineTo(endX, endY);
+						ctx.lineWidth = (6 - partLine.getAge() / 3.33) * this.finalResolutionAdjustment;
+						ctx.strokeStyle = 'red';
+						ctx.stroke();
+						ctx.restore();
+						partLine.increaseAge();
 					} else {
 						//draw part
 						ctx.save();
@@ -1260,8 +1288,8 @@ export default class View {
 						ctx.strokeStyle = 'white';
 						ctx.stroke();
 						ctx.restore();
+						partLine.increaseAge();
 					}
-					partLine.increaseAge();
 				}
 			}
 		}

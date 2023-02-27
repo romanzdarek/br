@@ -61,14 +61,34 @@ export default class Bullet {
 		instance.map = map;
 		instance.players = players;
 		instance.player = player;
+
 		instance.x = player.getCenterX();
 		instance.y = player.getCenterY();
 
-		// TODO
+		// posunutí počáteční pozice kvuli dvou hlavním
+		if (gun instanceof Shotgun) {
+			console.log('Shotgun');
+			const angle = 90 - player.getAngle();
+			const hypotenuse = 6;
+			const xShift = Math.sin((angle * Math.PI) / 180) * hypotenuse;
+			const yShift = Math.cos((angle * Math.PI) / 180) * hypotenuse;
+
+			if (Shotgun.lastUsedShotgunBarrel === 0) {
+				Shotgun.lastUsedShotgunBarrel = 1;
+				instance.x += xShift;
+				instance.y += yShift;
+			} else {
+				Shotgun.lastUsedShotgunBarrel = 0;
+				instance.x -= xShift;
+				instance.y -= yShift;
+			}
+		}
+
+		// Shift bullet from center of player to the end of gun
 		// triangel
 		const hypotenuse = Player.size / 2 + gun.length;
-		const xShift = Math.sin((player.getAngle() * Math.PI) / 180) * (hypotenuse + 10);
-		const yShift = Math.cos((player.getAngle() * Math.PI) / 180) * (hypotenuse + 10);
+		const xShift = Math.sin((player.getAngle() * Math.PI) / 180) * hypotenuse;
+		const yShift = Math.cos((player.getAngle() * Math.PI) / 180) * hypotenuse;
 
 		instance.x += xShift;
 		instance.y -= yShift;
@@ -97,16 +117,22 @@ export default class Bullet {
 		*/
 
 		//shift to the edge of gun
+
+		/*
 		const bulletShiftToTheGunEdge = Math.ceil(gun.length / gun.bulletSpeed);
 		for (let i = 0; i < bulletShiftToTheGunEdge; i++) {
 			instance.move();
 		}
+		*/
+
 		return instance;
 	}
 
 	//constructor
 	static createFragment(id: number, player: Player, granade: Granade, map: Map, players: Player[], shiftAngle: number): Bullet {
-		const fragmentRange = Math.floor(Math.random() * (granade.fragmentRange / 2)) + granade.fragmentRange / 2;
+		let fragmentRange = Math.floor(Math.random() * (granade.fragmentRange / 2)) + granade.fragmentRange / 2;
+		fragmentRange *= 2;
+
 		const instance = new Bullet(id, fragmentRange);
 		instance.map = map;
 		instance.players = players;
@@ -136,6 +162,11 @@ export default class Bullet {
 		if (!this.collisions()) {
 			this.x += this.shiftX;
 			this.y -= this.shiftY;
+
+			if (this.shiftX > 100 || this.shiftY > 100) {
+				console.error(this);
+				throw 'bullet line error';
+			}
 		}
 	}
 

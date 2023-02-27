@@ -16,8 +16,6 @@ export default class Granade extends ThrowingObject {
 	}
 
 	createExplodeSound() {
-		this.sounds.push(new Sound(SoundType.Pistol, this.getX() + Math.random() * 100, this.getY() + Math.random() * 100));
-		this.sounds.push(new Sound(SoundType.Pistol, this.getX() + Math.random() * -100, this.getY() + Math.random() * 100));
-		this.sounds.push(new Sound(SoundType.Pistol, this.getX() + Math.random() * 100, this.getY() + Math.random() * -100));
+		this.sounds.push(new Sound(SoundType.Granade, this.getX(), this.getY()));
 	}
 }

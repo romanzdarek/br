@@ -10,7 +10,7 @@ scp ./dist.zip ubuntu@130.61.169.112:/www/mbr
 scp ./package.json ubuntu@130.61.169.112:/www/mbr
 scp ./package-lock.json ubuntu@130.61.169.112:/www/mbr
 ssh ubuntu@130.61.169.112 "unzip /www/mbr/dist.zip -d /www/mbr/dist; rm /www/mbr/dist.zip; cd /www/mbr; npm i; pm2 start mbr"
-del static.zip
+del dist.zip
 echo .
 echo BE deploy finished.
 echo .

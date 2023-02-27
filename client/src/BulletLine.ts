@@ -20,7 +20,7 @@ export default class BulletLine {
 			startX = this.parts[this.parts.length - 1].endX;
 			startY = this.parts[this.parts.length - 1].endY;
 		}
-		this.parts.push(new PartBulletLine(startX, startY, endX, endY));
+		this.parts.push(new PartBulletLine(startX, startY, endX, endY, this));
 	}
 
 	isActive(): boolean {

@@ -86,7 +86,7 @@ export default class Controller {
 						if (!samePlayerInGame) {
 							const playerUniqueName = this.model.games[gameIndex].createPlayer(playerName, socket);
 							socket.emit('createPlayer', playerUniqueName);
-							socket.emit('joinGame', gameIndex, playerUniqueName);
+							socket.emit('joinGame', gameIndex, playerUniqueName, this.model.games[gameIndex].mapName);
 						}
 					}
 				} else {
@@ -157,7 +157,7 @@ export default class Controller {
 						}
 					}
 				}
-				console.log('Error: c (controll player)');
+				console.log('Error: c (controll player)', game, this.model.games[game]);
 			});
 
 			//change angle

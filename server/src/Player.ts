@@ -60,6 +60,9 @@ export class Player {
 	private waterCircleTimer: number = 0;
 	readonly waterCircleTimerMax = 25;
 
+	private stepTimer: number = 0;
+	readonly stepTimerMax = 25;
+
 	private controll = {
 		up: false,
 		down: false,
@@ -239,12 +242,10 @@ export class Player {
 		if (this.spectateThatPlayer.isActive()) {
 			return this.spectateThatPlayer;
 		} else {
-			let alive = 0;
 			for (const player of this.players) {
-				if (player.isActive()) alive++;
+				if (player.isActive()) return player;
 			}
-			if (alive) this.spectateThatPlayer = this.spectateThatPlayer.spectatePlayer();
-			return this.spectateThatPlayer;
+			return this;
 		}
 	}
 
@@ -272,6 +273,7 @@ export class Player {
 	}
 
 	acceptHit(power: number, attacker?: Player, weapon?: Weapon): void {
+		if (attacker && weapon !== Weapon.Smoke) this.sounds.push(new Sound(SoundType.Hit, this.getCenterX(), this.getCenterY()));
 		if (this.inventory.vest) {
 			//reduce bullet / fragment power
 			if (
@@ -343,6 +345,9 @@ export class Player {
 					break;
 				case Weapon.Granade:
 					weaponName = 'granade';
+					break;
+				case Weapon.Smoke:
+					weaponName = 'smoke';
 					break;
 			}
 			message = attacker.name + ' killed ' + this.name + ' with ' + weaponName;
@@ -458,6 +463,7 @@ export class Player {
 		if (this.hands[0].hitReady() && this.hands[1].hitReady()) {
 			let random = Math.round(Math.random());
 			this.hands[random].hit();
+			this.sounds.push(new Sound(SoundType.Punch, this.getCenterX(), this.getCenterY()));
 		}
 		this.mouseControll.left = false;
 	}
@@ -466,6 +472,7 @@ export class Player {
 		if (this.hands[1].throwReady()) {
 			this.hands[1].throw();
 			this.inventory.throwNade();
+			this.sounds.push(new Sound(SoundType.Throw, this.getCenterX(), this.getCenterY()));
 		}
 		this.mouseControll.left = false;
 	}
@@ -497,7 +504,9 @@ export class Player {
 		this.reload();
 		this.inventory.loading();
 		//hammer move
-		if (this.inventory.activeItem instanceof Hammer) this.inventory.activeItem.move();
+		if (this.inventory.activeItem instanceof Hammer) {
+			this.inventory.activeItem.move();
+		}
 
 		//left click
 		if (this.mouseControll.left) {
@@ -517,13 +526,16 @@ export class Player {
 						shotgunSpray++;
 						this.bullets.push(this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players, shotgunSpray));
 					}
-					// create sound
-					this.sounds.push(new Sound(SoundType.Pistol, this.getCenterX(), this.getCenterY()));
 				} else {
 					this.bullets.push(this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players));
-					// create sound
-					this.sounds.push(new Sound(SoundType.Pistol, this.getCenterX(), this.getCenterY()));
 				}
+				// create sound
+				let soundType = SoundType.Pistol;
+				if (this.inventory.activeItem instanceof Machinegun) soundType = SoundType.Machinegun;
+				if (this.inventory.activeItem instanceof Shotgun) soundType = SoundType.Shotgun;
+				if (this.inventory.activeItem instanceof Rifle) soundType = SoundType.Rifle;
+				this.sounds.push(new Sound(soundType, this.getCenterX(), this.getCenterY()));
+
 				this.inventory.activeItem.fire();
 				if (this.inventory.activeItem.empty()) this.inventory.reload(this.inventory.activeItem);
 				if (!(this.inventory.activeItem instanceof Machinegun)) this.mouseControll.left = false;
@@ -532,6 +544,7 @@ export class Player {
 			} else if (this.inventory.activeItem instanceof Hammer) {
 				if (this.inventory.activeItem.ready()) {
 					this.inventory.activeItem.hit();
+					this.sounds.push(new Sound(SoundType.Hammer, this.getCenterX(), this.getCenterY()));
 					this.mouseControll.left = false;
 				}
 			} else if (this.inventory.activeItem === Weapon.Granade) {
@@ -551,6 +564,14 @@ export class Player {
 				this.mouseControll.left = false;
 			}
 		}
+	}
+
+	private walk(): void {
+		if (this.stepTimer === this.stepTimerMax) {
+			this.stepTimer = 0;
+			this.sounds.push(new Sound(SoundType.Footstep, this.getCenterX(), this.getCenterY()));
+		}
+		this.stepTimer++;
 	}
 
 	private move(): void {
@@ -598,6 +619,8 @@ export class Player {
 				//slow down
 				shift = (shift / 3) * 2;
 				if (up || down || left || right) this.waterCircleTimer++;
+			} else {
+				this.walk();
 			}
 			//player shift
 			let shiftX = 0;
