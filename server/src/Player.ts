@@ -521,9 +521,17 @@ export class Player {
 				this.inventory.ready()
 			) {
 				if (this.inventory.activeItem instanceof Shotgun) {
-					let shotgunSpray = -3;
+					let shotgunSpray = -12; //--3
 					for (let i = 0; i < 5; i++) {
-						shotgunSpray++;
+						shotgunSpray += 3; //+=1
+
+						this.bullets.push(this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players, shotgunSpray));
+					}
+
+					shotgunSpray = -12;
+					for (let i = 0; i < 5; i++) {
+						shotgunSpray += 3;
+
 						this.bullets.push(this.bulletFactory.createBullet(this, this.inventory.activeItem, this.map, this.players, shotgunSpray));
 					}
 				} else {

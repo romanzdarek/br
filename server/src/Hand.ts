@@ -7,7 +7,7 @@ import { Weapon } from './Weapon';
 export default class Hand {
 	static readonly size: number = 30;
 	static readonly radius: number = Hand.size / 2;
-	readonly power: number = 25;
+	readonly power: number = 50; //25
 	private x: number = 0;
 	private y: number = 0;
 	private shiftAngle: number = 40;
@@ -233,8 +233,8 @@ export default class Hand {
 		if (playerAngleForHand < 0) playerAngleForHand = 359 + playerAngleForHand;
 		if (playerAngleForHand > 359) playerAngleForHand = playerAngleForHand - 359;
 		//triangle
-		const x = Math.sin(playerAngleForHand * Math.PI / 180) * playerAndHandDistance;
-		const y = Math.cos(playerAngleForHand * Math.PI / 180) * playerAndHandDistance;
+		const x = Math.sin((playerAngleForHand * Math.PI) / 180) * playerAndHandDistance;
+		const y = Math.cos((playerAngleForHand * Math.PI) / 180) * playerAndHandDistance;
 		//set final position from center
 		this.x = this.player.getX() + Player.size / 2 + x - Hand.size / 2;
 		this.y = this.player.getY() + Player.size / 2 - y - Hand.size / 2;

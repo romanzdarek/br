@@ -160,7 +160,7 @@ export default class Loot {
 		for (let i = 0; i < players; i++) {
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Rifle, 5);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Rifle, 1); //5
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Shotgun, 2);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Machinegun, 30);
 

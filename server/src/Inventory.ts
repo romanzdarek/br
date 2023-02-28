@@ -79,6 +79,7 @@ export default class Inventory {
 	reload(gun: Gun): void {
 		if (!this.ready()) return;
 		let reload = false;
+		let reloadingTime = 2.5 * 1000;
 		if (gun.getBullets() < gun.bulletsMax) {
 			if (gun instanceof Pistol && this.orangeAmmo > 0) {
 				reload = true;
@@ -87,6 +88,7 @@ export default class Inventory {
 			} else if (gun instanceof Shotgun && this.redAmmo > 0) {
 				reload = true;
 			} else if (gun instanceof Rifle && this.greenAmmo > 0) {
+				reloadingTime = 1000;
 				reload = true;
 			}
 		}
@@ -95,7 +97,7 @@ export default class Inventory {
 			this.loadingText = 'Reloading';
 			this.loadingStart = Date.now();
 			this.loadingNow = this.loadingStart;
-			this.loadingEnd = this.loadingStart + 2.5 * 1000;
+			this.loadingEnd = this.loadingStart + reloadingTime;
 			this.loadingItem = gun;
 		}
 	}

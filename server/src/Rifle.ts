@@ -6,7 +6,7 @@ export default class Rifle extends Gun {
 		const range = 30;
 		const bulletSpeed = 18;
 		const spray = 1;
-		const bulletsMax = 5;
+		const bulletsMax = 1; //5
 		super(length, range, bulletSpeed, spray, bullets, bulletsMax);
 	}
 }

@@ -61,7 +61,7 @@ export default abstract class RoundObstacle {
 	}
 
 	decreaseOpacity(adjustFrameRate: number) {
-		this.opacity -= 0.01 * adjustFrameRate;
-		if (this.opacity < 0.5) this.opacity = 0.5;
+		this.opacity -= 0.02 * adjustFrameRate;
+		if (this.opacity < 0.7) this.opacity = 0.7;
 	}
 }

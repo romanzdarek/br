@@ -37,11 +37,11 @@ export default class Bullet {
 		} else {
 			if (gun instanceof Pistol) {
 				this.weapon = Weapon.Pistol;
-				this.power = 20;
+				this.power = 30; //20
 			}
 			if (gun instanceof Rifle) {
 				this.weapon = Weapon.Rifle;
-				this.power = 50;
+				this.power = 200; //50
 			}
 			if (gun instanceof Shotgun) {
 				this.weapon = Weapon.Shotgun;
@@ -49,7 +49,7 @@ export default class Bullet {
 			}
 			if (gun instanceof Machinegun) {
 				this.weapon = Weapon.Machinegun;
-				this.power = 20;
+				this.power = 30; //30
 			}
 		}
 	}

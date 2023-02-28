@@ -6,7 +6,7 @@ import { Weapon } from './Weapon';
 
 export default class Hammer {
 	private angle: number = 0;
-	readonly power: number = 34;
+	readonly power: number = 100; //34
 	readonly size: number = 280;
 	private active: boolean = false;
 	private hitTimer: number = 0;
@@ -50,13 +50,11 @@ export default class Hammer {
 				if (this.hitTimer < this.hitTimerMax / 2) {
 					this.angle -= shift;
 					this.collisions();
-				}
-				else {
+				} else {
 					this.angle += shift;
 				}
 				this.hitTimer++;
-			}
-			else {
+			} else {
 				this.active = false;
 				this.hitTimer = 0;
 				this.hitObjects = [];
