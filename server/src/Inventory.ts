@@ -88,7 +88,7 @@ export default class Inventory {
 			} else if (gun instanceof Shotgun && this.redAmmo > 0) {
 				reload = true;
 			} else if (gun instanceof Rifle && this.greenAmmo > 0) {
-				reloadingTime = 1000;
+				//reloadingTime = 1000;
 				reload = true;
 			}
 		}

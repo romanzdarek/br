@@ -6,7 +6,9 @@ module.exports = {
 	mode: 'production',
 	entry: {
 		app: './src/app.ts',
-		workerFindWater: './src/workerFindWater.ts'
+		workerFindWater: './src/workerFindWater.ts',
+		'service-worker': './src/service-worker.ts'
+		
 	},
 	module: {
 		rules: [

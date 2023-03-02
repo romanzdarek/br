@@ -1,0 +1,695 @@
+html, body {touch-action: none;}
+*{
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+a{
+    color:black;
+    transition: color 0.4s;
+}
+a:hover{
+    color:white;
+}
+h1{
+    text-align: center;
+    font-size:180%;
+    margin-bottom: 20px;
+}
+h2{
+    font-size:120%;
+    margin:0;
+}
+p{
+    margin-bottom: 10px;
+}
+body{
+    /*position: relative;*/
+    overflow: hidden;
+}
+p#lobbyMapName{
+    text-align: center;
+    margin-top: -15px;
+    margin-bottom: 5;
+}
+ul#lobbyMenuPlayers{
+    border-radius: 2px;
+    background:#F1F1F1;
+    margin-bottom:20px;
+    padding:10px;
+    height:90px;
+    overflow: auto;
+}
+ul#lobbyMenuPlayers li{
+    list-style-type: none;
+
+}
+canvas#gameScreen{
+    cursor: none;
+}
+
+#mapContainer{
+    border-radius: 10px;
+    position: absolute;
+    bottom:20px;
+    left:20px;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.3);
+}
+#zoneTimer{
+    z-index: 8;
+    position:relative;
+    top: -40px;
+    margin: auto;
+    height: 40px;
+    color:white;
+    font-size: 130%;
+    line-height: 40px;
+    text-align: center;
+}
+svg#mapZoneSVG{
+    border-radius: 10px;
+    position: absolute;
+    bottom:20px;
+    left:20px;
+    z-index: 5;
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+canvas#mapScreen{
+    border-radius: 10px;
+    position: absolute;
+    bottom:20px;
+    left:20px;
+    z-index: 5;
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+canvas#helperScreen{
+    display: none;
+    position: absolute;
+    top:0;
+    left:0;
+}
+.menu{
+    border-radius: 5px;
+    border: 3px solid #6B6B6B;
+    background: silver;
+    width: 300px;
+    height: 320px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -150px;
+    margin-top: -160px;
+    padding: 20px;
+    display: none;
+    z-index: 20;
+}
+.menu input, button, select{
+    display: block;
+    width: 100%;
+    margin-bottom:10px;
+    padding: 5px;
+}
+.join{
+    width: 48%;
+    float: right;
+}
+.create{
+    width: 48%;
+
+}
+#editorContainer{
+    display: none;
+}
+#editorMenuContainer{
+    width: 15%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: silver;
+    overflow: scroll;
+    z-index: 9;
+    padding: 10px;
+}
+#editorScreenContainer{
+    width: 85%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 15%;
+    overflow: scroll;
+    background: white;
+    z-index: 9;
+}
+#editorCoordinates{
+    font-size: 120%;
+    padding-bottom: 20px;
+}
+#editorMenuContainer img{
+    width: 80px;
+    height: 80px;
+    background:#A2CB69;
+    border: 2px solid gray;
+}
+#editorMenuContainer img:hover{
+    border-color: red !important;
+}
+
+#terrainWaterTriangle2{
+    transform:rotate(90deg);
+}
+#terrainWaterTriangle3{
+    transform:rotate(180deg);
+}
+#terrainWaterTriangle4{
+    transform:rotate(270deg);
+}
+#zoneSVG{
+    position: absolute;
+    top:0;
+    left:0;
+}
+#mainMenu{
+    display: block;
+}
+#alertMenu{
+    background: pink;
+}
+#healthBar{
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 5px;
+    width: 300px;
+    height:40px;
+    position: absolute;
+    bottom: 20px;
+    left:50%;
+    margin-left: -150px;
+}
+#healthBarIn{
+    background: rgba(255, 255, 255, 1);
+    border-radius: 7px;
+    height: 100%;
+    width:100%;
+}
+#activeGunAmmo{
+    position: absolute;
+    z-index: 8;
+    text-align: center;
+    line-height: 50px;
+    width: 110px;
+    height: 50px;
+    bottom: 80px;
+    left:50%;
+    margin-left:-55px;
+    font-family: sans-serif;
+    font-size: 200%;
+    color: white;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+}
+div.infoBox{
+    width: 300px;
+    position: absolute;
+    z-index: 8;
+    top:23%;
+    left:50%;
+    margin-left: -150px;
+}
+#loading{
+    width:80px;
+    height:80px;
+    z-index: 8;
+    margin: 0 auto;
+    display: block;
+    visibility: hidden;
+}
+#loadingText, #takeLoot{
+    font-size: 200%;
+    text-align: center;
+    line-height: 50px;
+    color: white;
+    height:50px;
+    z-index: 8;
+    display: none;	
+}
+#takeLoot{
+    display: block;
+}
+#spectate{
+    display: none;	
+    z-index: 8;
+    top:20px;
+    left:110px;
+    position: absolute;
+    text-align:center;
+    color:white;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+}
+#spectate div{
+    font-size: 130%;
+    line-height: 35px;
+    height:35px;
+    padding:0 10px;
+}
+div.spectateLabel{
+    font-weight: bold;
+    font-size: 90% !important;
+    background: rgba(0, 0, 0, 0.5);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+#transparentLayer{
+    width: 100%;
+    height:100%;
+    position: absolute;
+    top:0;
+    left:0;
+    z-index:9;
+    cursor:url(img/cursor.png) 12 12, auto;
+}
+#hideGame{
+    width: 100%;
+    height:100%;
+    position: absolute;
+    top:0;
+    left:0;
+    z-index:15;
+    background:#424242;
+}
+#items{
+    width:200px;
+    position: absolute;
+    z-index: 10;/*8*/
+    bottom:20px;
+    right:20px;
+}
+#items div{
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    color:white;
+    font-weight: bold;
+    margin-bottom:10px;
+    height: 37px;
+    line-height: 37px;
+
+}
+#items div:last-child{
+    margin-bottom:0;
+}
+.active{
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+#items b{
+    display: block;
+    float:left;
+    height: 100%;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.itemName{
+    display: block;
+    float:left;
+    margin-left: 10px;
+}
+#ammo{
+    padding:0 !important;
+
+}
+
+#redAmmo, #blueAmmo, #greenAmmo, #orangeAmmo{
+    width: 25%;
+    height: 100%;
+    display:block;
+    float:left;
+    text-align: center;
+    line-height: 37px;
+}
+#redAmmo{
+    background: red;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    
+}
+#blueAmmo{
+    background: blue;
+}
+#greenAmmo{
+    background: green;
+}
+#orangeAmmo{
+    background: orange;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+#item1Ammo, #item2Ammo{
+    border-radius: 2px;
+    background: transparent;
+    display: block;
+    float:right;
+    width: 17px;
+    height: 17px;
+    margin-right:10px;
+    margin-top:10px;
+
+}
+#alive{
+    z-index: 8;
+    position:absolute;
+    top:20px;
+    left: 20px;
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    color:white;
+    font-size: 300%;
+    line-height: 70px;
+    text-align: center;
+}
+#aliveText{
+    z-index: 8;
+    font-size: 110%;
+    width: 70px;
+    text-align: center;
+    color:white;
+    position:absolute;
+    top:100px;
+    left: 20px;
+}
+#topItems{
+    z-index: 8;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+#vest, #scope{
+    margin: 0 10px;
+    float:left;
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    display: none;
+}
+#vest img, #scope img, #scope svg{
+    width: 100%;
+    height: 100%;
+}
+
+#messages{
+    z-index: 8;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 400px;
+}
+#messages p{
+    float: right;
+    clear: both;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 7px;
+    color:white;
+}
+
+#mobileMoveControllerWrapper{
+    display: none;
+}
+
+#mobileCombatControllerWrapper{
+    display: none;
+}
+
+#mobileActionControllerWrapper{
+    display: none;
+}
+
+
+
+@media screen and (max-width: 1400px), screen and (max-height: 700px) {
+    #alive{
+        top:10px;
+        left: 10px;
+        width: 50px;
+        height: 50px;
+        font-size: 200%;
+        line-height: 50px;
+    }
+    #aliveText{
+        font-size: 100%;
+        width: 50px;
+        top:70px;
+        left: 10px;
+    }
+    #topItems{
+        z-index: 8;
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translate(-50%, 0);
+    }
+    #vest, #scope{
+        width: 35px;
+        height: 35px;
+    }
+    #messages{
+        top: 10px;
+        right: 10px;
+        width: 300px;
+    }
+    #messages p{
+        margin-bottom: 7px;
+        padding: 5px;
+        font-size: 80%
+    }
+    #mapContainer{
+        bottom:10px;
+        left:10px;
+    }
+    #zoneTimer{
+        top: -30px;
+        height: 30px;
+        font-size: 100%;
+        line-height: 30px;
+    }
+    svg#mapZoneSVG{
+        bottom:10px;
+        left:10px;
+    }
+    canvas#mapScreen{
+        bottom:10px;
+        left:10px;
+    }
+    #healthBar{
+        width: 200px;
+        height:35px;
+        position: absolute;
+        bottom: 10px;
+        left:50%;
+        margin-left: -100px;
+    }
+    #activeGunAmmo{
+        line-height: 35px;
+        width: 80px;
+        height: 35px;
+        bottom: 55px;
+        margin-left:-40px;
+        font-size: 140%;
+    }
+    #items{
+        width:150px;
+        bottom:10px;
+        right:10px;
+        font-size:90%;
+    }
+    #items div{
+        height: 30px;
+        line-height: 30px;
+
+    }
+    #items b{
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    .itemName{
+        margin-left: 8px;
+    }
+
+    #redAmmo, #blueAmmo, #greenAmmo, #orangeAmmo{
+        line-height: 30px;
+    }
+    
+    #item1Ammo, #item2Ammo{
+        width: 14px;
+        height: 14px;
+        margin-right:8px;
+        margin-top:8px;
+
+    }
+    #loading{
+        width:60px;
+        height:60px;
+    }
+    #loadingText, #takeLoot{
+        font-size: 150%;
+        line-height: 35px;
+        height:35px;
+    }
+    #spectate{
+        top:10px;
+        left:70px;
+    }
+    #spectate div{
+        font-size: 100%;
+        line-height: 25px;
+        height:25px;
+    }
+}
+@media screen and (max-width:500px) {
+    #zoneTimer{
+        font-size: 70%;
+    }
+}
+
+
+/* Mobile */
+@media screen and (max-height:600px) {
+    div.infoBox{
+        top:20%;
+    }
+    #loadingText, #takeLoot{
+        font-size: 120%;
+        line-height: 25px;
+        height:25px;
+    }
+    #loading{
+        width:40px;
+        height:40px;
+    }
+
+
+    #mobileActionControllerWrapper{
+        display: block;
+        z-index: 11;
+        position: absolute;
+        bottom: 20px;
+        right : 190px;
+        width: 100px;
+        height: 100px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 100px;
+    }
+
+    #mobileActionController{
+        width: 100px;
+        height: 100px;
+        border-radius: 100px;
+        position: relative;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    #mobileCombatControllerWrapper{
+        width: 150px;
+        height: 150px;
+        border-radius: 150px;
+        display: block;
+        z-index: 11;
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    #mobileCombatController{
+        width: 150px;
+        height: 150px;
+        border-radius: 150px;
+        position: relative;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    #mobileMoveControllerWrapper{
+        display: block;
+        z-index: 11;
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        width: 150px;
+        height: 150px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 150px;
+    }
+
+    #mobileMoveController{
+        width: 150px;
+        height: 150px;
+        border-radius: 150px;
+        position: relative;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    #mapContainer{
+        top:10px;
+        width: 100px;
+        height: 100px;
+    }
+
+    svg#mapZoneSVG{
+        top:15px;
+    }
+    canvas#mapScreen{
+        top:15px;
+    }
+
+    #zoneTimer{
+        top: 145px;
+    }
+
+    #alive{
+        left: 160px;
+    }
+
+    #aliveText{
+        left: 160px;
+    }
+
+    #items{
+        width:130px;
+        position: absolute;
+        z-index: 10;
+        top:10px;
+        right:10px;
+        font-size:75%;
+        height:fit-content;
+
+    }
+
+    #messages{
+        top: 10px;
+        right: 150px;
+        width: 300px;
+    }
+
+    #ammo{
+       display: none;
+    
+    }
+
+}

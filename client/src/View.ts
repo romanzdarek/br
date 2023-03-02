@@ -1581,27 +1581,57 @@ export default class View {
 
 	private activeItem(activeItem: number): void {
 		const el = this.myHtmlElements;
-		el.items.item1.classList.remove('active');
-		el.items.item2.classList.remove('active');
-		el.items.item3.classList.remove('active');
-		el.items.item4.classList.remove('active');
-		el.items.item5.classList.remove('active');
+		switch (activeItem) {
+			case 1:
+				el.items.item2.classList.remove('active');
+				el.items.item3.classList.remove('active');
+				el.items.item4.classList.remove('active');
+				el.items.item5.classList.remove('active');
+				break;
+			case 2:
+				el.items.item1.classList.remove('active');
+				el.items.item3.classList.remove('active');
+				el.items.item4.classList.remove('active');
+				el.items.item5.classList.remove('active');
+				break;
+
+			case 3:
+				el.items.item1.classList.remove('active');
+				el.items.item2.classList.remove('active');
+				el.items.item4.classList.remove('active');
+				el.items.item5.classList.remove('active');
+				break;
+
+			case 4:
+				el.items.item1.classList.remove('active');
+				el.items.item2.classList.remove('active');
+				el.items.item3.classList.remove('active');
+				el.items.item5.classList.remove('active');
+				break;
+
+			case 5:
+				el.items.item1.classList.remove('active');
+				el.items.item2.classList.remove('active');
+				el.items.item3.classList.remove('active');
+				el.items.item4.classList.remove('active');
+				break;
+		}
 
 		switch (activeItem) {
 			case 1:
-				el.items.item1.classList.add('active');
+				if (!el.items.item1.classList.contains('active')) el.items.item1.classList.add('active');
 				break;
 			case 2:
-				el.items.item2.classList.add('active');
+				if (!el.items.item2.classList.contains('active')) el.items.item2.classList.add('active');
 				break;
 			case 3:
-				el.items.item3.classList.add('active');
+				if (!el.items.item3.classList.contains('active')) el.items.item3.classList.add('active');
 				break;
 			case 4:
-				el.items.item4.classList.add('active');
+				if (!el.items.item4.classList.contains('active')) el.items.item4.classList.add('active');
 				break;
 			case 5:
-				el.items.item5.classList.add('active');
+				if (!el.items.item5.classList.contains('active')) el.items.item5.classList.add('active');
 				break;
 		}
 	}

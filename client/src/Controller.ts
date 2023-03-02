@@ -89,6 +89,13 @@ export class Controller {
 		this.mouseController();
 		this.socketController();
 		this.menuController();
+		this.mobileMoveController();
+		this.mobileCombatController();
+		this.inventoryController();
+
+		document.body.addEventListener('touchstart', (event) => {
+			event.preventDefault();
+		});
 	}
 
 	static run(): void {
@@ -270,6 +277,237 @@ export class Controller {
 			this.model.snapshotManager.addSnapshot(snapshot);
 		});
 	}
+	private inventoryController(): void {
+		const el = this.myHtmlElements;
+
+		el.mobileActionController.addEventListener('touchend', (event) => {
+			// e action
+			this.socket.emit('c', this.model.getGameId(), 'e');
+		});
+
+		el.items.item1.addEventListener('touchend', (event: Event) => {
+			this.socket.emit('i', this.model.getGameId(), 1);
+		});
+
+		el.items.item2.addEventListener('touchend', (event: Event) => {
+			this.socket.emit('i', this.model.getGameId(), 2);
+		});
+
+		el.items.item3.addEventListener('touchend', (event: Event) => {
+			this.socket.emit('i', this.model.getGameId(), 3);
+		});
+
+		el.items.item4.addEventListener('touchend', (event: Event) => {
+			this.socket.emit('i', this.model.getGameId(), 4);
+		});
+
+		el.items.item5.addEventListener('touchend', (event: Event) => {
+			event.preventDefault();
+			this.socket.emit('i', this.model.getGameId(), 5);
+		});
+	}
+
+	private mobileMoveController(): void {
+		const mobileMoveController = this.myHtmlElements.mobileMoveController;
+
+		const touchToKeys = {
+			a: false,
+			d: false,
+			w: false,
+			s: false,
+		};
+
+		const touchStart = {
+			x: 0,
+			y: 0,
+		};
+		const touchShift = {
+			x: 0,
+			y: 0,
+		};
+
+		mobileMoveController.addEventListener('touchstart', (event: TouchEvent) => {
+			event.preventDefault();
+			let fingerNumber = 0;
+			if (event.touches[0] && event.touches[1]) {
+				if (event.touches[1].clientX < event.touches[0].clientX) {
+					fingerNumber = 1;
+				}
+			}
+			//console.log('touchstart', event);
+			touchStart.x = event.touches[fingerNumber].clientX;
+			touchStart.y = event.touches[fingerNumber].clientY;
+		});
+
+		mobileMoveController.addEventListener('touchmove', (event) => {
+			let fingerNumber = 0;
+			if (event.touches[0] && event.touches[1]) {
+				if (event.touches[1].clientX < event.touches[0].clientX) {
+					fingerNumber = 1;
+				}
+			}
+
+			touchToKeys.a = false;
+			touchToKeys.w = false;
+			touchToKeys.s = false;
+			touchToKeys.d = false;
+
+			//console.log('touchmove', event);
+			touchShift.x = event.touches[fingerNumber].clientX - touchStart.x;
+			touchShift.y = event.touches[fingerNumber].clientY - touchStart.y;
+			//console.log('touchShift', touchShift);
+
+			mobileMoveController.style.left = touchShift.x + 'px';
+			mobileMoveController.style.top = touchShift.y + 'px';
+
+			const minShift = 20;
+			if (touchShift.x > minShift) touchToKeys.d = true;
+			if (touchShift.x < minShift * -1) touchToKeys.a = true;
+			if (touchShift.y > minShift) touchToKeys.s = true;
+			if (touchShift.y < minShift * -1) touchToKeys.w = true;
+
+			if (touchToKeys.w && !this.keys.w) {
+				this.socket.emit('c', this.model.getGameId(), 'u');
+				this.keys.w = true;
+			}
+
+			if (!touchToKeys.w && this.keys.w) {
+				this.socket.emit('c', this.model.getGameId(), '-u');
+				this.keys.w = false;
+			}
+
+			if (touchToKeys.s && !this.keys.s) {
+				this.socket.emit('c', this.model.getGameId(), 'd');
+				this.keys.s = true;
+			}
+
+			if (!touchToKeys.s && this.keys.s) {
+				this.socket.emit('c', this.model.getGameId(), '-d');
+				this.keys.s = false;
+			}
+
+			if (touchToKeys.a && !this.keys.a) {
+				this.socket.emit('c', this.model.getGameId(), 'l');
+				this.keys.a = true;
+			}
+
+			if (!touchToKeys.a && this.keys.a) {
+				this.socket.emit('c', this.model.getGameId(), '-l');
+				this.keys.a = false;
+			}
+
+			if (touchToKeys.d && !this.keys.d) {
+				this.socket.emit('c', this.model.getGameId(), 'r');
+				this.keys.d = true;
+			}
+
+			if (!touchToKeys.d && this.keys.d) {
+				this.socket.emit('c', this.model.getGameId(), '-r');
+				this.keys.d = false;
+			}
+		});
+
+		mobileMoveController.addEventListener('touchend', (event) => {
+			//console.log('touchend', event);
+			touchShift.x = 0;
+			touchShift.y = 0;
+			mobileMoveController.style.left = '0';
+			mobileMoveController.style.top = '0';
+			//console.log('touchShift', touchShift);
+			this.socket.emit('c', this.model.getGameId(), '-u');
+			this.socket.emit('c', this.model.getGameId(), '-d');
+			this.socket.emit('c', this.model.getGameId(), '-r');
+			this.socket.emit('c', this.model.getGameId(), '-l');
+		});
+	}
+
+	private mobileCombatController(): void {
+		const mobileCombatController = this.myHtmlElements.mobileCombatController;
+
+		const touchStart = {
+			x: 0,
+			y: 0,
+		};
+		const touchShift = {
+			x: 0,
+			y: 0,
+		};
+
+		mobileCombatController.addEventListener('touchstart', (event: TouchEvent) => {
+			event.preventDefault();
+			console.log('touchstart', event);
+
+			let fingerNumber = 0;
+			if (event.touches[0] && event.touches[1]) {
+				if (event.touches[1].clientX > event.touches[0].clientX) {
+					fingerNumber = 1;
+				}
+			}
+
+			touchStart.x = event.touches[fingerNumber].clientX;
+			touchStart.y = event.touches[fingerNumber].clientY;
+		});
+
+		const minDelayBetweenCombats = 300;
+		let lastCombatTime = Date.now();
+
+		mobileCombatController.addEventListener('touchmove', (event) => {
+			let fingerNumber = 0;
+			if (event.touches[0] && event.touches[1]) {
+				if (event.touches[1].clientX > event.touches[0].clientX) {
+					fingerNumber = 1;
+				}
+			}
+
+			//console.log('touchmove', event);
+			touchShift.x = event.touches[fingerNumber].clientX - touchStart.x;
+			touchShift.y = event.touches[fingerNumber].clientY - touchStart.y;
+			//console.log('touchShift', touchShift);
+
+			const previousPlayerAngle = this.playerAngle;
+			this.playerAngle = this.getAngleFromCombatController(touchShift);
+			//change
+			if (this.playerAngle !== previousPlayerAngle) {
+				this.socket.emit('a', this.model.getGameId(), this.playerAngle);
+			}
+
+			mobileCombatController.style.left = touchShift.x + 'px';
+			mobileCombatController.style.top = touchShift.y + 'px';
+
+			const hitShift = 25;
+
+			const shiftDistance = Math.sqrt(touchShift.x * touchShift.x + touchShift.y * touchShift.y);
+			if (shiftDistance > hitShift) {
+				if (!this.model.gameActive()) return;
+				const now = Date.now();
+
+				if (now > lastCombatTime + minDelayBetweenCombats) {
+					lastCombatTime = now;
+				} else return;
+
+				this.mouse.left = true;
+				const clickPoint = new Point(0, 0);
+				const serverPosition = this.model.view.calculateServerPosition(clickPoint);
+				this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
+			} else {
+				if (!this.model.gameActive()) return;
+				this.mouse.left = true;
+				this.socket.emit('m', this.model.getGameId(), '-l');
+			}
+		});
+
+		mobileCombatController.addEventListener('touchend', (event) => {
+			//console.log('touchend', event);
+			touchShift.x = 0;
+			touchShift.y = 0;
+			mobileCombatController.style.left = '0';
+			mobileCombatController.style.top = '0';
+
+			if (!this.model.gameActive()) return;
+			this.mouse.left = true;
+			this.socket.emit('m', this.model.getGameId(), '-l');
+		});
+	}
 
 	private mouseController(): void {
 		//deny right click menu
@@ -308,7 +546,23 @@ export class Controller {
 			this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
 		});
 
+		/*
+		this.myHtmlElements.transparentLayer.addEventListener('touchstart', (e: MouseEvent) => {
+			if (!this.model.gameActive()) return;
+			this.mouse.left = true;
+			const clickPoint = new Point(e.clientX, e.clientY);
+			const serverPosition = this.model.view.calculateServerPosition(clickPoint);
+			this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
+		});
+		*/
+
 		this.myHtmlElements.transparentLayer.addEventListener('mouseup', (e: MouseEvent) => {
+			if (!this.model.gameActive()) return;
+			this.mouse.left = false;
+			this.socket.emit('m', this.model.getGameId(), '-l');
+		});
+
+		this.myHtmlElements.transparentLayer.addEventListener('touchend', (e: MouseEvent) => {
 			if (!this.model.gameActive()) return;
 			this.mouse.left = false;
 			this.socket.emit('m', this.model.getGameId(), '-l');
@@ -351,6 +605,31 @@ export class Controller {
 		}
 		this.playerAngle = Math.round(this.playerAngle);
 		if (this.playerAngle === 360) this.playerAngle = 0;
+	}
+
+	private getAngleFromCombatController(shiftPosition: Point): number {
+		//atangens
+		let angle = Math.abs((Math.atan(shiftPosition.x / shiftPosition.y) * 180) / Math.PI);
+		//1..2..3..4.. Q; 0 - 90, 90 - 180...
+		//1
+
+		//2
+		if (shiftPosition.x >= 0 && shiftPosition.y >= 0) {
+			angle = 90 + 90 - angle;
+		}
+		//3
+		if (shiftPosition.x < 0 && shiftPosition.y >= 0) {
+			angle = 180 + angle;
+		}
+		//4
+		if (shiftPosition.x < 0 && shiftPosition.y < 0) {
+			angle = 270 + 90 - angle;
+		}
+
+		angle = Math.round(angle);
+		if (angle === 360) angle = 0;
+
+		return angle;
 	}
 
 	private keysController(): void {
