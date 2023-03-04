@@ -1667,7 +1667,7 @@ export default class View {
 		if (item === Weapon.Rifle) weaponName = 'Rifle';
 		if (item === Weapon.Machinegun) weaponName = 'Machinegun';
 		if (item === Weapon.Shotgun) weaponName = 'Shotgun';
-		if (item === Weapon.Granade) weaponName = 'Granade';
+		if (item === Weapon.Granade) weaponName = 'Grenade';
 		if (item === Weapon.Smoke) weaponName = 'Smoke';
 		if (item === Weapon.Hand) weaponName = 'Hands';
 		if (item === Weapon.Hammer) weaponName = 'Hammer';
@@ -1719,7 +1719,7 @@ export default class View {
 						lootName = '6X scope';
 						break;
 					case LootType.Granade:
-						lootName = 'Granade';
+						lootName = 'Grenade';
 						break;
 					case LootType.Smoke:
 						lootName = 'Smoke';

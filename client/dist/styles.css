@@ -138,7 +138,7 @@ canvas#helperScreen{
     left: 0;
     background: silver;
     overflow: scroll;
-    z-index: 9;
+    z-index: 16;
     padding: 10px;
 }
 #editorScreenContainer{
@@ -149,7 +149,7 @@ canvas#helperScreen{
     left: 15%;
     overflow: scroll;
     background: white;
-    z-index: 9;
+    z-index: 16;
 }
 #editorCoordinates{
     font-size: 120%;
@@ -433,13 +433,18 @@ div.spectateLabel{
     display: none;
 }
 
-#mobileCombatControllerWrapper{
+#mobileAimControllerWrapper{
     display: none;
 }
 
-#mobileActionControllerWrapper{
+#mobileActionController{
     display: none;
 }
+
+#mobileHitController{
+    display: none;
+}
+
 
 
 
@@ -585,64 +590,72 @@ div.spectateLabel{
     }
 
 
-    #mobileActionControllerWrapper{
-        display: block;
-        z-index: 11;
-        position: absolute;
-        bottom: 20px;
-        right : 190px;
-        width: 100px;
-        height: 100px;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 100px;
-    }
 
     #mobileActionController{
+        position: absolute;
+        bottom: 40px;
+        right: 180px;
+        display: block;
+        z-index: 11;
         width: 100px;
         height: 100px;
         border-radius: 100px;
-        position: relative;
-        background: rgba(0, 0, 0, 0.2);
-    }
-
-    #mobileCombatControllerWrapper{
-        width: 150px;
-        height: 150px;
-        border-radius: 150px;
-        display: block;
-        z-index: 11;
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
         background: rgba(0, 0, 0, 0.1);
     }
 
-    #mobileCombatController{
-        width: 150px;
-        height: 150px;
-        border-radius: 150px;
-        position: relative;
-        background: rgba(0, 0, 0, 0.2);
+    #mobileHitController{
+        position: absolute;
+        bottom: 40px;
+        right: 40px;
+        display: block;
+        z-index: 11;
+        width: 100px;
+        height: 100px;
+        border-radius: 100px;
+        background: rgba(0, 0, 0, 0.1);
     }
+
+    /*
+    #mobileAimControllerWrapper{
+        width: 120px;
+        height: 120px;
+        border-radius: 120px;
+        display: block;
+        z-index: 11;
+        position: absolute;
+        bottom: 40px;
+        right: 50px;
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    #mobileAimController{
+        width: 120px;
+        height: 120px;
+        border-radius: 120px;
+        position: relative;
+        background: rgba(0, 0, 0, 0.05);
+    }
+    */
 
     #mobileMoveControllerWrapper{
+        width: 150px;
+        height: 150px;
+        border-radius: 150px;
         display: block;
         z-index: 11;
         position: absolute;
-        bottom: 20px;
-        left: 20px;
-        width: 150px;
-        height: 150px;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 150px;
+        bottom: 40px;
+        left: 50px;
+        background: rgba(0, 0, 0, 0.05);
     }
-
     #mobileMoveController{
+        display: block;
+        z-index: 11;
         width: 150px;
         height: 150px;
         border-radius: 150px;
         position: relative;
-        background: rgba(0, 0, 0, 0.2);
+        background: rgba(0, 0, 0, 0.05);
     }
 
     #mapContainer{
@@ -664,6 +677,11 @@ div.spectateLabel{
 
     #alive{
         left: 160px;
+    }
+
+    #spectate{
+        top:10px;
+        left:220px;
     }
 
     #aliveText{
@@ -689,7 +707,8 @@ div.spectateLabel{
 
     #ammo{
        display: none;
-    
     }
+
+
 
 }

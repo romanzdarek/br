@@ -173,12 +173,30 @@ export default class Controller {
 				console.log('Error: a (controll player)');
 			});
 
+			//move angle
+			socket.on('moveAngle', (game: number, moveState, angle?: number) => {
+				if (this.model.games[game]) {
+					for (const player of this.model.games[game].players) {
+						if (player.socket === socket) {
+							if (moveState) {
+								player.changeAngle(angle);
+								player.moveAngle(moveState, angle);
+							} else {
+								player.moveAngle(moveState);
+							}
+							return;
+						}
+					}
+				}
+				console.log('Error: a (controll player)');
+			});
+
 			//controll mouse
-			socket.on('m', (game: number, mouse: string, position: Point) => {
+			socket.on('m', (game: number, mouse: string, position: Point, touchendDelay: number) => {
 				if (this.model.games[game] && mouse) {
 					for (const player of this.model.games[game].players) {
 						if (player.socket === socket) {
-							player.mouseController(mouse, position);
+							player.mouseController(mouse, position, touchendDelay);
 							return;
 						}
 					}
@@ -187,11 +205,17 @@ export default class Controller {
 			});
 
 			//change item
-			socket.on('i', (game: number, inventoryIndex: number) => {
+			socket.on('i', (game: number, inventoryIndex: number, reload = false) => {
 				if (this.model.games[game] && inventoryIndex > -1) {
 					for (const player of this.model.games[game].players) {
 						if (player.socket === socket) {
-							player.inventory.changeActiveItem(inventoryIndex);
+							if (reload && player.inventory.getActiveItemNumber() === inventoryIndex) {
+								//reload
+								player.keyController('re');
+							} else {
+								player.inventory.changeActiveItem(inventoryIndex);
+							}
+
 							return;
 						}
 					}

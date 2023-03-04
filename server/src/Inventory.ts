@@ -430,6 +430,12 @@ export default class Inventory {
 		this.clear();
 	}
 
+	private throwLootItem(player: Player, lootType: LootType, quantity?: number) {
+		const x = player.getCenterX() + 20;
+		const y = player.getCenterY() + 20;
+		this.loot.createLootItem(x, y, lootType, quantity);
+	}
+
 	take(loot: LootItem): void {
 		//take guns
 		if (loot.type === LootType.Pistol || loot.type === LootType.Machinegun || loot.type === LootType.Shotgun || loot.type === LootType.Rifle) {
@@ -451,13 +457,17 @@ export default class Inventory {
 			if (gun) {
 				let itemPosition = 0;
 				//gun inventory is full
-				if (this.item1 !== null && this.item2 !== null) {
+				if (this.item1 && this.item2) {
 					if (this.item1 === this.activeItem) {
 						itemPosition = 1;
+						this.activeItem = gun;
 					} else if (this.item2 === this.activeItem) {
+						this.activeItem = gun;
 						itemPosition = 2;
 					} else {
-						itemPosition = 1;
+						itemPosition = 0;
+						//cannot take
+						this.throwLootItem(this.player, loot.type, loot.quantity);
 					}
 					//remove gun
 					let lootType;
@@ -468,6 +478,7 @@ export default class Inventory {
 						if (this.item1 instanceof Machinegun) lootType = LootType.Machinegun;
 						if (this.item1 instanceof Shotgun) lootType = LootType.Shotgun;
 						if (this.item1 instanceof Rifle) lootType = LootType.Rifle;
+						this.throwLootItem(this.player, lootType, bulletsInGun);
 					}
 					if (itemPosition === 2) {
 						bulletsInGun = this.item2.getBullets();
@@ -475,8 +486,8 @@ export default class Inventory {
 						if (this.item2 instanceof Machinegun) lootType = LootType.Machinegun;
 						if (this.item2 instanceof Shotgun) lootType = LootType.Shotgun;
 						if (this.item2 instanceof Rifle) lootType = LootType.Rifle;
+						this.throwLootItem(this.player, lootType, bulletsInGun);
 					}
-					this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), lootType, bulletsInGun);
 				}
 				if (this.item2 === null) {
 					itemPosition = 2;
@@ -486,46 +497,58 @@ export default class Inventory {
 				}
 				if (itemPosition === 1) {
 					this.item1 = gun;
-					this.activeItemNumber = 1;
+					//this.activeItemNumber = 1;
 				}
 				if (itemPosition === 2) {
 					this.item2 = gun;
-					this.activeItemNumber = 2;
+					//this.activeItemNumber = 2;
 				}
-				this.activeItem = gun;
+				//this.activeItem = gun;
+
+				//take first weapon
+				if (((this.item1 && !this.item2) || (!this.item1 && this.item2)) && this.item3 !== this.hammer && this.item33 !== this.hammer) {
+					this.activeItemNumber = 1;
+					this.activeItem = gun;
+				}
 			}
 		} else if (loot.type === LootType.Hammer) {
 			//take hammer
 			//throw hammer
+			let hammerAlreadyTaken = false;
 			if (this.item3 instanceof Hammer || this.item33 instanceof Hammer) {
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.Hammer);
+				hammerAlreadyTaken = true;
+				this.throwLootItem(this.player, LootType.Hammer);
 			}
-			this.item3 = this.hammer;
-			this.item33 = Weapon.Hand;
-			this.activeItem = this.item3;
-			this.activeItemNumber = 3;
+			if (!hammerAlreadyTaken) {
+				this.item3 = this.hammer;
+				this.item33 = Weapon.Hand;
+			}
+
+			if (!this.item1 && !this.item2 && this.item33 !== this.hammer && !hammerAlreadyTaken) this.activeItem = this.hammer;
+			//this.activeItem = this.item3;
+			//this.activeItemNumber = 3;
 		} else if (loot.type === LootType.Granade || loot.type === LootType.Smoke) {
 			//take granades & smokes
 			if (loot.type === LootType.Granade) {
 				this.item4GranadeCount += loot.quantity;
 				this.item4 = Weapon.Granade;
-				this.activeItem = this.item4;
-				this.activeItemNumber = 4;
+				//this.activeItem = this.item4;
+				//this.activeItemNumber = 4;
 			} else if (loot.type === LootType.Smoke) {
 				this.item4SmokeCount += loot.quantity;
 				this.item4 = Weapon.Smoke;
-				this.activeItem = this.item4;
-				this.activeItemNumber = 4;
+				//this.activeItem = this.item4;
+				//this.activeItemNumber = 4;
 			}
 			//throw
 			//granade
 			if (this.item4GranadeCount > this.item4Max) {
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.Granade, this.item4GranadeCount - this.item4Max);
 				this.item4GranadeCount = this.item4Max;
+				this.throwLootItem(this.player, LootType.Granade, this.item4GranadeCount - this.item4Max);
 			}
 			//smoke
 			if (this.item4SmokeCount > this.item4Max) {
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.Smoke, this.item4SmokeCount - this.item4Max);
+				this.throwLootItem(this.player, LootType.Smoke, this.item4SmokeCount - this.item4Max);
 				this.item4SmokeCount = this.item4Max;
 			}
 		} else if (loot.type === LootType.GreenAmmo) {
@@ -535,7 +558,7 @@ export default class Inventory {
 				const newLootBullets = this.greenAmmo - this.maxAmmo;
 				this.greenAmmo = this.maxAmmo;
 				//throw loot
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.GreenAmmo, newLootBullets);
+				this.throwLootItem(this.player, LootType.GreenAmmo, newLootBullets);
 			}
 		} else if (loot.type === LootType.RedAmmo) {
 			this.redAmmo += loot.quantity;
@@ -543,7 +566,7 @@ export default class Inventory {
 				const newLootBullets = this.redAmmo - this.maxAmmo;
 				this.redAmmo = this.maxAmmo;
 				//throw loot
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.RedAmmo, newLootBullets);
+				this.throwLootItem(this.player, LootType.RedAmmo, newLootBullets);
 			}
 		} else if (loot.type === LootType.BlueAmmo) {
 			this.blueAmmo += loot.quantity;
@@ -551,7 +574,7 @@ export default class Inventory {
 				const newLootBullets = this.blueAmmo - this.maxAmmo;
 				this.blueAmmo = this.maxAmmo;
 				//throw loot
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.BlueAmmo, newLootBullets);
+				this.throwLootItem(this.player, LootType.BlueAmmo, newLootBullets);
 			}
 		} else if (loot.type === LootType.OrangeAmmo) {
 			this.orangeAmmo += loot.quantity;
@@ -559,13 +582,13 @@ export default class Inventory {
 				const newLootBullets = this.orangeAmmo - this.maxAmmo;
 				this.orangeAmmo = this.maxAmmo;
 				//throw loot
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.OrangeAmmo, newLootBullets);
+				this.throwLootItem(this.player, LootType.OrangeAmmo, newLootBullets);
 			}
 		} else if (loot.type === LootType.Vest) {
 			//take vest
 			if (this.vest) {
 				//throw loot
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.Vest);
+				this.throwLootItem(this.player, LootType.Vest);
 			} else {
 				this.vest = true;
 			}
@@ -575,7 +598,7 @@ export default class Inventory {
 			//throw loot
 			if (this.item5 > this.item5Max) {
 				const throwCount = this.item5 - this.item5Max;
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), LootType.Medkit, throwCount);
+				this.throwLootItem(this.player, LootType.Medkit, throwCount);
 				this.item5 = this.item5Max;
 			}
 		} else if (loot.type === LootType.Scope2 || loot.type === LootType.Scope4 || loot.type === LootType.Scope6) {
@@ -594,7 +617,7 @@ export default class Inventory {
 						scopeType = LootType.Scope6;
 						break;
 				}
-				this.loot.createLootItem(this.player.getCenterX(), this.player.getCenterY(), scopeType);
+				this.throwLootItem(this.player, scopeType);
 			}
 			switch (loot.type) {
 				case LootType.Scope2:

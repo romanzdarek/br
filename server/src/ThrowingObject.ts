@@ -19,12 +19,23 @@ export default class ThrowingObject {
 	private steps: number;
 	private countdown: number = 120;
 
-	constructor(player: Player, hand: Hand, targetX: number, targetY: number, range: number = 85) {
+	constructor(player: Player, hand: Hand, targetX: number, targetY: number, touchDelay: number, range: number = 85) {
 		this.player = player;
 		this.x = hand.getCenterX();
 		this.y = hand.getCenterY();
+
 		//triangle
 		let x, y;
+
+		// mobile controll
+		if (touchDelay) {
+			//console.log('touchDelay', touchDelay);
+			targetX = hand.getCenterX() + Math.sin((player.getAngle() * Math.PI) / 180) * touchDelay;
+			targetY = hand.getCenterY() - Math.cos((player.getAngle() * Math.PI) / 180) * touchDelay;
+
+			console.log(targetX, targetY);
+		}
+
 		if (hand.getCenterX() >= targetX) {
 			x = hand.getCenterX() - targetX;
 		} else {
@@ -35,6 +46,7 @@ export default class ThrowingObject {
 		} else {
 			y = targetY - hand.getCenterY();
 		}
+
 		const z = Math.sqrt(x * x + y * y);
 		this.steps = Math.round(z / this.shiftZ);
 

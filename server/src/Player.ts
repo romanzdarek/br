@@ -73,11 +73,18 @@ export class Player {
 	};
 
 	private mouseControll = {
+		touchendDelay: 0,
 		left: false,
 		middle: false,
 		right: false,
 		x: 0,
 		y: 0,
+	};
+
+	private touchControll = {
+		touchendDelay: 0,
+		angle: 0,
+		move: false,
 	};
 
 	private stats: PlayerStats = {
@@ -118,6 +125,10 @@ export class Player {
 		this.killMessages = killMessages;
 		this.sounds = sounds;
 		this.setRandomPosition();
+	}
+	moveAngle(moveState: boolean, angle?: number) {
+		if (angle) this.touchControll.angle = angle;
+		this.touchControll.move = moveState;
 	}
 
 	leaveGame(): void {
@@ -391,10 +402,11 @@ export class Player {
 		}
 	}
 
-	mouseController(button: string, position?: Point): void {
+	mouseController(button: string, position?: Point, touchendDelay?: number): void {
 		switch (button) {
 			case 'l':
 				this.mouseControll.left = true;
+				if (touchendDelay) this.touchControll.touchendDelay = touchendDelay;
 				if (position) {
 					this.mouseControll.x = position.x;
 					this.mouseControll.y = position.y;
@@ -406,6 +418,7 @@ export class Player {
 				break;
 			case '-l':
 				this.mouseControll.left = false;
+				this.touchControll.touchendDelay = 0;
 				break;
 			case '-m':
 				break;
@@ -558,13 +571,19 @@ export class Player {
 			} else if (this.inventory.activeItem === Weapon.Granade) {
 				if (this.hands[1].throwReady()) {
 					this.throw();
-					this.granades.push(new Granade(this, this.hands[1], this.mouseControll.x, this.mouseControll.y, this.sounds));
+
+					this.granades.push(
+						new Granade(this, this.hands[1], this.mouseControll.x, this.mouseControll.y, this.sounds, this.touchControll.touchendDelay)
+					);
+					this.touchControll.touchendDelay = 0;
 					this.mouseControll.left = false;
 				}
 			} else if (this.inventory.activeItem === Weapon.Smoke) {
 				if (this.hands[1].throwReady()) {
 					this.throw();
-					this.granades.push(new Smoke(this, this.hands[1], this.mouseControll.x, this.mouseControll.y));
+
+					this.granades.push(new Smoke(this, this.hands[1], this.mouseControll.x, this.mouseControll.y, this.touchControll.touchendDelay));
+					this.touchControll.touchendDelay = 0;
 					this.mouseControll.left = false;
 				}
 			} else if (this.inventory.activeItem === Weapon.Medkit) {
@@ -585,17 +604,7 @@ export class Player {
 	private move(): void {
 		this.goAroundObstacleCalls = 0;
 		const { up, down, left, right } = this.controll;
-		if (up || down || left || right) {
-			//standart shift (speed)
-			let shift = this.speed;
-			//reloading & healing speed
-			if (!this.inventory.ready()) shift /= 2;
-			//diagonal shift and slow around obstacle
-			if ((up && left) || (up && right) || (down && left) || (down && right) || this.slowAroundObstacle) {
-				shift = shift / Math.sqrt(2);
-				this.slowAroundObstacle = false;
-			}
-			//shift in water
+		if (up || down || left || right || this.touchControll.move) {
 			let inWater = false;
 			for (let i = 0; i < this.map.terrain.length; i++) {
 				//terrain block is under my center
@@ -623,21 +632,58 @@ export class Player {
 				}
 			}
 
-			if (inWater) {
-				//slow down
-				shift = (shift / 3) * 2;
-				if (up || down || left || right) this.waterCircleTimer++;
-			} else {
-				this.walk();
-			}
+			//standart shift (speed)
+			let shift = this.speed;
+			//reloading & healing speed
+			if (!this.inventory.ready()) shift /= 2;
+
 			//player shift
 			let shiftX = 0;
 			let shiftY = 0;
-			if (up) shiftY += -shift;
-			if (down) shiftY += shift;
-			if (left) shiftX += -shift;
-			if (right) shiftX += shift;
-			//i want to go this way...
+
+			// touch controll
+			if (this.touchControll.move) {
+				if (this.slowAroundObstacle) {
+					shift = shift / Math.sqrt(2);
+					this.slowAroundObstacle = false;
+				}
+
+				//shift in water
+				if (inWater) {
+					//slow down
+					shift = (shift / 3) * 2;
+					this.waterCircleTimer++;
+				} else {
+					this.walk();
+				}
+
+				shiftX = Math.sin((this.touchControll.angle * Math.PI) / 180) * shift;
+				shiftY = Math.cos((this.touchControll.angle * Math.PI) / 180) * shift * -1;
+			} else {
+				//key controll
+
+				//diagonal shift and slow around obstacle
+				if ((up && left) || (up && right) || (down && left) || (down && right) || this.slowAroundObstacle) {
+					shift = shift / Math.sqrt(2);
+					this.slowAroundObstacle = false;
+				}
+
+				//shift in water
+				if (inWater) {
+					//slow down
+					shift = (shift / 3) * 2;
+					this.waterCircleTimer++;
+				} else {
+					this.walk();
+				}
+
+				if (up) shiftY += -shift;
+				if (down) shiftY += shift;
+				if (left) shiftX += -shift;
+				if (right) shiftX += shift;
+				//i want to go this way...
+			}
+
 			this.shiftOnPosition(shiftX, shiftY);
 		}
 		this.changeHandsPosition();

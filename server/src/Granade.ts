@@ -10,8 +10,8 @@ export default class Granade extends ThrowingObject {
 	readonly fragmentCount: number = 20;
 	readonly sounds: Sound[];
 
-	constructor(player: Player, hand: Hand, targetX: number, targetY: number, sounds: Sound[]) {
-		super(player, hand, targetX, targetY);
+	constructor(player: Player, hand: Hand, targetX: number, targetY: number, sounds: Sound[], touchDelay: number) {
+		super(player, hand, targetX, targetY, touchDelay);
 		this.sounds = sounds;
 	}
 

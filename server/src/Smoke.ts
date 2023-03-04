@@ -5,7 +5,7 @@ import { Player } from './Player';
 export default class Smoke extends ThrowingObject {
 	readonly cloudCount: number = 6;
 
-	constructor(player: Player, hand: Hand, targetX: number, targetY: number) {
-		super(player, hand, targetX, targetY);
+	constructor(player: Player, hand: Hand, targetX: number, targetY: number, touchDelay: number) {
+		super(player, hand, targetX, targetY, touchDelay);
 	}
 }

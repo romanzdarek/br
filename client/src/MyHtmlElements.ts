@@ -19,8 +19,9 @@ export default class MyHtmlElements {
 	readonly hideGame: HTMLElement;
 	readonly itNetwork: HTMLElement;
 	readonly mobileMoveController: HTMLElement;
-	readonly mobileCombatController: HTMLElement;
+	readonly mobileAimController: HTMLElement;
 	readonly mobileActionController: HTMLElement;
+	readonly mobileHitController: HTMLElement;
 
 	//<div id="healthBar"><div id="healthBarIn"></div></div>
 	readonly healthBar = {
@@ -324,8 +325,9 @@ export default class MyHtmlElements {
 		this.hideGame = document.getElementById('hideGame');
 		this.itNetwork = document.getElementById('itnetwork');
 		this.mobileMoveController = document.getElementById('mobileMoveController');
-		this.mobileCombatController = document.getElementById('mobileCombatController');
+		this.mobileAimController = document.getElementById('mobileAimController');
 		this.mobileActionController = document.getElementById('mobileActionController');
+		this.mobileHitController = document.getElementById('mobileHitController');
 	}
 
 	close(...elements: HTMLElement[]): void {
