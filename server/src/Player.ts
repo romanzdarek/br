@@ -703,8 +703,8 @@ export class Player {
 	private shiftOnPosition(shiftX: number, shiftY: number): void {
 		//one or two shifts?
 		let countShifts = 0;
-		if (shiftX !== 0) countShifts++;
-		if (shiftY !== 0) countShifts++;
+		if (shiftX) countShifts++;
+		if (shiftY) countShifts++;
 
 		//y shift
 		let shiftDirection = 1;
@@ -786,30 +786,37 @@ export class Player {
 	private goAroundRectangleObstacle(shiftX: number, shiftY: number, countShifts: number, rectangleObstacle: RectangleObstacle): void {
 		this.slowAroundObstacle = true;
 		const maxObstacleOverlap = Player.size * 0.75;
+		const goAroundShift = 1.5;
+
+		console.log('shiftX, shiftY', shiftX, shiftY);
+
+		// move on one axis
 		if (countShifts === 1) {
-			if (shiftX !== 0) {
-				//up or down?
+			if (shiftX) {
+				// go up or down?
 				//go up
 				if (this.getCenterY() <= rectangleObstacle.y + rectangleObstacle.height / 2) {
-					if (this.y + Player.size - rectangleObstacle.y < maxObstacleOverlap) this.shiftOnPosition(0, -1);
+					if (this.y + Player.size - rectangleObstacle.y < maxObstacleOverlap) this.shiftOnPosition(0, goAroundShift * -1);
 				} else {
 					//go down
-					if (rectangleObstacle.y + rectangleObstacle.height - this.y < maxObstacleOverlap) this.shiftOnPosition(0, 1);
+					if (rectangleObstacle.y + rectangleObstacle.height - this.y < maxObstacleOverlap) this.shiftOnPosition(0, goAroundShift);
 				}
-			}
-			if (shiftY !== 0) {
-				//left or right?
+			} else if (shiftY) {
+				//go left or right?
 				//go left
 				if (this.getCenterX() <= rectangleObstacle.x + rectangleObstacle.width / 2) {
-					if (this.x + Player.size - rectangleObstacle.x < maxObstacleOverlap) this.shiftOnPosition(-1, 0);
+					if (this.x + Player.size - rectangleObstacle.x < maxObstacleOverlap) this.shiftOnPosition(goAroundShift * -1, 0);
 				} else {
 					//go right
-					if (rectangleObstacle.x + rectangleObstacle.width - this.x < maxObstacleOverlap) this.shiftOnPosition(1, 0);
+					if (rectangleObstacle.x + rectangleObstacle.width - this.x < maxObstacleOverlap) this.shiftOnPosition(goAroundShift, 0);
 				}
 			}
 		}
-		if (countShifts === 2) {
+		// move on both axes
+		else {
+			let goAroundShift = 0.1;
 			this.slowAroundObstacle = false;
+
 			//chose way
 			//obstacle is up and right
 			if (
@@ -818,12 +825,15 @@ export class Player {
 			) {
 				const xDistanceFromCorner = Math.abs(this.getCenterX() - rectangleObstacle.x);
 				const yDistanceFromCorner = Math.abs(this.getCenterY() - (rectangleObstacle.y + rectangleObstacle.height));
+				if (this.touchControll.move && !(this.touchControll.angle > 0 && this.touchControll.angle < 90)) {
+					return;
+				}
 				//x shift right
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
-					this.shiftOnPosition(0.1, 0);
+					this.shiftOnPosition(goAroundShift, 0);
 				} else {
 					//y shift up
-					this.shiftOnPosition(0, -0.1);
+					this.shiftOnPosition(0, goAroundShift * -1);
 				}
 			} else if (
 				this.getCenterX() > rectangleObstacle.x + rectangleObstacle.width / 2 &&
@@ -832,12 +842,15 @@ export class Player {
 				//obstacle is up and left
 				const xDistanceFromCorner = Math.abs(this.getCenterX() - (rectangleObstacle.x + rectangleObstacle.width));
 				const yDistanceFromCorner = Math.abs(this.getCenterY() - (rectangleObstacle.y + rectangleObstacle.height));
+				if (this.touchControll.move && !(this.touchControll.angle > 270 && this.touchControll.angle < 360)) {
+					return;
+				}
 				//x shift left
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
-					this.shiftOnPosition(-0.1, 0);
+					this.shiftOnPosition(goAroundShift * -1, 0);
 				} else {
 					//y shift up
-					this.shiftOnPosition(0, -0.1);
+					this.shiftOnPosition(0, goAroundShift * -1);
 				}
 			} else if (
 				this.getCenterX() > rectangleObstacle.x + rectangleObstacle.width / 2 &&
@@ -846,12 +859,15 @@ export class Player {
 				//obstacle is down and left
 				const xDistanceFromCorner = Math.abs(this.getCenterX() - (rectangleObstacle.x + rectangleObstacle.width));
 				const yDistanceFromCorner = Math.abs(this.getCenterY() - rectangleObstacle.y);
+				if (this.touchControll.move && !(this.touchControll.angle > 180 && this.touchControll.angle < 270)) {
+					return;
+				}
 				//x shift left
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
-					this.shiftOnPosition(-0.1, 0);
+					this.shiftOnPosition(goAroundShift * -1, 0);
 				} else {
 					//y shift down
-					this.shiftOnPosition(0, 0.1);
+					this.shiftOnPosition(0, goAroundShift);
 				}
 			} else if (
 				this.getCenterX() < rectangleObstacle.x + rectangleObstacle.width / 2 &&
@@ -860,12 +876,15 @@ export class Player {
 				//obstacle is down and right
 				const xDistanceFromCorner = Math.abs(this.getCenterX() - rectangleObstacle.x);
 				const yDistanceFromCorner = Math.abs(this.getCenterY() - rectangleObstacle.y);
+				if (this.touchControll.move && !(this.touchControll.angle > 90 && this.touchControll.angle < 180)) {
+					return;
+				}
 				//x shift right
 				if (xDistanceFromCorner <= yDistanceFromCorner) {
-					this.shiftOnPosition(0.1, 0);
+					this.shiftOnPosition(goAroundShift, 0);
 				} else {
 					//y shift down
-					this.shiftOnPosition(0, 0.1);
+					this.shiftOnPosition(0, goAroundShift);
 				}
 			}
 		}
@@ -874,7 +893,7 @@ export class Player {
 	private goAroundRoundObstacle(shiftX: number, shiftY: number, countShifts: number, roundObstacle: RoundObstacle): void {
 		this.slowAroundObstacle = true;
 		if (countShifts === 1) {
-			if (shiftX !== 0) {
+			if (shiftX) {
 				//obstacle above
 				if (this.getCenterY() >= roundObstacle.getCenterY()) {
 					//go down
@@ -886,7 +905,7 @@ export class Player {
 					this.shiftOnPosition(0, -1);
 				}
 			}
-			if (shiftY !== 0) {
+			if (shiftY) {
 				//obstacle on left
 				if (this.getCenterX() >= roundObstacle.getCenterX()) {
 					//go right
@@ -908,11 +927,17 @@ export class Player {
 			if (xDistance <= yDistance) {
 				//obstacle on right
 				if (this.getCenterX() <= roundObstacle.getCenterX()) {
+					if (this.touchControll.move && !(this.touchControll.angle > 0 && this.touchControll.angle < 180)) {
+						return;
+					}
 					//go right
 					this.shiftOnPosition(0.5, 0);
 				}
 				//obstacle on left
 				if (this.getCenterX() > roundObstacle.getCenterX()) {
+					if (this.touchControll.move && !(this.touchControll.angle > 180 && this.touchControll.angle < 360)) {
+						return;
+					}
 					//go left
 					this.shiftOnPosition(-0.5, 0);
 				}
@@ -920,11 +945,20 @@ export class Player {
 				//y shift
 				//obstacle below
 				if (this.getCenterY() <= roundObstacle.getCenterY()) {
+					if (this.touchControll.move && !(this.touchControll.angle > 90 && this.touchControll.angle < 270)) {
+						return;
+					}
 					//go down
 					this.shiftOnPosition(0, 0.5);
 				}
 				//obstacle above
 				if (this.getCenterY() > roundObstacle.getCenterY()) {
+					if (
+						this.touchControll.move &&
+						!((this.touchControll.angle > 270 && this.touchControll.angle < 360) || (this.touchControll.angle > 0 && this.touchControll.angle < 90))
+					) {
+						return;
+					}
 					//go up
 					this.shiftOnPosition(0, -0.5);
 				}
