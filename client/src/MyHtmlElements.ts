@@ -200,7 +200,15 @@ export default class MyHtmlElements {
 		create: document.getElementById('mainMenuCreate'),
 		openEditor: document.getElementById('mainMenuOpenEditor'),
 		controls: document.getElementById('mainMenuControls'),
+		stats: document.getElementById('mainMenuStats'),
 	};
+
+	readonly statsMenu = {
+		main: document.getElementById('statsMenu'),
+		back: document.getElementById('statsMenuBack'),
+		content: document.getElementById('statsMenuContent'),
+	};
+
 	/*
 	<div class="menu" id="gameCanceledMenu">
 		<h1>Game canceled</h1>

@@ -3,4 +3,7 @@ export default interface PlayerStats {
 	damageTaken: number;
 	damageDealt: number;
 	survive: number;
-};
+	players: number;
+	win?: boolean;
+	die?: boolean;
+}

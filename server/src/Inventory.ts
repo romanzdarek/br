@@ -19,7 +19,7 @@ export default class Inventory {
 	item1: Gun | null = null;
 	item2: Gun | null = null;
 	item3: any = Weapon.Hand;
-	private item33: any = null;
+	item33: any = null;
 	item4: Weapon.Granade | Weapon.Smoke | null = null;
 	item4GranadeCount: number = 0;
 	item4SmokeCount: number = 0;
@@ -543,8 +543,8 @@ export default class Inventory {
 			//throw
 			//granade
 			if (this.item4GranadeCount > this.item4Max) {
-				this.item4GranadeCount = this.item4Max;
 				this.throwLootItem(this.player, LootType.Granade, this.item4GranadeCount - this.item4Max);
+				this.item4GranadeCount = this.item4Max;
 			}
 			//smoke
 			if (this.item4SmokeCount > this.item4Max) {

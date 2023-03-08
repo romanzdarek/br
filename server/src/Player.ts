@@ -23,6 +23,7 @@ import ThrowingObject from './ThrowingObject';
 import BulletFactory from './BulletFactory';
 import PlayerStats from './PlayerStats';
 import Sound, { SoundType } from './Sound';
+import { LootType } from './LootType';
 
 export class Player {
 	socket: SocketIO.Socket | null;
@@ -92,6 +93,7 @@ export class Player {
 		damageTaken: 0,
 		damageDealt: 0,
 		survive: 0,
+		players: 0,
 	};
 
 	constructor(
@@ -149,6 +151,7 @@ export class Player {
 			damageDealt: Math.round(this.stats.damageDealt),
 			damageTaken: Math.round(this.stats.damageTaken),
 			survive: Math.round(this.stats.survive),
+			players: this.players.length,
 		};
 	}
 
@@ -284,6 +287,7 @@ export class Player {
 	}
 
 	acceptHit(power: number, attacker?: Player, weapon?: Weapon): void {
+		if (this.died) return;
 		if (attacker && weapon !== Weapon.Smoke) this.sounds.push(new Sound(SoundType.Hit, this.getCenterX(), this.getCenterY()));
 		if (this.inventory.vest) {
 			//reduce bullet / fragment power
@@ -491,7 +495,8 @@ export class Player {
 	}
 
 	private takeLoot(): void {
-		if (!this.controll.action) return;
+		//if (!this.controll.action) return;
+
 		if (this.inventory.ready()) {
 			for (const loot of this.loot.lootItems) {
 				if (!loot.isActive()) continue;
@@ -500,10 +505,51 @@ export class Player {
 				const distance = Math.sqrt(x * x + y * y);
 				const lootAndPlayerRadius = Player.radius + loot.radius;
 				if (distance < lootAndPlayerRadius) {
-					loot.take();
-					this.inventory.take(loot);
-					this.controll.action = false;
-					return;
+					let automaticTake = false;
+
+					if (loot.type === LootType.Pistol && (!this.inventory.item1 || !this.inventory.item2)) {
+						automaticTake = true;
+					} else if (loot.type === LootType.Rifle && (!this.inventory.item1 || !this.inventory.item2)) {
+						automaticTake = true;
+					} else if (loot.type === LootType.Machinegun && (!this.inventory.item1 || !this.inventory.item2)) {
+						automaticTake = true;
+					} else if (loot.type === LootType.Shotgun && (!this.inventory.item1 || !this.inventory.item2)) {
+						automaticTake = true;
+					} else if (loot.type === LootType.Hammer && (!this.inventory.item3 || !this.inventory.item33)) {
+						automaticTake = true;
+					} else if (loot.type === LootType.Vest && !this.inventory.vest) {
+						automaticTake = true;
+					} else if (
+						(loot.type === LootType.Scope2 || loot.type === LootType.Scope4 || loot.type === LootType.Scope6) &&
+						this.inventory.scope === 1
+					) {
+						automaticTake = true;
+					} else if (loot.type === LootType.Granade && this.inventory.item4GranadeCount < 3) {
+						automaticTake = true;
+					} else if (loot.type === LootType.Smoke && this.inventory.item4SmokeCount < 3) {
+						automaticTake = true;
+					} else if (loot.type === LootType.Medkit && this.inventory.item5 < 3) {
+						automaticTake = true;
+					} else if (loot.type === LootType.OrangeAmmo && this.inventory.orangeAmmo < 99) {
+						automaticTake = true;
+					} else if (loot.type === LootType.RedAmmo && this.inventory.redAmmo < 99) {
+						automaticTake = true;
+					} else if (loot.type === LootType.BlueAmmo && this.inventory.blueAmmo < 99) {
+						automaticTake = true;
+					} else if (loot.type === LootType.GreenAmmo && this.inventory.greenAmmo < 99) {
+						automaticTake = true;
+					}
+
+					if (automaticTake) {
+						loot.take();
+						this.inventory.take(loot);
+						return;
+					} else if (this.controll.action) {
+						loot.take();
+						this.inventory.take(loot);
+						this.controll.action = false;
+						return;
+					}
 				}
 			}
 		}
@@ -786,9 +832,7 @@ export class Player {
 	private goAroundRectangleObstacle(shiftX: number, shiftY: number, countShifts: number, rectangleObstacle: RectangleObstacle): void {
 		this.slowAroundObstacle = true;
 		const maxObstacleOverlap = Player.size * 0.75;
-		const goAroundShift = 1.5;
-
-		console.log('shiftX, shiftY', shiftX, shiftY);
+		const goAroundShift = 1;
 
 		// move on one axis
 		if (countShifts === 1) {
@@ -919,6 +963,7 @@ export class Player {
 			}
 		}
 		if (countShifts === 2) {
+			this.slowAroundObstacle = false;
 			//choose shorter way
 			const xDistance = Math.abs(this.getCenterX() - roundObstacle.getCenterX());
 			const yDistance = Math.abs(this.getCenterY() - roundObstacle.getCenterY());

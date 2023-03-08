@@ -179,7 +179,7 @@ export default class Controller {
 					for (const player of this.model.games[game].players) {
 						if (player.socket === socket) {
 							if (moveState) {
-								player.changeAngle(angle);
+								//player.changeAngle(angle);
 								player.moveAngle(moveState, angle);
 							} else {
 								player.moveAngle(moveState);

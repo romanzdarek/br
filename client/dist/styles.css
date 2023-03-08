@@ -11,6 +11,9 @@ html, body {touch-action: none;}
     -ms-user-select: none;
     user-select: none;
 }
+th{
+    text-align: left;
+}
 a{
     color:black;
     transition: color 0.4s;
@@ -61,7 +64,7 @@ canvas#gameScreen{
     bottom:20px;
     left:20px;
     z-index: 5;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);;
 }
 #zoneTimer{
     z-index: 8;
@@ -182,12 +185,33 @@ canvas#helperScreen{
 #mainMenu{
     display: block;
 }
+
+
+
+#mainMenuControls{
+    width:49%;
+    float:left;
+}
+
+#mainMenuStats{
+    width:49%;
+    float:right;
+}
+
+#statsMenu table{
+    font-size:85%;
+    margin-bottom:10px;
+}
+
+
+
+
 #alertMenu{
     background: pink;
 }
 #healthBar{
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);;
     padding: 5px;
     width: 300px;
     height:40px;
@@ -216,7 +240,7 @@ canvas#helperScreen{
     font-size: 200%;
     color: white;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);;
 }
 div.infoBox{
     width: 300px;
@@ -255,7 +279,7 @@ div.infoBox{
     text-align:center;
     color:white;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);;
 }
 #spectate div{
     font-size: 130%;
@@ -297,7 +321,7 @@ div.spectateLabel{
 }
 #items div{
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);;
     color:white;
     font-weight: bold;
     margin-bottom:10px;
@@ -309,7 +333,7 @@ div.spectateLabel{
     margin-bottom:0;
 }
 .active{
-    background: rgba(0, 0, 0, 0.7) !important;
+    background: rgba(0, 0, 0, 0.3) !important;
 }
 #items b{
     display: block;
@@ -375,7 +399,7 @@ div.spectateLabel{
     width: 70px;
     height: 70px;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);;
     color:white;
     font-size: 300%;
     line-height: 70px;
@@ -404,7 +428,7 @@ div.spectateLabel{
     width: 50px;
     height: 50px;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);;
     display: none;
 }
 #vest img, #scope img, #scope svg{
@@ -422,7 +446,7 @@ div.spectateLabel{
 #messages p{
     float: right;
     clear: both;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.1);;
     border-radius: 10px;
     margin-bottom: 10px;
     padding: 7px;
@@ -576,6 +600,7 @@ div.spectateLabel{
 
 /* Mobile */
 @media screen and (max-height:600px) {
+   
     div.infoBox{
         top:20%;
     }
@@ -589,24 +614,15 @@ div.spectateLabel{
         height:40px;
     }
 
+    #transparentLayer{
+        display: none;
+    }
 
 
     #mobileActionController{
         position: absolute;
         bottom: 40px;
-        right: 180px;
-        display: block;
-        z-index: 11;
-        width: 100px;
-        height: 100px;
-        border-radius: 100px;
-        background: rgba(0, 0, 0, 0.1);
-    }
-
-    #mobileHitController{
-        position: absolute;
-        bottom: 40px;
-        right: 40px;
+        right: 220px;
         display: block;
         z-index: 11;
         width: 100px;
@@ -616,46 +632,74 @@ div.spectateLabel{
     }
 
     /*
-    #mobileAimControllerWrapper{
+    #mobileHitController{
+        position: absolute;
+        bottom: 40px;
+        right: 40px;
+        display: block;
+        z-index: 11;
         width: 120px;
         height: 120px;
         border-radius: 120px;
+        background: rgba(0, 0, 0, 0.1);
+    }
+    */
+
+    
+    #mobileAimControllerWrapper{
+        width: 160px;
+        height: 160px;
+        border-radius: 160px;
         display: block;
         z-index: 11;
         position: absolute;
-        bottom: 40px;
-        right: 50px;
+        bottom: 30px;
+        right: 30px;
         background: rgba(0, 0, 0, 0.05);
     }
 
     #mobileAimController{
-        width: 120px;
-        height: 120px;
-        border-radius: 120px;
+        width: 130px;
+        height: 130px;
+        border-radius: 140px;
         position: relative;
-        background: rgba(0, 0, 0, 0.05);
+        margin-top: 15px;
+        margin-left: 15px;
+        background: black;
+        opacity: 0.05;
+        transition: background-color 0.1s linear;
+        transition: opacity 0.1s linear;
+        -webkit-transform-style: preserve-3d;
+        -webkit-backface-visibility: hidden;
     }
-    */
+    
 
     #mobileMoveControllerWrapper{
-        width: 150px;
-        height: 150px;
-        border-radius: 150px;
+        width: 160px;
+        height: 160px;
+        border-radius: 160px;
         display: block;
         z-index: 11;
         position: absolute;
-        bottom: 40px;
-        left: 50px;
+        bottom: 30px;
+        left: 30px;
         background: rgba(0, 0, 0, 0.05);
     }
     #mobileMoveController{
         display: block;
         z-index: 11;
-        width: 150px;
-        height: 150px;
-        border-radius: 150px;
+        width: 130px;
+        height: 130px;
+        border-radius: 130px;
+        margin-top: 15px;
+        margin-left: 15px;
         position: relative;
-        background: rgba(0, 0, 0, 0.05);
+        background: black;
+        opacity: 0.05;
+        transition: background-color 0.1s linear;
+        transition: opacity 0.1s linear;
+        -webkit-transform-style: preserve-3d;
+        -webkit-backface-visibility: hidden;
     }
 
     #mapContainer{
@@ -689,7 +733,7 @@ div.spectateLabel{
     }
 
     #items{
-        width:130px;
+        width:110px;
         position: absolute;
         z-index: 10;
         top:10px;
@@ -697,6 +741,9 @@ div.spectateLabel{
         font-size:75%;
         height:fit-content;
 
+    }
+    #items > div > b{
+        display: none;
     }
 
     #messages{

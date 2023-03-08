@@ -101,6 +101,7 @@ export default class SurroundSound {
 				sound = this.water;
 				break;
 			case SoundType.Hit:
+				window.navigator?.vibrate?.(200);
 				sound = this.hit;
 				break;
 			case SoundType.Footstep:

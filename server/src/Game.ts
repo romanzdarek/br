@@ -238,8 +238,9 @@ export default class Game {
 				if (granade instanceof Smoke) {
 					const shiftAngle = 360 / granade.cloudCount;
 					for (let i = 0; i < granade.cloudCount; i++) {
+						const randomAngle = Math.floor(Math.random() * 360);
 						const angle = i * shiftAngle;
-						this.smokeClouds.push(new SmokeCloud(granade, angle));
+						this.smokeClouds.push(new SmokeCloud(granade, randomAngle));
 					}
 				}
 				this.granades.splice(i, 1);

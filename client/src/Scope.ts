@@ -1,9 +1,9 @@
 export default class Scope {
-	private loadingMax: number = 40;
+	private loadingMax: number = 60;
 	private loading: number = this.loadingMax;
-	private scope: number = 0.3; //1
+	private scope: number = 0.01; //1
 	private scopeLoadingChange: number = 0;
-	private scopeResolutionAdjustment: number = 0.3; //1
+	private scopeResolutionAdjustment: number = 0.01; //1
 
 	setScope(newScope: number): void {
 		switch (newScope) {
@@ -25,10 +25,10 @@ export default class Scope {
 		}
 	}
 
-	getFinalResolutionAdjustment(resolutionAdjustment: number): number {
-		if (this.loading !== this.loadingMax) {
-			this.scopeResolutionAdjustment += this.scopeLoadingChange;
-			this.loading++;
+	getFinalResolutionAdjustment(resolutionAdjustment: number, adjustFrameRate: number): number {
+		if (this.loading <= this.loadingMax) {
+			this.scopeResolutionAdjustment += this.scopeLoadingChange * adjustFrameRate;
+			this.loading += 1 * adjustFrameRate;
 		}
 		return resolutionAdjustment / this.scopeResolutionAdjustment;
 	}

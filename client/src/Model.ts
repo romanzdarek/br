@@ -9,12 +9,13 @@ import Editor from './Editor';
 import CollisionPoints from './CollisionPoints';
 import SnapshotManager from './SnapshotManager';
 import SurroundSound from './SurroundSound';
+import PlayerStats from './PlayerStats';
 
 export default class Model {
 	spectate: boolean = false;
 	private gameRun: boolean = false;
 	private gameId: number = -1;
-	private playerId: number = -1;
+	playerId: number = -1;
 	private name: string;
 	view: View;
 	private socket: Socket;
@@ -42,6 +43,36 @@ export default class Model {
 		setTimeout(() => {
 			this.loop();
 		}, 200);
+	}
+
+	storeStats(lastGameStats: PlayerStats) {
+		const storageKey = 'stats';
+		console.log('lastGameStats', lastGameStats);
+		if (lastGameStats.players === 1) return;
+		const defaultStats = {
+			numberOfGames: 0,
+			win: 0,
+			lost: 0,
+			kill: 0,
+			die: 0,
+			survive: 0,
+			damageDealt: 0,
+			damageTaken: 0,
+		};
+		// load stored
+		let storedStats: any = localStorage.getItem(storageKey);
+		if (!storedStats) storedStats = defaultStats;
+		else storedStats = JSON.parse(storedStats);
+
+		storedStats.numberOfGames++;
+		if (lastGameStats.win) storedStats.win++;
+		else storedStats.lost++;
+		if (lastGameStats.die) storedStats.die++;
+		storedStats.kill += lastGameStats.kills;
+		storedStats.survive += lastGameStats.survive;
+		storedStats.damageDealt += lastGameStats.damageDealt;
+		storedStats.damageTaken += lastGameStats.damageTaken;
+		localStorage.setItem(storageKey, JSON.stringify(storedStats));
 	}
 
 	reset(): void {

@@ -8,6 +8,7 @@ import Point from './Point';
 import OpenGame from './OpenGame';
 import MapData from './MapData';
 import PlayerStats from './PlayerStats';
+import { Weapon } from './Weapon';
 
 declare const io: {
 	connect(url?: string): Socket;
@@ -58,6 +59,11 @@ export class Controller {
 		left: false,
 		middle: false,
 		right: false,
+	};
+	private touch = {
+		aimController: {
+			lastTime: 0,
+		},
 	};
 
 	private playerAngle: number = 0;
@@ -125,6 +131,19 @@ export class Controller {
 		(<HTMLInputElement>el.mainMenu.games).disabled = joinDisabled;
 	}
 
+	private colorController(controllerElement: HTMLElement, active: boolean) {
+		let color = 'black';
+		let opacity = '0.05';
+
+		if (active) {
+			color = 'red';
+			opacity = '0.2';
+		}
+
+		//controllerElement.style.background = color;
+		controllerElement.style.opacity = opacity;
+	}
+
 	private socketController(): void {
 		const el = this.myHtmlElements;
 
@@ -135,10 +154,14 @@ export class Controller {
 		//gameOver
 		this.socket.on('winner', (stats: PlayerStats) => {
 			this.model.view.gameOver(stats, true);
+			stats.win = true;
+			this.model.storeStats(stats);
 		});
 
 		this.socket.on('loser', (stats: PlayerStats) => {
 			this.model.view.gameOver(stats, false);
+			stats.die = true;
+			this.model.storeStats(stats);
 		});
 
 		this.socket.on('stopGame', () => {
@@ -295,16 +318,16 @@ export class Controller {
 		});
 
 		el.items.item3.addEventListener('touchend', (event: Event) => {
-			this.socket.emit('i', this.model.getGameId(), 3, true);
+			this.socket.emit('i', this.model.getGameId(), 3);
 		});
 
 		el.items.item4.addEventListener('touchend', (event: Event) => {
-			this.socket.emit('i', this.model.getGameId(), 4, true);
+			this.socket.emit('i', this.model.getGameId(), 4);
 		});
 
 		el.items.item5.addEventListener('touchend', (event: Event) => {
 			event.preventDefault();
-			this.socket.emit('i', this.model.getGameId(), 5, true);
+			this.socket.emit('i', this.model.getGameId(), 5);
 		});
 	}
 
@@ -316,18 +339,13 @@ export class Controller {
 		let touchstartTime = Date.now();
 
 		mobileHitController.addEventListener('touchstart', (event: TouchEvent) => {
-			console.log('touchstart');
-			//event.preventDefault();
 			touchstartTime = Date.now();
 			if (!el.items.item4.classList.contains('active')) {
-				console.log('!include');
 				this.socket.emit('m', this.model.getGameId(), 'l', { x: 0, y: 0 });
 			}
 		});
 
 		mobileHitController.addEventListener('touchend', (event: TouchEvent) => {
-			console.log('touchend');
-			//event.preventDefault();
 			if (el.items.item4.classList.contains('active')) {
 				const touchendDelay = Date.now() - touchstartTime;
 				this.socket.emit('m', this.model.getGameId(), 'l', { x: 0, y: 0 }, touchendDelay);
@@ -491,14 +509,30 @@ export class Controller {
 			touchMoveShift.x = event.touches[fingerNumber].clientX - touchMoveStart.x;
 			touchMoveShift.y = event.touches[fingerNumber].clientY - touchMoveStart.y;
 
-			mobileMoveController.style.left = touchMoveShift.x + 'px';
-			mobileMoveController.style.top = touchMoveShift.y + 'px';
+			const maxControllerShift = 15;
+			/*
+			let controllerShiftX = touchMoveShift.x;
+			let controllerShiftY = touchMoveShift.y;
 
-			const minShift = 40;
-			const touchShiftZ = Math.sqrt(touchMoveShift.x * touchMoveShift.x + touchMoveShift.y * touchMoveShift.y);
+			if (touchMoveShift.x > maxControllerShift) controllerShiftX = maxControllerShift;
+			if (touchMoveShift.x < maxControllerShift * -1) controllerShiftX = maxControllerShift * -1;
+			if (touchMoveShift.y > maxControllerShift) controllerShiftY = maxControllerShift;
+			if (touchMoveShift.y < maxControllerShift * -1) controllerShiftY = maxControllerShift * -1;
+			*/
 
 			const angle = this.getAngleFromCombatController(touchMoveShift);
-			if (touchShiftZ > minShift) {
+			const touchShiftZ = Math.sqrt(touchMoveShift.x * touchMoveShift.x + touchMoveShift.y * touchMoveShift.y);
+			let controllerShiftZ = touchShiftZ;
+			if (controllerShiftZ > maxControllerShift) controllerShiftZ = maxControllerShift;
+
+			const controllerShiftX = Math.sin((angle * Math.PI) / 180) * controllerShiftZ;
+			const controllerShiftY = Math.cos((angle * Math.PI) / 180) * controllerShiftZ * -1;
+
+			mobileMoveController.style.left = controllerShiftX + 'px';
+			mobileMoveController.style.top = controllerShiftY + 'px';
+
+			if (touchShiftZ > maxControllerShift) {
+				this.colorController(mobileMoveController, true);
 				if (lastSendAngle !== angle) {
 					// send
 					//console.log(angle);
@@ -506,13 +540,18 @@ export class Controller {
 					lastSendAngle = angle;
 				}
 			} else {
-				this.socket.emit('a', this.model.getGameId(), angle);
+				this.colorController(mobileMoveController, false);
 				this.socket.emit('moveAngle', this.model.getGameId(), false);
+			}
+			const minDelayFromAim = 500;
+			if (Date.now() - this.touch.aimController.lastTime > minDelayFromAim) {
+				this.socket.emit('a', this.model.getGameId(), angle);
 			}
 		});
 
 		mobileMoveController.addEventListener('touchend', (event) => {
 			//console.log('touchend', event);
+			this.colorController(mobileMoveController, false);
 			touchAimShift.x = 0;
 			touchAimShift.y = 0;
 			mobileMoveController.style.left = '0';
@@ -541,9 +580,15 @@ export class Controller {
 			y: 0,
 		};
 
+		let touchstartTime = Date.now();
+		let triggerReady = false;
 		mobileAimController.addEventListener('touchstart', (event: TouchEvent) => {
 			event.preventDefault();
-			console.log('touchstart', event);
+
+			triggerReady = true;
+
+			//event.preventDefault();
+			touchstartTime = Date.now();
 
 			let fingerNumber = 0;
 			if (event.touches[0] && event.touches[1]) {
@@ -556,7 +601,7 @@ export class Controller {
 			touchStart.y = event.touches[fingerNumber].clientY;
 		});
 
-		const minDelayBetweenCombats = 400;
+		const minDelayBetweenCombats = 200;
 		let lastCombatTime = Date.now();
 
 		mobileAimController.addEventListener('touchmove', (event) => {
@@ -567,10 +612,10 @@ export class Controller {
 				}
 			}
 
-			//console.log('touchmove', event);
+			this.touch.aimController.lastTime = Date.now();
+
 			touchShift.x = event.touches[fingerNumber].clientX - touchStart.x;
 			touchShift.y = event.touches[fingerNumber].clientY - touchStart.y;
-			//console.log('touchShift', touchShift);
 
 			const previousPlayerAngle = this.playerAngle;
 			this.playerAngle = this.getAngleFromCombatController(touchShift);
@@ -579,15 +624,37 @@ export class Controller {
 				this.socket.emit('a', this.model.getGameId(), this.playerAngle);
 			}
 
-			mobileAimController.style.left = touchShift.x + 'px';
-			mobileAimController.style.top = touchShift.y + 'px';
+			const maxControllerShift = 15;
 
-			const hitShift = 50;
+			const touchShiftZ = Math.sqrt(touchShift.x * touchShift.x + touchShift.y * touchShift.y);
+			let controllerShiftZ = touchShiftZ;
+			if (controllerShiftZ > maxControllerShift) controllerShiftZ = maxControllerShift;
+
+			const controllerShiftX = Math.sin((this.playerAngle * Math.PI) / 180) * controllerShiftZ;
+			const controllerShiftY = Math.cos((this.playerAngle * Math.PI) / 180) * controllerShiftZ * -1;
+
+			mobileAimController.style.left = controllerShiftX + 'px';
+			mobileAimController.style.top = controllerShiftY + 'px';
 
 			const shiftDistance = Math.sqrt(touchShift.x * touchShift.x + touchShift.y * touchShift.y);
-			if (shiftDistance > hitShift) {
+			if (shiftDistance > maxControllerShift) {
 				if (!this.model.gameActive()) return;
+				triggerReady = true;
+
+				this.colorController(mobileAimController, true);
+
 				const now = Date.now();
+
+				const myPlayer = this.model.snapshotManager.getMyPlayer(this.model.playerId);
+				if (
+					myPlayer &&
+					(myPlayer.getWeapon() === Weapon.Rifle ||
+						myPlayer.getWeapon() === Weapon.Shotgun ||
+						myPlayer.getWeapon() === Weapon.Granade ||
+						myPlayer.getWeapon() === Weapon.Smoke)
+				) {
+					return;
+				}
 
 				if (now > lastCombatTime + minDelayBetweenCombats) {
 					lastCombatTime = now;
@@ -601,6 +668,8 @@ export class Controller {
 				}
 			} else {
 				if (!this.model.gameActive()) return;
+				triggerReady = false;
+				this.colorController(mobileAimController, false);
 				//this.mouse.left = true;
 				this.socket.emit('m', this.model.getGameId(), '-l');
 			}
@@ -612,8 +681,33 @@ export class Controller {
 			touchShift.y = 0;
 			mobileAimController.style.left = '0';
 			mobileAimController.style.top = '0';
+			this.colorController(mobileAimController, false);
 
 			if (!this.model.gameActive()) return;
+
+			const myPlayer = this.model.snapshotManager.getMyPlayer(this.model.playerId);
+			if (
+				myPlayer &&
+				triggerReady &&
+				(myPlayer.getWeapon() === Weapon.Rifle ||
+					myPlayer.getWeapon() === Weapon.Shotgun ||
+					myPlayer.getWeapon() === Weapon.Granade ||
+					myPlayer.getWeapon() === Weapon.Smoke)
+			) {
+				if (el.items.item4.classList.contains('active')) {
+					const touchendDelay = Date.now() - touchstartTime;
+					console.log('touchendDelay', touchendDelay);
+					this.socket.emit('m', this.model.getGameId(), 'l', { x: 0, y: 0 }, touchendDelay);
+				} else {
+					this.socket.emit('m', this.model.getGameId(), 'l');
+				}
+
+				setTimeout(() => {
+					this.socket.emit('m', this.model.getGameId(), '-l');
+				}, 16);
+				return;
+			}
+
 			//this.mouse.left = true;
 			this.socket.emit('m', this.model.getGameId(), '-l');
 		});
@@ -979,7 +1073,42 @@ export class Controller {
 			el.open(el.mainMenu.main);
 		});
 
+		el.statsMenu.back.addEventListener('click', () => {
+			el.open(el.mainMenu.main);
+			el.close(el.statsMenu.main);
+		});
+
 		//+++++++++++++ MAIN MENU
+		el.mainMenu.stats.addEventListener('click', () => {
+			el.open(el.statsMenu.main);
+			el.close(el.mainMenu.main);
+
+			let stats: any = localStorage.getItem('stats');
+			if (!stats) return;
+			stats = JSON.parse(stats);
+
+			let kdColor = stats.kill / stats.die >= 1 ? 'green' : 'red';
+			let wlColor = stats.win / stats.lost >= 1 ? 'green' : 'red';
+
+			let statsString = `
+				<table>
+				<tr><th>Played games:</th><td>${stats.numberOfGames}</td></tr>
+				<tr><th>Play time:</th><td>${Math.round((stats.survive / 60 / 60) * 100) / 100}h</td></tr>
+				<tr><th>Kill/Dead ratio:</th><th style="color:${kdColor}">${Math.round((stats.kill / stats.die) * 100) / 100}</th></tr>
+				<tr><th>Win/Lose ratio:</th><th style="color:${wlColor}">${Math.round((stats.win / stats.lost) * 100) / 100}</th></tr>
+				<tr><th>Win:</th><td>${stats.win}</td></tr>
+				<tr><th>Lose:</th><td>${stats.lost}</td></tr>
+				<tr><th>Kill:</th><td>${stats.kill}</td></tr>
+				<tr><th>Die:</th><td>${stats.die}</td></tr>
+				<tr><th>Avg survive:</th><td>${Math.round((stats.survive / stats.numberOfGames) * 100) / 100}s</td></tr>
+				<tr><th>Avg damage dealt:</th><td>${Math.round(stats.damageDealt / stats.numberOfGames)}</td></tr>
+				<tr><th>Avg damage taken:</th><td>${Math.round(stats.damageTaken / stats.numberOfGames)}</td></tr>
+				</table>
+			`;
+
+			el.statsMenu.content.innerHTML = statsString;
+		});
+
 		//open editor menu and close main menu
 		el.mainMenu.openEditor.addEventListener('click', () => {
 			el.open(el.mapMenu.main);

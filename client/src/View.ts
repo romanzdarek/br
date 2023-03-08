@@ -102,7 +102,7 @@ export default class View {
 	private bulletLines: BulletLine[] = [];
 	private collisionPoints: CollisionPoints;
 
-	private lastdrawTime = Date.now();
+	private lastdrawTime = 0;
 
 	constructor(
 		map: Map,
@@ -245,6 +245,7 @@ export default class View {
 	}
 
 	reset(): void {
+		this.lastdrawTime = 0;
 		this.myPlayer = null;
 		this.scope = new Scope();
 		// solves bullet line error
@@ -653,6 +654,7 @@ export default class View {
 
 	private frameRateAdjuster() {
 		const now = Date.now();
+		if (!this.lastdrawTime) this.lastdrawTime = now;
 		const delayFromLastFrame = now - this.lastdrawTime;
 		const defaultDelayBetweenFrame = 16.66666;
 		this.lastdrawTime = now;
@@ -668,6 +670,8 @@ export default class View {
 	}
 
 	drawGame(myPlayerId: number): void {
+		const adjustFrameRate = this.frameRateAdjuster();
+
 		const betweenSnapshot = this.snapshotManager.betweenSnapshot;
 		const players = this.snapshotManager.players;
 		if (!betweenSnapshot) return;
@@ -683,7 +687,8 @@ export default class View {
 
 		//scope
 		this.scope.setScope(this.snapshotManager.betweenSnapshot.i.s);
-		this.finalResolutionAdjustment = this.scope.getFinalResolutionAdjustment(this.resolutionAdjustment);
+
+		this.finalResolutionAdjustment = this.scope.getFinalResolutionAdjustment(this.resolutionAdjustment, adjustFrameRate);
 
 		this.drawMap();
 
@@ -737,8 +742,6 @@ export default class View {
 
 		//water circles
 		ctx.fillStyle = this.colors.waterCircle;
-
-		const adjustFrameRate = this.frameRateAdjuster();
 		for (const waterCircle of this.snapshotManager.waterCircles) {
 			if (!waterCircle.isActive()) continue;
 			waterCircle.flow(adjustFrameRate);
