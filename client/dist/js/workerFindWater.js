@@ -1,2 +1,0 @@
-onmessage=function(t){const e=t.data.data,a=t.data.size,s=t.data.type,o=t.data.time,n=[];for(let t=0;t<e.length;t+=4)n.push(e[t]);const d=[];for(let t=0;t<a;t++)d.push(n.slice(t*a,t*a+a));const l=[];for(let t=0;t<a;t++){l[t]=[];for(let e=0;e<a;e++)255===d[e][t]?l[t][e]=!1:l[t][e]=!0}postMessage({type:s,time:o,data:l})};
-//# sourceMappingURL=workerFindWater.js.map

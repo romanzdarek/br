@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
+ <g class="layer">
+  <title>Layer 1</title>
+  <rect fill="#BA7E36" height="1000" id="svg_1" rx="100" ry="100" width="1000" x="0" y="0"/>
+  <rect fill="#855327" height="30" id="svg_3" width="1000" x="0" y="340"/>
+  <rect fill="#855327" height="30" id="svg_2" width="1000" x="0" y="640"/>
+  <rect fill="#855327" height="30" id="svg_4" width="1000" x="0" y="485"/>
+  <rect fill="#A77236" height="250" id="svg_7" stroke="#784B23" stroke-width="30" transform="matrix(0.555898 0.541146 -0.555898 0.541146 510.438 -42.3873)" width="1227.59" x="-133.46" y="384.33"/>
+  <rect fill="#A77236" height="970" id="svg_10" rx="50" ry="50" stroke="#784B23" stroke-width="30" transform="matrix(1 0 0 1 0 0)" width="200" x="15" y="15"/>
+  <rect fill="#A77236" height="970" id="svg_9" rx="50" ry="50" stroke="#784B23" stroke-width="30" transform="matrix(1 0 0 1 0 0)" width="200" x="785" y="15"/>
+  <rect fill="#A77236" height="200" id="svg_8" rx="50" ry="50" stroke="#784B23" stroke-width="30" transform="matrix(1 0 0 1 0 0)" width="970" x="15" y="15"/>
+  <rect fill="#A77236" height="200" id="svg_11" rx="50" ry="50" stroke="#784B23" stroke-width="30" transform="matrix(1 0 0 1 0 0)" width="970" x="15" y="785"/>
+  <rect fill="#784b23" height="15" id="svg_15" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="118.75" x="18.92" y="864.09"/>
+  <rect fill="#784b23" height="15" id="svg_16" rx="5" ry="5" stroke="#784B23" width="195.91" x="306.19" y="834.43"/>
+  <rect fill="#784b23" height="15" id="svg_17" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="320" x="656.53" y="927.95"/>
+  <rect fill="#784b23" height="15" id="svg_18" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="118.75" x="629.38" y="865.14"/>
+  <rect fill="#784b23" height="15" id="svg_21" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0) matrix(0.707107 0.707107 -0.707107 0.707107 646.199 -277.916)" width="118.75" x="612.71" y="666.28"/>
+  <rect fill="#784b23" height="261.25" id="svg_22" rx="5" ry="5" stroke="#784B23" width="15" x="55.63" y="347.5"/>
+  <rect fill="#784b23" height="261.25" id="svg_23" rx="5" ry="5" stroke="#784B23" width="15" x="148.75" y="265.63"/>
+  <rect fill="#784b23" height="214.89" id="svg_24" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="15" x="107.75" y="566.17"/>
+  <rect fill="#784b23" height="71.25" id="svg_25" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="15" x="824.2" y="225.85"/>
+  <rect fill="#784b23" height="171.25" id="svg_26" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="15" x="922.84" y="618.35"/>
+  <rect fill="#784b23" height="140" id="svg_27" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="15" x="850.34" y="518.24"/>
+  <rect fill="#784b23" height="15" id="svg_28" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="321.48" x="20.63" y="65.23"/>
+  <rect fill="#784b23" height="15" id="svg_29" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="118.75" x="147.9" y="153.41"/>
+  <rect fill="#784b23" height="15" id="svg_30" rx="5" ry="5" stroke="#784B23" width="286.02" x="346.08" y="119.77"/>
+  <rect fill="#784b23" height="15" id="svg_31" rx="5" ry="5" stroke="#784B23" width="195.11" x="608.81" y="77.05"/>
+  <rect fill="#784b23" height="15" id="svg_32" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="312.39" x="663.35" y="159.77"/>
+  <rect fill="#784b23" height="15" id="svg_33" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="241.36" x="209.32" y="913.41"/>
+  <rect fill="#784b23" height="221.82" id="svg_34" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="15" x="901.59" y="273.64"/>
+  <rect fill="#784b23" height="71.25" id="svg_35" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0)" width="15" x="103.41" y="228.01"/>
+  <rect fill="#784b23" height="15" id="svg_36" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0) matrix(0.707107 0.707107 -0.707107 0.707107 646.199 -277.916)" width="300" x="146.26" y="611.88"/>
+  <rect fill="#784b23" height="15" id="svg_39" rx="5" ry="5" stroke="#784B23" transform="matrix(0.707107 0.707107 -0.707107 0.707107 646.199 -277.916)" width="118.75" x="280.61" y="679.37"/>
+  <rect fill="#784b23" height="15" id="svg_40" rx="5" ry="5" stroke="#784B23" transform="matrix(0.707107 0.707107 -0.707107 0.707107 646.199 -277.916)" width="118.75" x="54.98" y="655.59"/>
+  <rect fill="#784b23" height="15" id="svg_41" rx="5" ry="5" stroke="#784B23" transform="matrix(1 0 0 1 0 0) matrix(0.707107 0.707107 -0.707107 0.707107 646.199 -277.916)" width="118.75" x="729.94" y="629.88"/>
+ </g>
+</svg>

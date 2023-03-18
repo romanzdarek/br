@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
+ <g class="layer">
+  <title>Layer 1</title>
+  <rect fill="#999999" height="950" id="svg_2" stroke="#7F7E7E" width="950" x="25" y="25"/>
+  <polygon fill="#ACACAC" id="svg_1" points="50,50 500,50 500,500" transform="matrix(1 0 0 1 0 0)"/>
+  <polygon fill="#969696" id="svg_4" points="500,50 950,50, 500,500" transform="matrix(1 0 0 1 0 0)"/>
+  <polygon fill="#8C8C8C" id="svg_5" points="500,500, 950,50 950,500" transform="matrix(1 0 0 1 0 0)"/>
+  <polygon fill="#838383" id="svg_6" points="500,500, 950,500 950,950" transform="matrix(1 0 0 1 0 0)"/>
+  <polygon fill="#8B8B8B" id="svg_7" points="500,500, 950,950 500,950" transform="matrix(1 0 0 1 0 0)"/>
+  <polygon fill="#959595" id="svg_8" points="500,500, 500,950 50,950" transform="matrix(1 0 0 1 0 0)"/>
+  <polygon fill="#A8A8A8" id="svg_9" points="500,500, 50,950 50,500" transform="matrix(1 0 0 1 0 0)"/>
+  <polygon fill="#B7B7B7" id="svg_10" points="500,500, 50,500 50,50" transform="matrix(1 0 0 1 0 0)"/>
+  <rect fill="#000000" fill-opacity="0" height="950" id="svg_3" rx="50" ry="50" stroke="#7F7E7E" stroke-width="50" width="950" x="25" y="25"/>
+ </g>
+</svg>

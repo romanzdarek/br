@@ -1,3 +1,5 @@
 # ignore folder
 client/node_modules/
+client/dist/js
 server/node_modules/
+server/dist/
