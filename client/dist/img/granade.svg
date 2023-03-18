@@ -1,8 +1,0 @@
-<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
- <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
- <g class="layer">
-  <title>Layer 1</title>
-  <rect fill="#666666" height="50" id="svg_3" rx="2" ry="2" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="10" width="70" x="65" y="5" stroke="#000000"/>
-  <ellipse cx="100" cy="120" fill="#007f3f" id="svg_1" rx="75" ry="75" stroke-dasharray="null" stroke-linecap="round" stroke-linejoin="null" stroke-width="10" stroke="#000000"/>
- </g>
-</svg>

@@ -10,6 +10,7 @@ import MyPlayerSnapshot from './MyPlayerSnapshot';
 import Message from './Message';
 import WaterCircle from './WaterCircle';
 import Sound from './Sound';
+import { ObstacleType } from './obstacle/ObstacleType';
 
 export default class SnapshotManager {
 	private serverClientSync: ServerClientSync;
@@ -51,7 +52,6 @@ export default class SnapshotManager {
 			for (const suma of this.averageSumaNewer) {
 				totalSuma += suma;
 			}
-			console.log('averageSumaNewer: ', totalSuma / max);
 		}
 	}
 
@@ -154,49 +154,28 @@ export default class SnapshotManager {
 	}
 
 	private updateMap(snapshot: Snapshot, updateDelay: number): void {
-		const obsacleSnapshots = snapshot.o;
-		for (const obstacleSnapshot of obsacleSnapshots) {
-			switch (obstacleSnapshot.t) {
-				case 'w':
-					for (const obstacle of this.map.rectangleObstacles) {
-						if (obstacle.id === obstacleSnapshot.i) {
-							setTimeout(() => {
-								obstacle.update(obstacleSnapshot.o);
-							}, updateDelay);
-							break;
-						}
-					}
+		const obstacleSnapshots = snapshot.o;
+		for (const obstacleSnapshot of obstacleSnapshots) {
+			if (![ObstacleType.Box, ObstacleType.Block].includes(obstacleSnapshot.type)) continue;
+			for (const obstacle of this.map.rectangleObstacles) {
+				if (obstacle.id === obstacleSnapshot.id) {
+					setTimeout(() => {
+						obstacle.update(obstacleSnapshot);
+					}, updateDelay);
 					break;
-				case 'r':
-					for (const obstacle of this.map.rocks) {
-						if (obstacle.id === obstacleSnapshot.i) {
-							setTimeout(() => {
-								obstacle.update(obstacleSnapshot.o);
-							}, updateDelay);
-							break;
-						}
-					}
+				}
+			}
+		}
+
+		for (const obstacleSnapshot of obstacleSnapshots) {
+			if (![ObstacleType.Tree, ObstacleType.Bush, ObstacleType.Rock].includes(obstacleSnapshot.type)) continue;
+			for (const obstacle of this.map.roundObstacles) {
+				if (obstacle.id === obstacleSnapshot.id) {
+					setTimeout(() => {
+						obstacle.update(obstacleSnapshot);
+					}, updateDelay);
 					break;
-				case 't':
-					for (const obstacle of this.map.trees) {
-						if (obstacle.id === obstacleSnapshot.i) {
-							setTimeout(() => {
-								obstacle.update(obstacleSnapshot.o);
-							}, updateDelay);
-							break;
-						}
-					}
-					break;
-				case 'b':
-					for (const obstacle of this.map.bushes) {
-						if (obstacle.id === obstacleSnapshot.i) {
-							setTimeout(() => {
-								obstacle.update(obstacleSnapshot.o);
-							}, updateDelay);
-							break;
-						}
-					}
-					break;
+				}
 			}
 		}
 	}

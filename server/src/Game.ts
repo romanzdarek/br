@@ -25,6 +25,8 @@ import BulletFactory from './BulletFactory';
 import ObstacleSnapshot from './ObstacleSnapshot';
 import WaterCircleSnapshot from './WaterCircleSnapshot';
 import Sound, { SoundType } from './Sound';
+import { ObstacleType } from './obstacle/ObstacleType';
+import Box from './obstacle/Box';
 
 export default class Game {
 	private map: Map;
@@ -91,7 +93,7 @@ export default class Game {
 		}
 		//ending
 		if (state && this.endingTimer === -1) {
-			this.endingTimer = 60 * 3;
+			this.endingTimer = 60 * 4;
 		}
 		if (this.endingTimer > 0) this.endingTimer--;
 		return state;
@@ -283,6 +285,13 @@ export default class Game {
 			}
 		}
 
+		// Create loot From boxes
+		for (const obstacle of this.map.rectangleObstacles) {
+			if (obstacle.type === ObstacleType.Box && (<Box>obstacle).releaseLoot()) {
+				this.loot.createRandomLootItem(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2);
+			}
+		}
+
 		this.clientsUpdate();
 	}
 
@@ -439,22 +448,17 @@ export default class Game {
 			if (this.previousSnapshot.z.d === zoneSnapshot.d) delete zoneSnapshotOptimalization.d;
 		}
 
-		//change obstacles
+		// Changed obstacles
 		const obstacleSnapshots = [];
-		//map objects
+
+		// Obstacles
 		for (const obstacle of this.map.rectangleObstacles) {
 			if (obstacle.getChanged()) {
 				obstacle.nullChanged();
 				obstacleSnapshots.push(new ObstacleSnapshot(obstacle));
 			}
 		}
-		for (const obstacle of this.map.impassableRoundObstacles) {
-			if (obstacle.getChanged()) {
-				obstacle.nullChanged();
-				obstacleSnapshots.push(new ObstacleSnapshot(obstacle));
-			}
-		}
-		for (const obstacle of this.map.bushes) {
+		for (const obstacle of this.map.roundObstacles) {
 			if (obstacle.getChanged()) {
 				obstacle.nullChanged();
 				obstacleSnapshots.push(new ObstacleSnapshot(obstacle));

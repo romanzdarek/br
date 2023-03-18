@@ -1,14 +1,16 @@
-import { Terrain, TerrainType } from './Terrain';
-import Bush from './Bush';
-import Tree from './Tree';
-import Rock from './Rock';
-import Wall from './Wall';
+import { Terrain } from './Terrain';
+import Bush from './obstacle/Bush';
+import Tree from './obstacle/Tree';
+import Rock from './obstacle/Rock';
 import WaterTerrainData from './WaterTerrainData';
-import RoundObstacle from './RoundObstacle';
-import RectangleObstacle from './RectangleObstacle';
+import RoundObstacle from './obstacle/RoundObstacle';
+import RectangleObstacle from './obstacle/RectangleObstacle';
 import MapData from './MapData';
+import { ObstacleType } from './obstacle/ObstacleType';
+import Box from './obstacle/Box';
+import Block from './obstacle/Block';
 
-type Block = {
+type MapBlock = {
 	x: number;
 	y: number;
 };
@@ -16,12 +18,9 @@ type Block = {
 export default class Map {
 	private size: number = 0;
 	private blockSize: number;
-	readonly blocks: Block[] = [];
+	readonly blocks: MapBlock[] = [];
 	readonly terrain: Terrain[] = [];
-	readonly impassableRoundObstacles: RoundObstacle[] = [];
-	readonly bushes: Bush[] = [];
-	readonly trees: Tree[] = [];
-	readonly rocks: Rock[] = [];
+	readonly roundObstacles: RoundObstacle[] = [];
 	readonly rectangleObstacles: RectangleObstacle[] = [];
 	readonly waterTerrainData: WaterTerrainData;
 
@@ -39,40 +38,56 @@ export default class Map {
 		return this.blockSize;
 	}
 
-	private openMap(mapData: any): void {
-		const map = mapData;
-		this.size = map.size * map.blockSize;
-		let mapObjectId: number = 0;
-		//Create blocks
-		for (let yy = 0; yy < map.size; yy++) {
-			for (let xx = 0; xx < map.size; xx++) {
-				this.blocks.push({ x: xx * map.blockSize, y: yy * map.blockSize });
+	private openMap(mapData: MapData): void {
+		this.size = mapData.size * mapData.blockSize;
+		let obstacleId: number = 0;
+
+		// Create blocks
+		for (let yy = 0; yy < mapData.size; yy++) {
+			for (let xx = 0; xx < mapData.size; xx++) {
+				this.blocks.push({ x: xx * mapData.blockSize, y: yy * mapData.blockSize });
 			}
 		}
 
-		//terrains
-		for (const terrain of map.terrains) {
+		// Terrain
+		for (const terrain of mapData.terrains) {
 			this.terrain.push(new Terrain(terrain.type, terrain.x, terrain.y, terrain.size));
 		}
-		//rocks
-		for (const rock of map.rocks) {
-			const newRock = new Rock(mapObjectId++, rock.x, rock.y);
-			this.rocks.push(newRock);
-			this.impassableRoundObstacles.push(newRock);
+
+		// Round
+		for (const obstacle of mapData.roundObstacles) {
+			let newObstacle: RoundObstacle;
+
+			switch (obstacle.type) {
+				case ObstacleType.Rock:
+					newObstacle = new Rock(obstacleId++, obstacle.x, obstacle.y, obstacle.size);
+					break;
+
+				case ObstacleType.Tree:
+					newObstacle = new Tree(obstacleId++, obstacle.x, obstacle.y, obstacle.size, (<Tree>obstacle).angle);
+					break;
+
+				case ObstacleType.Bush:
+					newObstacle = new Bush(obstacleId++, obstacle.x, obstacle.y, obstacle.size, (<Bush>obstacle).angle);
+					break;
+			}
+			this.roundObstacles.push(newObstacle);
 		}
-		//bushes
-		for (const bush of map.bushes) {
-			this.bushes.push(new Bush(mapObjectId++, bush.x, bush.y, bush.angle));
-		}
-		//trees
-		for (const tree of map.trees) {
-			const newTree = new Tree(mapObjectId++, tree.x, tree.y, tree.angle);
-			this.trees.push(newTree);
-			this.impassableRoundObstacles.push(newTree);
-		}
-		//walls
-		for (const wall of map.rects) {
-			this.rectangleObstacles.push(new Wall(mapObjectId++, wall.x, wall.y, wall.width, wall.height));
+
+		// Rects
+		for (const obstacle of mapData.rectangleObstacles) {
+			let newObstacle: RectangleObstacle;
+
+			switch (obstacle.type) {
+				case ObstacleType.Box:
+					newObstacle = new Box(obstacleId++, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+					break;
+
+				case ObstacleType.Block:
+					newObstacle = new Block(obstacleId++, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+					break;
+			}
+			this.rectangleObstacles.push(newObstacle);
 		}
 	}
 }

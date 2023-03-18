@@ -1,8 +1,8 @@
 import LootItem from './LootItem';
 import { LootType } from './LootType';
 import Map from './Map';
-import RoundObstacle from './RoundObstacle';
-import RectangleObstacle from './RectangleObstacle';
+import RoundObstacle from './obstacle/RoundObstacle';
+import RectangleObstacle from './obstacle/RectangleObstacle';
 import { AppVariant, appVariant } from './app';
 
 export default class Loot {
@@ -16,25 +16,17 @@ export default class Loot {
 		this.map = map;
 	}
 
-	createLootItem(centerX: number, centerY: number, type: LootType, quantity: number = 1): void {
+	createRandomLootItem(centerX: number, centerY: number) {
+		this.createLootItem(centerX, centerY, LootType.Granade, 1, false);
+	}
+
+	createLootItem(centerX: number, centerY: number, type: LootType, quantity: number = 1, includeAmmo = false): void {
 		const loot = new LootItem(this.lootId++, centerX, centerY, type, quantity);
 		if (centerX === 0 && centerY === 0) this.setRandomPosition(loot);
 		this.lootItems.push(loot);
-	}
 
-	private setRandomPosition(loot: LootItem) {
-		this.randomPositionAttempts++;
-		if (this.randomPositionAttempts > this.maxRandomPositionAttempts) console.log('err: maxRandomPositionAttempts');
-		const lootSize = loot.size * 3;
-		const randomX = Math.floor(Math.random() * (this.map.getSize() - lootSize * 2)) + lootSize;
-		const randomY = Math.floor(Math.random() * (this.map.getSize() - lootSize * 2)) + lootSize;
-		loot.setX(randomX);
-		loot.setY(randomY);
-		//repeat
-		if (this.randomPositionCollision(loot) && this.randomPositionAttempts < this.maxRandomPositionAttempts) {
-			this.setRandomPosition(loot);
-		} else {
-			//done
+		// Add ammo
+		if (includeAmmo) {
 			const lootItemGap = loot.size;
 			if (loot.type === LootType.Pistol) {
 				let directionX = 1;
@@ -48,7 +40,7 @@ export default class Loot {
 						loot.getCenterX() + lootItemGap * directionX,
 						loot.getCenterY() + lootItemGap * directionY,
 						LootType.OrangeAmmo,
-						30
+						20
 					)
 				);
 			} else if (loot.type === LootType.Rifle) {
@@ -63,7 +55,7 @@ export default class Loot {
 						loot.getCenterX() + lootItemGap * directionX,
 						loot.getCenterY() + lootItemGap * directionY,
 						LootType.GreenAmmo,
-						20
+						5
 					)
 				);
 			} else if (loot.type === LootType.Shotgun) {
@@ -73,13 +65,7 @@ export default class Loot {
 				if (Math.random() > 0.5) directionX = -1;
 				if (Math.random() > 0.5) directionY = -1;
 				this.lootItems.push(
-					new LootItem(
-						this.lootId++,
-						loot.getCenterX() + lootItemGap * directionX,
-						loot.getCenterY() + lootItemGap * directionY,
-						LootType.RedAmmo,
-						10
-					)
+					new LootItem(this.lootId++, loot.getCenterX() + lootItemGap * directionX, loot.getCenterY() + lootItemGap * directionY, LootType.RedAmmo, 4)
 				);
 			} else if (loot.type === LootType.Machinegun) {
 				//+ammo
@@ -100,14 +86,25 @@ export default class Loot {
 		}
 	}
 
+	private setRandomPosition(loot: LootItem) {
+		this.randomPositionAttempts++;
+		if (this.randomPositionAttempts > this.maxRandomPositionAttempts) console.log('err: maxRandomPositionAttempts');
+		const lootSize = loot.size * 3;
+		const randomX = Math.floor(Math.random() * (this.map.getSize() - lootSize * 2)) + lootSize;
+		const randomY = Math.floor(Math.random() * (this.map.getSize() - lootSize * 2)) + lootSize;
+		loot.setX(randomX);
+		loot.setY(randomY);
+		//repeat
+		if (this.randomPositionCollision(loot) && this.randomPositionAttempts < this.maxRandomPositionAttempts) {
+			this.setRandomPosition(loot);
+		}
+	}
+
 	private randomPositionCollision(loot: LootItem): boolean {
 		for (const obstacle of this.map.rectangleObstacles) {
 			if (this.lootInObstacle(loot, obstacle)) return true;
 		}
-		for (const obstacle of this.map.impassableRoundObstacles) {
-			if (this.lootInObstacle(loot, obstacle)) return true;
-		}
-		for (const obstacle of this.map.bushes) {
+		for (const obstacle of this.map.roundObstacles) {
 			if (this.lootInObstacle(loot, obstacle)) return true;
 		}
 		for (const obstacle of this.lootItems) {
@@ -158,11 +155,11 @@ export default class Loot {
 		}
 
 		for (let i = 0; i < players; i++) {
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10);
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Rifle, 1); //5
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Shotgun, 2);
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Machinegun, 30);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10, true);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Pistol, 10, true);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Rifle, 1, true);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Shotgun, 2, true);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Machinegun, 30, true);
 
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Hammer);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Vest);
@@ -175,15 +172,15 @@ export default class Loot {
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Smoke, 3);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Medkit);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.Medkit);
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.RedAmmo, 10);
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.GreenAmmo, 20);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.RedAmmo, 4);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.GreenAmmo, 5);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.BlueAmmo, 30);
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.OrangeAmmo, 30);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.OrangeAmmo, 20);
 
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.RedAmmo, 10);
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.GreenAmmo, 20);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.RedAmmo, 4);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.GreenAmmo, 5);
 			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.BlueAmmo, 30);
-			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.OrangeAmmo, 30);
+			if (Math.random() > 0.5) this.createLootItem(0, 0, LootType.OrangeAmmo, 20);
 		}
 	}
 

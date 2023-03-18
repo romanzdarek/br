@@ -69,13 +69,7 @@ export default class Hammer {
 			const pointX = hammerX + point.x;
 			const pointY = hammerY + point.y;
 			const collisionPoint = new Point(pointX, pointY);
-			for (const round of this.map.impassableRoundObstacles) {
-				if (!this.hitObjects.includes(round) && round.isActive() && round.isPointIn(collisionPoint)) {
-					round.acceptHit(this.power);
-					this.hitObjects.push(round);
-				}
-			}
-			for (const round of this.map.bushes) {
+			for (const round of this.map.roundObstacles) {
 				if (!this.hitObjects.includes(round) && round.isActive() && round.isPointIn(collisionPoint)) {
 					round.acceptHit(this.power);
 					this.hitObjects.push(round);
@@ -88,7 +82,7 @@ export default class Hammer {
 				}
 			}
 			for (const player of this.players) {
-				if (!this.hitObjects.includes(player) && player.isActive() && player.isPointIn(collisionPoint)) {
+				if (!this.hitObjects.includes(player) && player.isPointIn(collisionPoint)) {
 					player.acceptHit(this.power, this.player, Weapon.Hammer);
 					this.hitObjects.push(player);
 				}

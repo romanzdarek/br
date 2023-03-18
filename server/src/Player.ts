@@ -6,9 +6,9 @@ import Rifle from './Rifle';
 import Hammer from './Hammer';
 import Map from './Map';
 import Point from './Point';
-import Tree from './Tree';
-import RoundObstacle from './RoundObstacle';
-import RectangleObstacle from './RectangleObstacle';
+import Tree from './obstacle/Tree';
+import RoundObstacle from './obstacle/RoundObstacle';
+import RectangleObstacle from './obstacle/RectangleObstacle';
 import { TerrainType } from './Terrain';
 import { Weapon } from './Weapon';
 import * as SocketIO from 'socket.io';
@@ -24,6 +24,7 @@ import BulletFactory from './BulletFactory';
 import PlayerStats from './PlayerStats';
 import Sound, { SoundType } from './Sound';
 import { LootType } from './LootType';
+import { ObstacleType } from './obstacle/ObstacleType';
 
 export class Player {
 	socket: SocketIO.Socket | null;
@@ -190,17 +191,14 @@ export class Player {
 	}
 
 	private randomPositionCollision(): boolean {
-		//walls
-		for (const wall of this.map.rectangleObstacles) {
-			if (this.playerInObstacle(wall)) return true;
+		for (const obstacle of this.map.rectangleObstacles) {
+			if (this.playerInObstacle(obstacle)) return true;
 		}
 
-		//rounds
-		for (const round of this.map.impassableRoundObstacles) {
+		for (const round of this.map.roundObstacles) {
 			if (this.playerInObstacle(round)) return true;
 		}
 
-		//players
 		for (const player of this.players) {
 			if (this.playerInObstacle(player)) return true;
 		}
@@ -287,8 +285,11 @@ export class Player {
 	}
 
 	acceptHit(power: number, attacker?: Player, weapon?: Weapon): void {
-		if (this.died) return;
-		if (attacker && weapon !== Weapon.Smoke) this.sounds.push(new Sound(SoundType.Hit, this.getCenterX(), this.getCenterY()));
+		if (this.died || !this.isActive()) {
+			this.damageTaken += power;
+			return;
+		}
+		if (attacker && weapon !== Weapon.Smoke) this.sounds.push(new Sound(SoundType.Hit, this.getCenterX(), this.getCenterY(), this.id));
 		if (this.inventory.vest) {
 			//reduce bullet / fragment power
 			if (
@@ -359,7 +360,7 @@ export class Player {
 					weaponName = 'machinegun';
 					break;
 				case Weapon.Granade:
-					weaponName = 'granade';
+					weaponName = 'grenade';
 					break;
 				case Weapon.Smoke:
 					weaponName = 'smoke';
@@ -519,11 +520,18 @@ export class Player {
 						automaticTake = true;
 					} else if (loot.type === LootType.Vest && !this.inventory.vest) {
 						automaticTake = true;
-					} else if (
-						(loot.type === LootType.Scope2 || loot.type === LootType.Scope4 || loot.type === LootType.Scope6) &&
-						this.inventory.scope === 1
-					) {
-						automaticTake = true;
+					} else if (loot.type === LootType.Scope2 || loot.type === LootType.Scope4 || loot.type === LootType.Scope6) {
+						if (this.inventory.scope === 1) {
+							automaticTake = true;
+						}
+
+						if (this.inventory.scope === 2 && (loot.type === LootType.Scope4 || loot.type === LootType.Scope6)) {
+							automaticTake = true;
+						}
+
+						if (this.inventory.scope === 4 && loot.type === LootType.Scope6) {
+							automaticTake = true;
+						}
 					} else if (loot.type === LootType.Granade && this.inventory.item4GranadeCount < 3) {
 						automaticTake = true;
 					} else if (loot.type === LootType.Smoke && this.inventory.item4SmokeCount < 3) {
@@ -780,11 +788,11 @@ export class Player {
 	}
 
 	private canIshift(shiftX: number, shiftY: number, countShifts: number): boolean {
-		//rectangles
+		// Rectangles
 		for (let i = 0; i < this.map.rectangleObstacles.length; i++) {
 			const rectangleObstacle = this.map.rectangleObstacles[i];
 			if (rectangleObstacle.isActive()) {
-				//collision rectangle - rectangle
+				// Collision rectangle - rectangle
 				if (
 					this.x + shiftX + Player.size >= rectangleObstacle.x &&
 					this.x + shiftX <= rectangleObstacle.x + rectangleObstacle.width &&
@@ -794,7 +802,7 @@ export class Player {
 					for (let j = 0; j < this.collisionPoints.body.length; j++) {
 						const point = this.collisionPoints.body[j];
 						const pointOnMyPosition = new Point(this.getCenterX() + shiftX + point.x, this.getCenterY() + shiftY + point.y);
-						//point collisions
+						// Point collisions
 						if (rectangleObstacle.isPointIn(pointOnMyPosition)) {
 							if (this.goAroundObstacleCalls <= this.goAroundObstacleMaxCalls) {
 								this.goAroundObstacleCalls++;
@@ -807,9 +815,11 @@ export class Player {
 			}
 		}
 
-		//rounds
-		for (let i = 0; i < this.map.impassableRoundObstacles.length; i++) {
-			const roundObstacle = this.map.impassableRoundObstacles[i];
+		// Rounds
+		for (let i = 0; i < this.map.roundObstacles.length; i++) {
+			const roundObstacle = this.map.roundObstacles[i];
+			if (roundObstacle.type !== ObstacleType.Rock && roundObstacle.type !== ObstacleType.Tree) continue;
+
 			if (roundObstacle.isActive()) {
 				let obstacleRadius = roundObstacle.radius;
 				if (roundObstacle instanceof Tree) obstacleRadius = roundObstacle.treeTrankRadius;

@@ -1,6 +1,7 @@
 import Hand from './hand';
 import Map from './Map';
-import MapData from './MapData';
+import { ObstacleType } from './obstacle/ObstacleType';
+import Tree from './obstacle/Tree';
 import { Player } from './Player';
 
 export default class ThrowingObject {
@@ -19,7 +20,7 @@ export default class ThrowingObject {
 	private steps: number;
 	private countdown: number = 120;
 
-	constructor(player: Player, hand: Hand, targetX: number, targetY: number, touchDelay: number, range: number = 85) {
+	constructor(player: Player, hand: Hand, targetX: number, targetY: number, touchDelay: number, range: number = 110) {
 		this.player = player;
 		this.x = hand.getCenterX();
 		this.y = hand.getCenterY();
@@ -124,22 +125,14 @@ export default class ThrowingObject {
 
 		const minGap = 5;
 
-		for (const rock of map.rocks) {
-			const minDistance = rock.radius + minGap;
-			const xDistance = Math.abs(rock.getCenterX() - this.x);
-			const yDistance = Math.abs(rock.getCenterY() - this.y);
-			const zDistance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
-			if (zDistance < minDistance) {
-				this.x += this.shiftX * Math.random();
-				this.y += this.shiftY * Math.random();
-				return;
-			}
-		}
+		for (const obstacle of map.roundObstacles) {
+			if (obstacle.type !== ObstacleType.Rock && obstacle.type !== ObstacleType.Tree) continue;
 
-		for (const tree of map.trees) {
-			const minDistance = tree.treeTrankRadius + minGap;
-			const xDistance = Math.abs(tree.getCenterX() - this.x);
-			const yDistance = Math.abs(tree.getCenterY() - this.y);
+			let minDistance = obstacle.radius + minGap;
+			if (obstacle.type === ObstacleType.Tree) minDistance = (<Tree>obstacle).treeTrankRadius + minGap;
+
+			const xDistance = Math.abs(obstacle.getCenterX() - this.x);
+			const yDistance = Math.abs(obstacle.getCenterY() - this.y);
 			const zDistance = Math.sqrt(xDistance * xDistance + yDistance * yDistance);
 			if (zDistance < minDistance) {
 				this.x += this.shiftX * Math.random();

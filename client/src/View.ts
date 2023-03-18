@@ -4,12 +4,11 @@ import Map from './Map';
 import { Mouse } from './Controller';
 import WaterTerrainData from './WaterTerrainData';
 import { TerrainType } from './Terrain';
-import RoundObstacle from './RoundObstacle';
-import RectangleObstacle from './RectangleObstacle';
-import Tree from './Tree';
-import Rock from './Rock';
-import Bush from './Bush';
-import Wall from './Wall';
+import RoundObstacle from './obstacle/RoundObstacle';
+import RectangleObstacle from './obstacle/RectangleObstacle';
+import Tree from './obstacle/Tree';
+import Rock from './obstacle/Rock';
+import Bush from './obstacle/Bush';
 import ServerClientSync from './ServerClientSync';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
@@ -21,6 +20,7 @@ import SnapshotManager from './SnapshotManager';
 import { LootType } from './LootType';
 import Scope from './Scope';
 import PlayerStats from './PlayerStats';
+import { ObstacleType } from './obstacle/ObstacleType';
 
 type DrawData = {
 	x: number;
@@ -45,6 +45,7 @@ interface RectObject {
 }
 
 export default class View {
+	private devicePixelRatio = 1;
 	private scope: Scope;
 	private snapshotManager: SnapshotManager;
 	private gameScreen: HTMLCanvasElement;
@@ -54,41 +55,48 @@ export default class View {
 	private ctxGame: CanvasRenderingContext2D;
 	private ctxMap: CanvasRenderingContext2D;
 	private ctxEditor: CanvasRenderingContext2D;
-	private bushSVG: HTMLImageElement;
-	private rockSVG: HTMLImageElement;
-	private treeSVG: HTMLImageElement;
-	private horizontalWallSVG: HTMLImageElement;
-	private verticalWallSVG: HTMLImageElement;
-	private pistolSVG: HTMLImageElement;
-	private machinegunSVG: HTMLImageElement;
-	private shotgunSVG: HTMLImageElement;
-	private rifleSVG: HTMLImageElement;
-	private hammerSVG: HTMLImageElement;
+	private bushPNG: HTMLImageElement;
+	private rockPNG: HTMLImageElement;
+
+	private blockPNG: HTMLImageElement;
+	private boxPNG: HTMLImageElement;
+
+	private treePNG: HTMLImageElement;
+
+	private pistolPNG: HTMLImageElement;
+	private machinegunPNG: HTMLImageElement;
+	private shotgunPNG: HTMLImageElement;
+	private riflePNG: HTMLImageElement;
+	private hammerPNG: HTMLImageElement;
+	private clubPNG: HTMLImageElement;
+
 	private cursorSVG: HTMLImageElement;
-	private granadeSVG: HTMLImageElement;
-	private smokeSVG: HTMLImageElement;
-	private medkitSVG: HTMLImageElement;
-	private smokeCloudSVG: HTMLImageElement;
+	private granadePNG: HTMLImageElement;
+	private smokePNG: HTMLImageElement;
+	private medkitPNG: HTMLImageElement;
+	private smokeCloudPNG: HTMLImageElement;
 	private loadingProgresSVG: HTMLImageElement;
 	private loadingCircleSVG: HTMLImageElement;
+
 	private waterTrianglePNG: HTMLImageElement;
-	private pistolLootSVG: HTMLImageElement;
-	private shotgunLootSVG: HTMLImageElement;
-	private machinegunLootSVG: HTMLImageElement;
-	private rifleLootSVG: HTMLImageElement;
-	private hammerLootSVG: HTMLImageElement;
-	private granadeLootSVG: HTMLImageElement;
-	private smokeLootSVG: HTMLImageElement;
-	private redAmmoLootSVG: HTMLImageElement;
-	private greenAmmoLootSVG: HTMLImageElement;
-	private blueAmmoLootSVG: HTMLImageElement;
-	private orangeAmmoLootSVG: HTMLImageElement;
-	private medkitLootSVG: HTMLImageElement;
-	private vestLootSVG: HTMLImageElement;
-	private scope2LootSVG: HTMLImageElement;
-	private scope4LootSVG: HTMLImageElement;
-	private scope6LootSVG: HTMLImageElement;
-	private deadPlayer: HTMLImageElement;
+
+	private pistolLootPNG: HTMLImageElement;
+	private shotgunLootPNG: HTMLImageElement;
+	private machinegunLootPNG: HTMLImageElement;
+	private rifleLootPNG: HTMLImageElement;
+	private hammerLootPNG: HTMLImageElement;
+	private granadeLootPNG: HTMLImageElement;
+	private smokeLootPNG: HTMLImageElement;
+	private redAmmoLootPNG: HTMLImageElement;
+	private greenAmmoLootPNG: HTMLImageElement;
+	private blueAmmoLootPNG: HTMLImageElement;
+	private orangeAmmoLootPNG: HTMLImageElement;
+	private medkitLootPNG: HTMLImageElement;
+	private vestLootPNG: HTMLImageElement;
+	private scope2LootPNG: HTMLImageElement;
+	private scope4LootPNG: HTMLImageElement;
+	private scope6LootPNG: HTMLImageElement;
+	private deadPlayerPNG: HTMLImageElement;
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
 	private finalResolutionAdjustment: number = 1;
@@ -127,20 +135,23 @@ export default class View {
 		this.ctxMap = this.mapScreen.getContext('2d');
 		this.ctxEditor = this.editorScreen.getContext('2d');
 
-		this.horizontalWallSVG = new Image();
-		this.horizontalWallSVG.src = 'img/horizontalWall.svg';
+		this.bushPNG = new Image();
+		this.bushPNG.src = 'img/png/bush.png';
 
-		this.verticalWallSVG = new Image();
-		this.verticalWallSVG.src = 'img/verticalWall.svg';
+		this.rockPNG = new Image();
+		this.rockPNG.src = 'img/png/rock.png';
 
-		this.bushSVG = new Image();
-		this.bushSVG.src = 'img/bush.svg';
+		this.blockPNG = new Image();
+		this.blockPNG.src = 'img/png/block.png';
 
-		this.rockSVG = new Image();
-		this.rockSVG.src = 'img/rock.svg';
+		this.boxPNG = new Image();
+		this.boxPNG.src = 'img/svg/box.png';
 
-		this.treeSVG = new Image();
-		this.treeSVG.src = 'img/tree.svg';
+		this.boxPNG = new Image();
+		this.boxPNG.src = 'img/png/box.png';
+
+		this.treePNG = new Image();
+		this.treePNG.src = 'img/png/tree.png';
 
 		this.cursorSVG = new Image();
 		this.cursorSVG.src = 'img/cursor.svg';
@@ -151,79 +162,82 @@ export default class View {
 		this.loadingCircleSVG = new Image();
 		this.loadingCircleSVG.src = 'img/loadingCircle.svg';
 
-		this.pistolSVG = new Image();
-		this.pistolSVG.src = 'img/pistol.svg';
+		this.pistolPNG = new Image();
+		this.pistolPNG.src = 'img/png/pistol.png';
 
-		this.machinegunSVG = new Image();
-		this.machinegunSVG.src = 'img/machinegun.svg';
+		this.machinegunPNG = new Image();
+		this.machinegunPNG.src = 'img/png/machinegun.png';
 
-		this.rifleSVG = new Image();
-		this.rifleSVG.src = 'img/rifle.svg';
+		this.riflePNG = new Image();
+		this.riflePNG.src = 'img/png/rifle.png';
 
-		this.shotgunSVG = new Image();
-		this.shotgunSVG.src = 'img/shotgun.svg';
+		this.shotgunPNG = new Image();
+		this.shotgunPNG.src = 'img/png/shotgun.png';
 
-		this.hammerSVG = new Image();
-		this.hammerSVG.src = 'img/hammer.svg';
+		this.hammerPNG = new Image();
+		this.hammerPNG.src = 'img/png/hammer.png';
 
-		this.granadeSVG = new Image();
-		this.granadeSVG.src = 'img/granade.svg';
+		this.clubPNG = new Image();
+		this.clubPNG.src = 'img/png/club.png';
 
-		this.smokeSVG = new Image();
-		this.smokeSVG.src = 'img/smoke.svg';
+		this.granadePNG = new Image();
+		this.granadePNG.src = 'img/png/grenade.png';
 
-		this.medkitSVG = new Image();
-		this.medkitSVG.src = 'img/medkit.svg';
+		this.smokePNG = new Image();
+		this.smokePNG.src = 'img/png/smoke.png';
 
-		this.smokeCloudSVG = new Image();
-		this.smokeCloudSVG.src = 'img/smokeCloud.svg';
+		this.medkitPNG = new Image();
+		this.medkitPNG.src = 'img/png/medkit.png';
 
-		this.rifleLootSVG = new Image();
-		this.rifleLootSVG.src = 'img/rifleLoot.svg';
+		this.smokeCloudPNG = new Image();
+		this.smokeCloudPNG.src = 'img/png/smokeCloud.png';
 
-		this.pistolLootSVG = new Image();
-		this.pistolLootSVG.src = 'img/pistolLoot.svg';
+		this.rifleLootPNG = new Image();
+		this.rifleLootPNG.src = 'img/png/rifleLoot.png';
 
-		this.shotgunLootSVG = new Image();
-		this.shotgunLootSVG.src = 'img/shotgunLoot.svg';
+		this.pistolLootPNG = new Image();
+		this.pistolLootPNG.src = 'img/png/pistolLoot.png';
 
-		this.machinegunLootSVG = new Image();
-		this.machinegunLootSVG.src = 'img/machinegunLoot.svg';
+		this.shotgunLootPNG = new Image();
+		this.shotgunLootPNG.src = 'img/png/shotgunLoot.png';
 
-		this.hammerLootSVG = new Image();
-		this.hammerLootSVG.src = 'img/hammerLoot.svg';
+		this.machinegunLootPNG = new Image();
+		this.machinegunLootPNG.src = 'img/png/machinegunLoot.png';
 
-		this.granadeLootSVG = new Image();
-		this.granadeLootSVG.src = 'img/granadeLoot.svg';
+		this.hammerLootPNG = new Image();
+		this.hammerLootPNG.src = 'img/png/hammerLoot.png';
 
-		this.smokeLootSVG = new Image();
-		this.smokeLootSVG.src = 'img/smokeLoot.svg';
+		this.granadeLootPNG = new Image();
+		this.granadeLootPNG.src = 'img/png/grenadeLoot.png';
 
-		this.redAmmoLootSVG = new Image();
-		this.redAmmoLootSVG.src = 'img/redAmmoLoot.svg';
+		this.smokeLootPNG = new Image();
+		this.smokeLootPNG.src = 'img/png/smokeLoot.png';
 
-		this.greenAmmoLootSVG = new Image();
-		this.greenAmmoLootSVG.src = 'img/greenAmmoLoot.svg';
+		this.redAmmoLootPNG = new Image();
+		this.redAmmoLootPNG.src = 'img/png/redAmmoLoot.png';
 
-		this.blueAmmoLootSVG = new Image();
-		this.blueAmmoLootSVG.src = 'img/blueAmmoLoot.svg';
+		this.greenAmmoLootPNG = new Image();
+		this.greenAmmoLootPNG.src = 'img/png/greenAmmoLoot.png';
 
-		this.orangeAmmoLootSVG = new Image();
-		this.orangeAmmoLootSVG.src = 'img/orangeAmmoLoot.svg';
+		this.blueAmmoLootPNG = new Image();
+		this.blueAmmoLootPNG.src = 'img/png/blueAmmoLoot.png';
 
-		this.medkitLootSVG = new Image();
-		this.medkitLootSVG.src = 'img/medkitLoot.svg';
-		this.vestLootSVG = new Image();
-		this.vestLootSVG.src = 'img/vestLoot.svg';
-		this.scope2LootSVG = new Image();
-		this.scope2LootSVG.src = 'img/scope2Loot.svg';
-		this.scope4LootSVG = new Image();
-		this.scope4LootSVG.src = 'img/scope4Loot.svg';
-		this.scope6LootSVG = new Image();
-		this.scope6LootSVG.src = 'img/scope6Loot.svg';
+		this.orangeAmmoLootPNG = new Image();
+		this.orangeAmmoLootPNG.src = 'img/png/orangeAmmoLoot.png';
 
-		this.deadPlayer = new Image();
-		this.deadPlayer.src = 'img/deadPlayer.svg';
+		this.medkitLootPNG = new Image();
+		this.medkitLootPNG.src = 'img/png/medkitLoot.png';
+		this.vestLootPNG = new Image();
+		this.vestLootPNG.src = 'img/png/vestLoot.png';
+		this.scope2LootPNG = new Image();
+		this.scope2LootPNG.src = 'img/png/scope2Loot.png';
+		this.scope4LootPNG = new Image();
+		this.scope4LootPNG.src = 'img/png/scope4Loot.png';
+		this.scope6LootPNG = new Image();
+		this.scope6LootPNG.src = 'img/png/scope6Loot.png';
+
+		this.deadPlayerPNG = new Image();
+		this.deadPlayerPNG.src = 'img/png/deadPlayer.png';
 
 		this.waterTrianglePNG = new Image();
 		this.waterTrianglePNG.src = 'img/waterTriangle.png';
@@ -256,21 +270,29 @@ export default class View {
 	screenResize(): void {
 		const el = this.myHtmlElements;
 		//gameScreen
-		this.gameScreen.width = window.innerWidth;
-		this.gameScreen.height = window.innerHeight;
+
+		this.devicePixelRatio = window.devicePixelRatio || 1;
+		this.gameScreen.width = window.innerWidth * this.devicePixelRatio;
+		this.gameScreen.height = window.innerHeight * this.devicePixelRatio;
 		el.zoneSVG.setAttribute('width', window.innerWidth.toString());
 		el.zoneSVG.setAttribute('height', window.innerHeight.toString());
 		//mapScreen
-		const mapSize = Math.floor((window.innerWidth / 5 + window.innerHeight / 5) / 2);
-		this.mapScreen.width = mapSize;
-		this.mapScreen.height = mapSize;
-		el.mapZoneSVG.setAttribute('width', mapSize.toString());
-		el.mapZoneSVG.setAttribute('height', mapSize.toString());
-		el.mapContainer.style.width = (mapSize + 10).toString() + 'px';
-		el.mapContainer.style.height = (mapSize + 10).toString() + 'px';
+		//const mapSize = Math.floor((window.innerWidth / 6 + window.innerHeight / 6) / 2);
+		this.mapScreen.width = 180 * this.devicePixelRatio;
+		this.mapScreen.height = 180 * this.devicePixelRatio;
+
+		if (window.innerHeight <= 600) {
+			this.mapScreen.width = 100 * this.devicePixelRatio;
+			this.mapScreen.height = 100 * this.devicePixelRatio;
+		}
+		el.mapZoneSVG.setAttribute('width', this.mapScreen.width.toString());
+		el.mapZoneSVG.setAttribute('height', this.mapScreen.height.toString());
+		//el.mapContainer.style.width = (mapSize + 10).toString() + 'px';
+		//el.mapContainer.style.height = (mapSize + 10).toString() + 'px';
+
 		//center
-		this.screenCenterX = window.innerWidth / 2;
-		this.screenCenterY = window.innerHeight / 2;
+		this.screenCenterX = this.gameScreen.width / 2;
+		this.screenCenterY = this.gameScreen.height / 2;
 		this.changeResolutionAdjustment();
 		if (this.myPlayer) {
 			this.drawGame(this.myPlayer.id);
@@ -416,9 +438,9 @@ export default class View {
 			const y = this.snapshotManager.zone.outerCircle.getCenterY() * sizeReduction;
 			const radius = this.snapshotManager.zone.outerCircle.getRadius() * sizeReduction;
 			//SVG change
-			el.mapZoneCircle.setAttribute('r', radius.toString());
-			el.mapZoneCircle.setAttribute('cx', x.toString());
-			el.mapZoneCircle.setAttribute('cy', y.toString());
+			el.mapZoneCircle.setAttribute('r', (radius / this.devicePixelRatio).toString());
+			el.mapZoneCircle.setAttribute('cx', (x / this.devicePixelRatio).toString());
+			el.mapZoneCircle.setAttribute('cy', (y / this.devicePixelRatio).toString());
 		}
 	}
 
@@ -505,7 +527,7 @@ export default class View {
 			ctx.fillRect(0, i * editor.blockSize, editor.getSize() * editor.blockSize, 1);
 		}
 
-		if (editor.getTerrainType() != null) {
+		if (editor.getTerrainType()) {
 			//frame
 			ctx.fillStyle = this.colors.blockFrameActive;
 			ctx.fillRect(blockX, blockY, editor.blockSize, 1);
@@ -515,138 +537,152 @@ export default class View {
 			ctx.fillRect(blockX + editor.blockSize, blockY, 1, editor.blockSize);
 		}
 
-		//objects
+		// Obstacles
 		ctx.save();
-		if (editor.getObjectType() === 'delete') ctx.globalAlpha = 0.6;
+		if (!editor.getObstacleType()) ctx.globalAlpha = 0.6;
 
-		for (const rock of editor.rocks) {
-			ctx.drawImage(this.rockSVG, rock.x, rock.y, rock.size, rock.size);
-		}
-
-		for (const wall of editor.walls) {
-			let svgSource = this.horizontalWallSVG;
-			if (wall.width < wall.height) svgSource = this.verticalWallSVG;
-			if (wall.width < wall.height || wall.width > wall.height) {
-				ctx.drawImage(svgSource, wall.x, wall.y, wall.width, wall.height);
-			}
-			if (wall.width === wall.height) {
-				ctx.fillStyle = 'black';
-				ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+		for (const obstacle of editor.rectangleObstacles) {
+			switch (obstacle.type) {
+				case ObstacleType.Block:
+					ctx.drawImage(this.blockPNG, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+					break;
+				case ObstacleType.Box:
+					ctx.drawImage(this.boxPNG, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+					break;
 			}
 		}
-		for (const bush of editor.bushes) {
-			ctx.drawImage(this.bushSVG, bush.x, bush.y, bush.size, bush.size);
+
+		for (const obstacle of editor.roundObstacles) {
+			switch (obstacle.type) {
+				case ObstacleType.Rock:
+					ctx.drawImage(this.rockPNG, obstacle.x, obstacle.y, obstacle.size, obstacle.size);
+					break;
+				case ObstacleType.Bush:
+					ctx.drawImage(this.bushPNG, obstacle.x, obstacle.y, obstacle.size, obstacle.size);
+					break;
+				case ObstacleType.Tree:
+					ctx.drawImage(this.treePNG, obstacle.x, obstacle.y, obstacle.size, obstacle.size);
+					break;
+			}
 		}
-		for (const tree of editor.trees) {
-			ctx.drawImage(this.treeSVG, tree.x, tree.y, tree.size, tree.size);
-		}
+
 		ctx.restore();
 
-		if (editor.getObjectType() === 'delete') {
-			//delete object
-			let deleteObject;
-			for (const rock of editor.rocks) {
-				const object = rock;
+		if (!editor.getObstacleType()) {
+			//  Draw delete obstacle
+
+			let deleteObstacle;
+
+			for (let i = 0; i < editor.rectangleObstacles.length; i++) {
+				const obstacle = editor.rectangleObstacles[i];
 				if (
-					object.x <= editor.getX() &&
-					object.x + object.size >= editor.getX() &&
-					object.y <= editor.getY() &&
-					object.y + object.size >= editor.getY()
+					obstacle.x <= editor.getX() &&
+					obstacle.x + obstacle.width >= editor.getX() &&
+					obstacle.y <= editor.getY() &&
+					obstacle.y + obstacle.height >= editor.getY()
 				) {
-					deleteObject = object;
-				}
-			}
-			for (const wall of editor.walls) {
-				const object = wall;
-				if (
-					object.x <= editor.getX() &&
-					object.x + object.width >= editor.getX() &&
-					object.y <= editor.getY() &&
-					object.y + object.height >= editor.getY()
-				) {
-					deleteObject = object;
-				}
-			}
-			for (const bush of editor.bushes) {
-				const object = bush;
-				if (
-					object.x <= editor.getX() &&
-					object.x + object.size >= editor.getX() &&
-					object.y <= editor.getY() &&
-					object.y + object.size >= editor.getY()
-				) {
-					deleteObject = object;
-				}
-			}
-			for (const tree of editor.trees) {
-				const object = tree;
-				if (
-					object.x <= editor.getX() &&
-					object.x + object.size >= editor.getX() &&
-					object.y <= editor.getY() &&
-					object.y + object.size >= editor.getY()
-				) {
-					deleteObject = object;
+					deleteObstacle = obstacle;
+
+					break;
 				}
 			}
 
-			if (deleteObject instanceof Rock) {
-				ctx.drawImage(this.rockSVG, deleteObject.x, deleteObject.y, deleteObject.size, deleteObject.size);
-			}
-			if (deleteObject instanceof Bush) {
-				ctx.drawImage(this.bushSVG, deleteObject.x, deleteObject.y, deleteObject.size, deleteObject.size);
-			}
-			if (deleteObject instanceof Tree) {
-				ctx.drawImage(this.treeSVG, deleteObject.x, deleteObject.y, deleteObject.size, deleteObject.size);
-			}
-			if (deleteObject instanceof Wall) {
-				ctx.fillRect(deleteObject.x, deleteObject.y, deleteObject.width, deleteObject.height);
-				let wallSVG = this.verticalWallSVG;
-				if (deleteObject.width > deleteObject.height) {
-					wallSVG = this.horizontalWallSVG;
+			for (let i = 0; i < editor.roundObstacles.length; i++) {
+				const obstacle = editor.roundObstacles[i];
+				if (
+					obstacle.x <= editor.getX() &&
+					obstacle.x + obstacle.size >= editor.getX() &&
+					obstacle.y <= editor.getY() &&
+					obstacle.y + obstacle.size >= editor.getY()
+				) {
+					deleteObstacle = obstacle;
+
+					break;
 				}
-				ctx.drawImage(wallSVG, deleteObject.x, deleteObject.y, deleteObject.width, deleteObject.height);
+			}
+
+			if (deleteObstacle) {
+				switch (deleteObstacle.type) {
+					case ObstacleType.Rock:
+						ctx.drawImage(
+							this.rockPNG,
+							deleteObstacle.x,
+							deleteObstacle.y,
+							(<RoundObstacle>deleteObstacle).size,
+							(<RoundObstacle>deleteObstacle).size
+						);
+						break;
+					case ObstacleType.Tree:
+						ctx.drawImage(
+							this.treePNG,
+							deleteObstacle.x,
+							deleteObstacle.y,
+							(<RoundObstacle>deleteObstacle).size,
+							(<RoundObstacle>deleteObstacle).size
+						);
+						break;
+					case ObstacleType.Bush:
+						ctx.drawImage(
+							this.bushPNG,
+							deleteObstacle.x,
+							deleteObstacle.y,
+							(<RoundObstacle>deleteObstacle).size,
+							(<RoundObstacle>deleteObstacle).size
+						);
+						break;
+					case ObstacleType.Box:
+						ctx.drawImage(
+							this.boxPNG,
+							deleteObstacle.x,
+							deleteObstacle.y,
+							(<RectangleObstacle>deleteObstacle).width,
+							(<RectangleObstacle>deleteObstacle).height
+						);
+						break;
+					case ObstacleType.Block:
+						ctx.drawImage(
+							this.blockPNG,
+							deleteObstacle.x,
+							deleteObstacle.y,
+							(<RectangleObstacle>deleteObstacle).width,
+							(<RectangleObstacle>deleteObstacle).height
+						);
+						break;
+				}
 			}
 		}
 
-		//objects under mouse
-		if (editor.getObjectType()) {
+		// Obstacle under mouse
+		if (editor.getObstacleType()) {
+			let x = editor.getX();
+			let y = editor.getY();
+
+			if (editor.minShiftX > 1) {
+				x = Math.floor(x / editor.minShiftX) * editor.minShiftX;
+			}
+			if (editor.minShiftY > 1) {
+				y = Math.floor(y / editor.minShiftY) * editor.minShiftY;
+			}
+
 			let size;
-			switch (editor.getObjectType()) {
-				case 'bush':
+			switch (editor.getObstacleType()) {
+				case ObstacleType.Bush:
 					size = editor.bush.size;
-					ctx.drawImage(this.bushSVG, editor.getX() - size / 2, editor.getY() - size / 2, size, size);
+					ctx.drawImage(this.bushPNG, x - size / 2, y - size / 2, size, size);
 					break;
-				case 'rock':
+				case ObstacleType.Rock:
 					size = editor.rock.size;
-					ctx.drawImage(this.rockSVG, editor.getX() - size / 2, editor.getY() - size / 2, size, size);
+					ctx.drawImage(this.rockPNG, x - size / 2, y - size / 2, size, size);
 					break;
-				case 'tree':
+				case ObstacleType.Tree:
 					size = editor.tree.size;
-					ctx.drawImage(this.treeSVG, editor.getX() - size / 2, editor.getY() - size / 2, size, size);
+					ctx.drawImage(this.treePNG, x - size / 2, y - size / 2, size, size);
 					break;
-				case 'rect':
-					size = editor.rock.size;
-					ctx.fillStyle = 'black';
-					ctx.fillRect(editor.getX() - size / 2, editor.getY() - size / 2, size, size);
+				case ObstacleType.Box:
+					ctx.drawImage(this.boxPNG, x - editor.box.width / 2, y - editor.box.height / 2, editor.box.width, editor.box.height);
 					break;
-				case 'verticalWall':
-					ctx.drawImage(
-						this.verticalWallSVG,
-						editor.getX() - editor.verticalWall.width / 2,
-						editor.getY() - editor.verticalWall.height / 2,
-						editor.verticalWall.width,
-						editor.verticalWall.height
-					);
-					break;
-				case 'horizontalWall':
-					ctx.drawImage(
-						this.horizontalWallSVG,
-						editor.getX() - editor.horizontalWall.width / 2,
-						editor.getY() - editor.horizontalWall.height / 2,
-						editor.horizontalWall.width,
-						editor.horizontalWall.height
-					);
+				case ObstacleType.Block:
+					ctx.drawImage(this.blockPNG, x - editor.block.width / 2, y - editor.block.height / 2, editor.block.width, editor.block.height);
 					break;
 			}
 		}
@@ -803,21 +839,33 @@ export default class View {
 			}
 		}
 
-		//rocks
-		for (const rock of this.map.rocks) {
+		// rocks
+		for (const obstacle of this.map.roundObstacles) {
+			if (obstacle.type !== ObstacleType.Rock) continue;
+			const rock: Rock = <Rock>obstacle;
+
 			if (rock.isActive()) {
 				const { x, y, size, isOnScreen } = this.howToDraw(rock);
 				if (isOnScreen) {
+					/*
 					ctx.save();
 					ctx.globalAlpha = rock.getOpacity();
 					ctx.drawImage(this.rockSVG, x, y, size, size);
+					ctx.restore();
+					*/
+
+					let middleImage = size / 2;
+					ctx.save();
+					ctx.translate(x + middleImage, y + middleImage);
+					ctx.rotate((rock.angle * Math.PI) / 180);
+					ctx.globalAlpha = rock.getOpacity();
+					ctx.drawImage(this.rockPNG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
 			}
 		}
 
-		//walls
-		ctx.fillStyle = 'black';
+		// rectangleObstacles
 		for (const rectangleObstacle of this.map.rectangleObstacles) {
 			if (rectangleObstacle.isActive()) {
 				const { x, y, width, height, isOnScreen } = this.howToDraw({
@@ -827,8 +875,18 @@ export default class View {
 					height: rectangleObstacle.height,
 				});
 				if (isOnScreen) {
-					let svgSource = this.horizontalWallSVG;
-					if (rectangleObstacle.width < rectangleObstacle.height) svgSource = this.verticalWallSVG;
+					let svgSource;
+
+					switch (rectangleObstacle.type) {
+						case ObstacleType.Block:
+							svgSource = this.blockPNG;
+							break;
+
+						case ObstacleType.Box:
+							svgSource = this.boxPNG;
+							break;
+					}
+
 					ctx.save();
 					ctx.globalAlpha = rectangleObstacle.getOpacity();
 					ctx.drawImage(svgSource, x, y, width, height);
@@ -846,77 +904,78 @@ export default class View {
 				size: player.size,
 			});
 			if (isOnScreen) {
-				ctx.drawImage(this.deadPlayer, x, y, width, height);
+				ctx.drawImage(this.deadPlayerPNG, x, y, width, height);
 			}
 		}
 
 		//loot
 		for (const loot of betweenSnapshot.l) {
 			const { x, y, size, isOnScreen } = this.howToDraw(loot);
-			let lootSVG;
+			if (!isOnScreen) continue;
+			let lootPNG;
 			switch (loot.type) {
 				case LootType.Pistol:
-					lootSVG = this.pistolLootSVG;
+					lootPNG = this.pistolLootPNG;
 					break;
 				case LootType.Machinegun:
-					lootSVG = this.machinegunLootSVG;
+					lootPNG = this.machinegunLootPNG;
 					break;
 				case LootType.Shotgun:
-					lootSVG = this.shotgunLootSVG;
+					lootPNG = this.shotgunLootPNG;
 					break;
 				case LootType.Rifle:
-					lootSVG = this.rifleLootSVG;
+					lootPNG = this.rifleLootPNG;
 					break;
 
 				case LootType.Smoke:
-					lootSVG = this.smokeLootSVG;
+					lootPNG = this.smokeLootPNG;
 					break;
 
 				case LootType.Granade:
-					lootSVG = this.granadeLootSVG;
+					lootPNG = this.granadeLootPNG;
 					break;
 
 				case LootType.Hammer:
-					lootSVG = this.hammerLootSVG;
+					lootPNG = this.hammerLootPNG;
 					break;
 
 				case LootType.RedAmmo:
-					lootSVG = this.redAmmoLootSVG;
+					lootPNG = this.redAmmoLootPNG;
 					break;
 
 				case LootType.BlueAmmo:
-					lootSVG = this.blueAmmoLootSVG;
+					lootPNG = this.blueAmmoLootPNG;
 					break;
 
 				case LootType.GreenAmmo:
-					lootSVG = this.greenAmmoLootSVG;
+					lootPNG = this.greenAmmoLootPNG;
 					break;
 
 				case LootType.OrangeAmmo:
-					lootSVG = this.orangeAmmoLootSVG;
+					lootPNG = this.orangeAmmoLootPNG;
 					break;
 
 				case LootType.Vest:
-					lootSVG = this.vestLootSVG;
+					lootPNG = this.vestLootPNG;
 					break;
 
 				case LootType.Medkit:
-					lootSVG = this.medkitLootSVG;
+					lootPNG = this.medkitLootPNG;
 					break;
 
 				case LootType.Scope2:
-					lootSVG = this.scope2LootSVG;
+					lootPNG = this.scope2LootPNG;
 					break;
 
 				case LootType.Scope4:
-					lootSVG = this.scope4LootSVG;
+					lootPNG = this.scope4LootPNG;
 					break;
 
 				case LootType.Scope6:
-					lootSVG = this.scope6LootSVG;
+					lootPNG = this.scope6LootPNG;
 					break;
 			}
-			ctx.drawImage(lootSVG, x, y, size, size);
+			ctx.drawImage(lootPNG, x, y, size, size);
 		}
 
 		//players
@@ -976,7 +1035,7 @@ export default class View {
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
 					ctx.rotate((player.getAngle() * Math.PI) / 180);
-					ctx.drawImage(this.pistolSVG, -middleImage, -middleImage, size, size);
+					ctx.drawImage(this.pistolPNG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
 			}
@@ -994,7 +1053,7 @@ export default class View {
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
 					ctx.rotate((player.getAngle() * Math.PI) / 180);
-					ctx.drawImage(this.machinegunSVG, -middleImage, -middleImage, size, size);
+					ctx.drawImage(this.machinegunPNG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
 			}
@@ -1012,7 +1071,7 @@ export default class View {
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
 					ctx.rotate((player.getAngle() * Math.PI) / 180);
-					ctx.drawImage(this.shotgunSVG, -middleImage, -middleImage, size, size);
+					ctx.drawImage(this.shotgunPNG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
 			}
@@ -1030,7 +1089,7 @@ export default class View {
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
 					ctx.rotate((player.getAngle() * Math.PI) / 180);
-					ctx.drawImage(this.rifleSVG, -middleImage, -middleImage, size, size);
+					ctx.drawImage(this.riflePNG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
 			}
@@ -1048,8 +1107,11 @@ export default class View {
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
 					ctx.rotate((player.getHammerAngle() * Math.PI) / 180);
-					ctx.drawImage(this.hammerSVG, -middleImage, -middleImage, size, size);
+					//ctx.drawImage(this.hammerPNG, -middleImage, -middleImage, size, size);
+					ctx.drawImage(this.clubPNG, -middleImage, -middleImage, size, size);
+
 					ctx.restore();
+
 					/*
 					if (this.collisionPoints.isReady()) {
 						//collisionPoints
@@ -1058,7 +1120,7 @@ export default class View {
 							const { x, y, size } = this.howToDraw({
 								x: player.getCenterX() - gunSize / 2 + point.x,
 								y: player.getCenterY() - gunSize / 2 + point.y,
-								size: 1
+								size: 1,
 							});
 							ctx.fillRect(x, y, size, size);
 						}
@@ -1130,9 +1192,9 @@ export default class View {
 								ctx.translate(x + middleImage, y + middleImage);
 								ctx.rotate(((playerAngle - granadeShiftAngle) * Math.PI) / 180);
 								let SVG;
-								if (player.getWeapon() === Weapon.Granade) SVG = this.granadeSVG;
-								if (player.getWeapon() === Weapon.Smoke) SVG = this.smokeSVG;
-								if (player.getWeapon() === Weapon.Medkit) SVG = this.medkitSVG;
+								if (player.getWeapon() === Weapon.Granade) SVG = this.granadePNG;
+								if (player.getWeapon() === Weapon.Smoke) SVG = this.smokePNG;
+								if (player.getWeapon() === Weapon.Medkit) SVG = this.medkitPNG;
 								ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
 								ctx.restore();
 							}
@@ -1204,10 +1266,10 @@ export default class View {
 				ctx.translate(x + middleImage, y + middleImage);
 				ctx.rotate((granade.a * Math.PI) / 180);
 				if (granade.t === 'g') {
-					ctx.drawImage(this.granadeSVG, -middleImage, -middleImage, size, size);
+					ctx.drawImage(this.granadePNG, -middleImage, -middleImage, size, size);
 				}
 				if (granade.t === 's') {
-					ctx.drawImage(this.smokeSVG, -middleImage, -middleImage, size, size);
+					ctx.drawImage(this.smokePNG, -middleImage, -middleImage, size, size);
 				}
 				ctx.restore();
 			}
@@ -1268,8 +1330,11 @@ export default class View {
 			}
 		}
 
-		//bushes
-		for (const bush of this.map.bushes) {
+		// Bushes
+		for (const obstacle of this.map.roundObstacles) {
+			if (obstacle.type !== ObstacleType.Bush) continue;
+			const bush: Bush = <Bush>obstacle;
+
 			if (bush.isActive()) {
 				const { x, y, size, isOnScreen } = this.howToDraw(bush);
 				if (isOnScreen) {
@@ -1285,14 +1350,17 @@ export default class View {
 					ctx.translate(x + middleImage, y + middleImage);
 					ctx.rotate((bush.angle * Math.PI) / 180);
 					ctx.globalAlpha = bush.getOpacity();
-					ctx.drawImage(this.bushSVG, -middleImage, -middleImage, size, size);
+					ctx.drawImage(this.bushPNG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
 			}
 		}
 
-		//trees
-		for (const tree of this.map.trees) {
+		// Trees
+		for (const obstacle of this.map.roundObstacles) {
+			if (obstacle.type !== ObstacleType.Tree) continue;
+			const tree: Tree = <Tree>obstacle;
+
 			if (tree.isActive()) {
 				const { x, y, size, isOnScreen } = this.howToDraw(tree);
 				if (isOnScreen) {
@@ -1307,7 +1375,7 @@ export default class View {
 					ctx.translate(x + middleImage, y + middleImage);
 					ctx.rotate((tree.angle * Math.PI) / 180);
 					ctx.globalAlpha = tree.getOpacity();
-					ctx.drawImage(this.treeSVG, -middleImage, -middleImage, size, size);
+					ctx.drawImage(this.treePNG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 				}
 			}
@@ -1323,7 +1391,7 @@ export default class View {
 			if (isOnScreen) {
 				ctx.save();
 				ctx.globalAlpha = smoke.o;
-				ctx.drawImage(this.smokeCloudSVG, x, y, size, size);
+				ctx.drawImage(this.smokeCloudPNG, x, y, size, size);
 				ctx.restore();
 			}
 		}
@@ -1339,9 +1407,9 @@ export default class View {
 			size: this.snapshotManager.zone.outerCircle.getRadius(),
 		});
 
-		el.zoneCircle.setAttribute('r', outerRadius.toString());
-		el.zoneCircle.setAttribute('cx', x.toString());
-		el.zoneCircle.setAttribute('cy', y.toString());
+		el.zoneCircle.setAttribute('r', (outerRadius / this.devicePixelRatio).toString());
+		el.zoneCircle.setAttribute('cx', (x / this.devicePixelRatio).toString());
+		el.zoneCircle.setAttribute('cy', (y / this.devicePixelRatio).toString());
 
 		//info
 		/*
@@ -1787,10 +1855,12 @@ export default class View {
 			const el = this.myHtmlElements;
 			if (win || winnerName) {
 				el.gameOverMenu.h1.textContent = 'Winner!';
+				if (!stats.damageTaken) el.gameOverMenu.h1.textContent = 'Clean job!';
+
 				if (winnerName) el.gameOverMenu.h1.textContent = winnerName + ' win';
 				el.gameOverMenu.spectate.style.display = 'none';
 			} else {
-				el.gameOverMenu.h1.textContent = 'You died';
+				el.gameOverMenu.h1.textContent = "You cried :'(";
 				el.gameOverMenu.spectate.style.display = 'block';
 			}
 			el.open(el.gameOverMenu.main);
@@ -1806,7 +1876,7 @@ export default class View {
 			const minutes = Math.floor(stats.survive / 60);
 			const seconds = stats.survive - minutes * 60;
 			const surviveTime = minutes + 'm ' + seconds + 's';
-			survive.textContent = 'Survive: ' + surviveTime;
+			survive.textContent = 'Survived: ' + surviveTime;
 			el.gameOverMenu.stats.appendChild(kills);
 			el.gameOverMenu.stats.appendChild(damageDealt);
 			el.gameOverMenu.stats.appendChild(damageTaken);

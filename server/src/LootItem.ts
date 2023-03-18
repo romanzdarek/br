@@ -1,26 +1,30 @@
 import { Player } from './Player';
 import { LootType } from './LootType';
 import Map from './Map';
-import RectangleObstacle from './RectangleObstacle';
-import RoundObstacle from './RoundObstacle';
-import Tree from './Tree';
+import RectangleObstacle from './obstacle/RectangleObstacle';
+import RoundObstacle from './obstacle/RoundObstacle';
+import Tree from './obstacle/Tree';
+import { ObstacleType } from './obstacle/ObstacleType';
 
 export default class LootItem {
 	readonly id: number;
-	readonly size: number;
+	size: number;
 	readonly type: LootType;
+	readonly finalSize = 60;
 	readonly radius: number;
 	private x: number;
 	private y: number;
 	private active: boolean = true;
 	readonly quantity: number;
+	private lootTimer = 15;
 
 	constructor(id: number, centerX: number, centerY: number, type: LootType, quantity: number) {
 		this.id = id;
-		this.size = 60; //60 default
-		this.radius = this.size / 2;
-		this.x = centerX - this.radius;
-		this.y = centerY - this.radius;
+
+		this.size = 30;
+		this.radius = this.finalSize / 2;
+		this.x = centerX - this.radius + this.size / 2;
+		this.y = centerY - this.radius + this.size / 2;
 		this.type = type;
 		this.quantity = quantity;
 	}
@@ -94,6 +98,13 @@ export default class LootItem {
 	}
 
 	move(lootItems: LootItem[], map: Map): void {
+		if (this.lootTimer > 0) {
+			this.size += 2;
+			this.x--;
+			this.y--;
+
+			this.lootTimer--;
+		}
 		for (const lootItem of lootItems) {
 			if (lootItem === this) continue;
 			if (this.objectIn(lootItem)) {
@@ -101,18 +112,15 @@ export default class LootItem {
 				this.shift(angle, map);
 			}
 		}
-		for (const object of map.rocks) {
-			if (object.isActive() && this.objectIn(object)) {
-				const angle = this.calcAngle(object.getCenterX(), object.getCenterY());
+
+		for (const obstacle of map.roundObstacles) {
+			if (obstacle.type !== ObstacleType.Rock && obstacle.type !== ObstacleType.Tree) continue;
+			if (obstacle.isActive() && this.objectIn(obstacle)) {
+				const angle = this.calcAngle(obstacle.getCenterX(), obstacle.getCenterY());
 				this.shift(angle, map);
 			}
 		}
-		for (const object of map.trees) {
-			if (object.isActive() && this.objectIn(object)) {
-				const angle = this.calcAngle(object.getCenterX(), object.getCenterY());
-				this.shift(angle, map);
-			}
-		}
+
 		for (const object of map.rectangleObstacles) {
 			if (object.isActive() && this.objectIn(object)) {
 				const angle = this.calcAngle(object.x + object.width / 2, object.y + object.height / 2);
@@ -150,9 +158,9 @@ export default class LootItem {
 			//rectangle loot in rectangle wall
 			if (
 				this.x - gap <= object.x + object.width &&
-				this.x + this.size + gap >= object.x &&
+				this.x + this.finalSize + gap >= object.x &&
 				this.y - gap <= object.y + object.height &&
-				this.y + this.size + gap >= object.y
+				this.y + this.finalSize + gap >= object.y
 			) {
 				return true;
 			} else {

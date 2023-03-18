@@ -310,7 +310,7 @@ export default class Inventory {
 		}
 	}
 
-	private throwLootPosition(angle: number, playerCenterX: number, playerCenterY: number): Point {
+	private throwLootOnPosition(angle: number, playerCenterX: number, playerCenterY: number): Point {
 		const shiftZ = Math.floor(Math.random() * 40);
 		//xyz tringle
 		let shiftX = Math.sin((angle * Math.PI) / 180) * shiftZ;
@@ -363,43 +363,43 @@ export default class Inventory {
 		//create loots
 		//ammo
 		if (this.blueAmmo) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			this.loot.createLootItem(x, y, LootType.BlueAmmo, this.blueAmmo);
 		}
 
 		if (this.redAmmo) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			this.loot.createLootItem(x, y, LootType.RedAmmo, this.redAmmo);
 		}
 		if (this.greenAmmo) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			this.loot.createLootItem(x, y, LootType.GreenAmmo, this.blueAmmo);
 		}
 		if (this.orangeAmmo) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			this.loot.createLootItem(x, y, LootType.OrangeAmmo, this.orangeAmmo);
 		}
 		//items
 		if (this.vest) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			this.loot.createLootItem(x, y, LootType.Vest);
 		}
 		if (this.scope > 1) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			if (this.scope === 2) this.loot.createLootItem(x, y, LootType.Scope2);
 			else if (this.scope === 4) this.loot.createLootItem(x, y, LootType.Scope4);
 			else if (this.scope === 6) this.loot.createLootItem(x, y, LootType.Scope6);
 		}
 		//guns
 		if (this.item1 instanceof Gun) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			if (this.item1 instanceof Pistol) this.loot.createLootItem(x, y, LootType.Pistol, this.item1.getBullets());
 			else if (this.item1 instanceof Rifle) this.loot.createLootItem(x, y, LootType.Rifle, this.item1.getBullets());
 			else if (this.item1 instanceof Shotgun) this.loot.createLootItem(x, y, LootType.Shotgun, this.item1.getBullets());
 			else if (this.item1 instanceof Machinegun) this.loot.createLootItem(x, y, LootType.Machinegun, this.item1.getBullets());
 		}
 		if (this.item2 instanceof Gun) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			if (this.item2 instanceof Pistol) this.loot.createLootItem(x, y, LootType.Pistol, this.item2.getBullets());
 			else if (this.item2 instanceof Rifle) this.loot.createLootItem(x, y, LootType.Rifle, this.item2.getBullets());
 			else if (this.item2 instanceof Shotgun) this.loot.createLootItem(x, y, LootType.Shotgun, this.item2.getBullets());
@@ -407,23 +407,23 @@ export default class Inventory {
 		}
 		//hammer
 		if (this.item3 instanceof Hammer || this.item33 instanceof Hammer) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			this.loot.createLootItem(x, y, LootType.Hammer);
 		}
 		//smoke
 		if (this.item4SmokeCount) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			this.loot.createLootItem(x, y, LootType.Smoke, this.item4SmokeCount);
 		}
 		//granade
 		if (this.item4GranadeCount) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			this.loot.createLootItem(x, y, LootType.Granade, this.item4GranadeCount);
 		}
 
 		//medkits
 		if (this.item5) {
-			const { x, y } = this.throwLootPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
+			const { x, y } = this.throwLootOnPosition(shiftAngle * ++shiftMultiple, this.player.getCenterX(), this.player.getCenterY());
 			this.loot.createLootItem(x, y, LootType.Medkit, this.item5);
 		}
 
@@ -431,9 +431,35 @@ export default class Inventory {
 	}
 
 	private throwLootItem(player: Player, lootType: LootType, quantity?: number) {
-		const x = player.getCenterX() + 20;
-		const y = player.getCenterY() + 20;
+		const x = player.getCenterX() + Math.sin(((player.getAngle() + 180) * Math.PI) / 180) * Player.radius * 2;
+		const y = player.getCenterY() - Math.cos(((player.getAngle() + 180) * Math.PI) / 180) * Player.radius * 2;
+
 		this.loot.createLootItem(x, y, lootType, quantity);
+	}
+
+	throwItemFromInventory(itemNumber: number) {
+		if (itemNumber === 1 && this.item1) {
+			const lootType = this.gunToLoopType(this.item1);
+			this.throwLootItem(this.player, lootType, this.item1.getBullets());
+			if (this.activeItem === this.item1) this.changeActiveItem(3);
+
+			this.item1 = null;
+		}
+
+		if (itemNumber === 2 && this.item2) {
+			const lootType = this.gunToLoopType(this.item2);
+			this.throwLootItem(this.player, lootType, this.item2.getBullets());
+			if (this.activeItem === this.item2) this.changeActiveItem(3);
+			this.item2 = null;
+		}
+	}
+
+	private gunToLoopType(gun: Gun) {
+		if (gun instanceof Pistol) return LootType.Pistol;
+		if (gun instanceof Rifle) return LootType.Rifle;
+		if (gun instanceof Shotgun) return LootType.Shotgun;
+		if (gun instanceof Machinegun) return LootType.Machinegun;
+		return null;
 	}
 
 	take(loot: LootItem): void {

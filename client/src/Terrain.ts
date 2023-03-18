@@ -1,10 +1,10 @@
 export enum TerrainType {
-	Grass,
-	Water,
-	WaterTriangle1,
-	WaterTriangle2,
-	WaterTriangle3,
-	WaterTriangle4
+	Grass = 'Grass',
+	Water = 'Water',
+	WaterTriangle1 = 'WaterTriangle1',
+	WaterTriangle2 = 'WaterTriangle2',
+	WaterTriangle3 = 'WaterTriangle3',
+	WaterTriangle4 = 'WaterTriangle4',
 }
 
 export class Terrain {

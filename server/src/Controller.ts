@@ -204,6 +204,19 @@ export default class Controller {
 				console.log('Error: m (controll player)');
 			});
 
+			//throw item
+			socket.on('throwItem', (game: number, inventoryIndex: number) => {
+				if (this.model.games[game]) {
+					for (const player of this.model.games[game].players) {
+						if (player.socket === socket) {
+							player.inventory.throwItemFromInventory(inventoryIndex);
+							return;
+						}
+					}
+				}
+				console.log('Error: throwItem (controll player)');
+			});
+
 			//change item
 			socket.on('i', (game: number, inventoryIndex: number, reload = false) => {
 				if (this.model.games[game] && inventoryIndex > -1) {

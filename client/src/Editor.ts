@@ -1,31 +1,39 @@
 import { Terrain, TerrainType } from './Terrain';
 import MyHtmlElements from './MyHtmlElements';
-import Bush from './Bush';
-import Rock from './Rock';
-import Tree from './Tree';
-import Wall from './Wall';
+import Bush from './obstacle/Bush';
+import Rock from './obstacle/Rock';
+import Tree from './obstacle/Tree';
 import Socket from './Socket';
 import Colors from './Colors';
 import MapData from './MapData';
+import Block from './obstacle/Block';
+import Box from './obstacle/Box';
+import RoundObstacle from './obstacle/RoundObstacle';
+import RectangleObstacle from './obstacle/RectangleObstacle';
+import { ObstacleType } from './obstacle/ObstacleType';
 
 export default class Editor {
 	private terrainType: TerrainType | null;
-	private objectType: string | null;
+	private obstacleType: ObstacleType | null;
+
 	bush: Bush;
 	rock: Rock;
 	tree: Tree;
-	horizontalWall: Wall;
-	verticalWall: Wall;
+	block: Block;
+	box: Box;
+
+	minShiftX: number = 1;
+	minShiftY: number = 1;
+
 	private x: number;
 	private y: number;
 	private active: boolean = false;
 	private size: number;
 	readonly blockSize: number = 300;
 	terrains: Terrain[] = [];
-	bushes: Bush[] = [];
-	rocks: Rock[] = [];
-	trees: Tree[] = [];
-	walls: Wall[] = [];
+	roundObstacles: RoundObstacle[] = [];
+	rectangleObstacles: RectangleObstacle[] = [];
+
 	private myHtmlElements: MyHtmlElements;
 	private socket: Socket;
 	private colors: Colors;
@@ -34,11 +42,11 @@ export default class Editor {
 		this.myHtmlElements = myHtmlElements;
 		this.socket = socket;
 		this.colors = new Colors();
-		this.bush = new Bush(0, 0, 0, 0);
-		this.rock = new Rock(0, 0, 0);
-		this.tree = new Tree(0, 0, 0, 0);
-		this.horizontalWall = new Wall(0, 0, 0, 612 / 2, 145 / 2);
-		this.verticalWall = new Wall(0, 0, 0, 145 / 2, 612 / 2);
+		this.bush = new Bush(0, 0, 0, 300, 0);
+		this.rock = new Rock(0, 0, 0, 100);
+		this.tree = new Tree(0, 0, 0, 500, 0);
+		this.block = new Block(0, 0, 0, 100, 100);
+		this.box = new Box(0, 0, 0, 50, 50);
 		this.controller();
 	}
 
@@ -54,8 +62,8 @@ export default class Editor {
 		return this.terrainType;
 	}
 
-	getObjectType(): string | null {
-		return this.objectType;
+	getObstacleType(): ObstacleType | null {
+		return this.obstacleType;
 	}
 
 	getSize(): number {
@@ -71,7 +79,7 @@ export default class Editor {
 	}
 
 	getMapData(): MapData {
-		return new MapData(this.size, this.blockSize, this.terrains, this.walls, this.bushes, this.rocks, this.trees);
+		return new MapData(this.size, this.blockSize, this.terrains, this.roundObstacles, this.rectangleObstacles);
 	}
 
 	create(): void {
@@ -82,8 +90,8 @@ export default class Editor {
 		this.active = true;
 		const el = this.myHtmlElements;
 		this.size = size;
-		(<HTMLCanvasElement>el.editor.screen).width = size * this.blockSize;
-		(<HTMLCanvasElement>el.editor.screen).height = size * this.blockSize;
+		(<HTMLCanvasElement>el.editor.screen).width = size * this.blockSize + this.blockSize;
+		(<HTMLCanvasElement>el.editor.screen).height = size * this.blockSize + this.blockSize;
 		const widthString = (size * this.blockSize).toString();
 		el.editor.screen.style.width = widthString;
 		const heightString = (size * this.blockSize).toString();
@@ -93,14 +101,13 @@ export default class Editor {
 
 	private cleanMap(): void {
 		this.terrains = [];
-		this.bushes = [];
-		this.rocks = [];
-		this.trees = [];
-		this.walls = [];
+		this.roundObstacles = [];
+		this.rectangleObstacles = [];
 	}
 
 	private cleanMapAfterChangeSize(): void {
 		const mapSize = this.size * this.blockSize;
+
 		let arr: any = this.terrains;
 		for (let i = arr.length - 1; i >= 0; i--) {
 			const item = arr[i];
@@ -108,28 +115,16 @@ export default class Editor {
 				arr.splice(i, 1);
 			}
 		}
-		arr = this.trees;
+
+		arr = this.roundObstacles;
 		for (let i = arr.length - 1; i >= 0; i--) {
 			const item = arr[i];
 			if (item.x >= mapSize || item.y >= mapSize) {
 				arr.splice(i, 1);
 			}
 		}
-		arr = this.rocks;
-		for (let i = arr.length - 1; i >= 0; i--) {
-			const item = arr[i];
-			if (item.x >= mapSize || item.y >= mapSize) {
-				arr.splice(i, 1);
-			}
-		}
-		arr = this.bushes;
-		for (let i = arr.length - 1; i >= 0; i--) {
-			const item = arr[i];
-			if (item.x >= mapSize || item.y >= mapSize) {
-				arr.splice(i, 1);
-			}
-		}
-		arr = this.walls;
+
+		arr = this.rectangleObstacles;
 		for (let i = arr.length - 1; i >= 0; i--) {
 			const item = arr[i];
 			if (item.x >= mapSize || item.y >= mapSize) {
@@ -141,53 +136,126 @@ export default class Editor {
 	private openMap(mapData: MapData): void {
 		this.create();
 		this.changeSize(mapData.size);
-		let id = 0;
-		for (const item of mapData.rocks) {
-			this.rocks.push(new Rock(id++, item.x, item.y));
-		}
-		for (const item of mapData.trees) {
-			this.trees.push(new Tree(id++, item.x, item.y, item.angle));
-		}
-		for (const item of mapData.bushes) {
-			this.bushes.push(new Bush(id++, item.x, item.y, item.angle));
-		}
-		for (const item of mapData.rects) {
-			this.walls.push(new Wall(id++, item.x, item.y, item.width, item.height));
-		}
+
 		for (const item of mapData.terrains) {
 			this.terrains.push(new Terrain(item.type, item.x, item.y, item.size));
 		}
+
+		let id = 0;
+
+		for (const obstacle of mapData.roundObstacles) {
+			let newObstacle: RoundObstacle;
+			switch (obstacle.type) {
+				case ObstacleType.Rock:
+					newObstacle = new Rock(id++, obstacle.x, obstacle.y, obstacle.size);
+					break;
+				case ObstacleType.Tree:
+					newObstacle = new Tree(id++, obstacle.x, obstacle.y, obstacle.size, (<Tree>obstacle).angle);
+					break;
+				case ObstacleType.Bush:
+					newObstacle = new Bush(id++, obstacle.x, obstacle.y, obstacle.size, (<Bush>obstacle).angle);
+					break;
+			}
+			this.roundObstacles.push(newObstacle);
+		}
+
+		for (const obstacle of mapData.rectangleObstacles) {
+			let newObstacle: RectangleObstacle;
+			switch (obstacle.type) {
+				case ObstacleType.Box:
+					newObstacle = new Box(id++, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+					break;
+				case ObstacleType.Block:
+					newObstacle = new Block(id++, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+					break;
+			}
+			this.rectangleObstacles.push(newObstacle);
+		}
+
 		this.cleanMapAfterChangeSize();
 	}
 
 	controller(): void {
 		const el = this.myHtmlElements;
-		//editorScreen mouse move
+
+		(<HTMLInputElement>el.editor.obstacleMinShiftX).value = this.minShiftX.toString();
+		(<HTMLInputElement>el.editor.obstacleMinShiftY).value = this.minShiftY.toString();
+
+		el.editor.obstacleMinShiftX.addEventListener('change', (event: InputEvent) => {
+			const shift = parseInt((<HTMLInputElement>el.editor.obstacleMinShiftX).value);
+			if (!shift) return;
+			this.minShiftX = shift;
+		});
+
+		el.editor.obstacleMinShiftY.addEventListener('change', (event: InputEvent) => {
+			const shift = parseInt((<HTMLInputElement>el.editor.obstacleMinShiftY).value);
+			if (!shift) return;
+			this.minShiftY = shift;
+		});
+
+		(<HTMLInputElement>el.editor.obstacleTreeSize).value = this.tree.size.toString();
+		(<HTMLInputElement>el.editor.obstacleBushSize).value = this.bush.size.toString();
+		(<HTMLInputElement>el.editor.obstacleRockSize).value = this.rock.size.toString();
+		(<HTMLInputElement>el.editor.obstacleBoxSize).value = this.box.width.toString();
+		(<HTMLInputElement>el.editor.obstacleBlockSize).value = this.block.width.toString();
+
+		el.editor.obstacleTreeSize.addEventListener('change', (event: InputEvent) => {
+			const size = parseInt((<HTMLInputElement>el.editor.obstacleTreeSize).value);
+			if (!size) return;
+			this.tree = new Tree(0, 0, 0, size, 0);
+		});
+
+		el.editor.obstacleBushSize.addEventListener('change', (event: InputEvent) => {
+			const size = parseInt((<HTMLInputElement>el.editor.obstacleBushSize).value);
+			if (!size) return;
+			this.bush = new Bush(0, 0, 0, size, 0);
+		});
+
+		el.editor.obstacleRockSize.addEventListener('change', (event: InputEvent) => {
+			const size = parseInt((<HTMLInputElement>el.editor.obstacleRockSize).value);
+			if (!size) return;
+			this.rock = new Rock(0, 0, 0, size);
+		});
+
+		el.editor.obstacleBoxSize.addEventListener('change', (event: InputEvent) => {
+			const size = parseInt((<HTMLInputElement>el.editor.obstacleBoxSize).value);
+			if (!size) return;
+			this.box = new Box(0, 0, 0, size, size);
+		});
+
+		el.editor.obstacleBlockSize.addEventListener('change', (event: InputEvent) => {
+			const size = parseInt((<HTMLInputElement>el.editor.obstacleBlockSize).value);
+			if (!size) return;
+			this.block = new Block(0, 0, 0, size, size);
+		});
+
+		// editorScreen mouse move
 		el.editor.screen.addEventListener('mousemove', (e: MouseEvent) => {
 			const canvasRect = el.editor.screen.getBoundingClientRect();
-			this.x = e.clientX + el.editor.screen.scrollLeft - canvasRect.left;
-			this.y = e.clientY + el.editor.screen.scrollTop - canvasRect.top;
+			this.x = Math.round(e.clientX + el.editor.screen.scrollLeft - canvasRect.left);
+			this.y = Math.round(e.clientY + el.editor.screen.scrollTop - canvasRect.top);
 			el.editor.coordinates.innerText = `x: ${this.x} y: ${this.y}`;
 		});
 
-		//choose terrain type
+		// choose terrain type
 		el.editor.terrainImgs.addEventListener('click', (e: MouseEvent) => {
 			const terrainImgs = el.editor.terrainImgs.children;
 			for (let i = 0; i < terrainImgs.length; i++) {
 				(<HTMLElement>terrainImgs[i]).style.borderColor = this.colors.blockFrame;
 			}
-			const objectImgs = el.editor.objectImgs.children;
+			const objectImgs = el.editor.obstacleImgs.children;
 			for (let i = 0; i < objectImgs.length; i++) {
 				(<HTMLElement>objectImgs[i]).style.borderColor = this.colors.blockFrame;
 			}
 			(<HTMLElement>e.target).style.borderColor = this.colors.blockFrameActive;
-			this.objectType = null;
+			this.obstacleType = null;
 			switch (e.target) {
 				case el.editor.terrainWater:
 					this.terrainType = TerrainType.Water;
 					break;
 				case el.editor.terrainGrass:
 					this.terrainType = TerrainType.Grass;
+					console.log(TerrainType.Grass);
 					break;
 				case el.editor.terrainWaterTriangle1:
 					this.terrainType = TerrainType.WaterTriangle1;
@@ -204,49 +272,49 @@ export default class Editor {
 			}
 		});
 
-		//choose object
-		el.editor.objectImgs.addEventListener('click', (e: MouseEvent) => {
+		// Choose obstacle
+		el.editor.obstacleImgs.addEventListener('click', (e: MouseEvent) => {
 			const terrainImgs = el.editor.terrainImgs.children;
 			for (let i = 0; i < terrainImgs.length; i++) {
 				(<HTMLElement>terrainImgs[i]).style.borderColor = this.colors.blockFrame;
 			}
-			const objectImgs = el.editor.objectImgs.children;
+			const objectImgs = el.editor.obstacleImgs.children;
 			for (let i = 0; i < objectImgs.length; i++) {
 				(<HTMLElement>objectImgs[i]).style.borderColor = this.colors.blockFrame;
 			}
 			(<HTMLElement>e.target).style.borderColor = this.colors.blockFrameActive;
 			this.terrainType = null;
 			switch (e.target) {
-				case el.editor.objectBush:
-					this.objectType = 'bush';
+				case el.editor.obstacleBush:
+					this.obstacleType = ObstacleType.Bush;
 					break;
-				case el.editor.objectRock:
-					this.objectType = 'rock';
+				case el.editor.obstacleRock:
+					this.obstacleType = ObstacleType.Rock;
 					break;
-				case el.editor.objectTree:
-					this.objectType = 'tree';
+				case el.editor.obstacleTree:
+					this.obstacleType = ObstacleType.Tree;
 					break;
-				case el.editor.objectRect:
-					this.objectType = 'rect';
+
+				case el.editor.obstacleBox:
+					this.obstacleType = ObstacleType.Box;
 					break;
-				case el.editor.objectHorizontalWall:
-					this.objectType = 'horizontalWall';
+
+				case el.editor.obstacleBlock:
+					this.obstacleType = ObstacleType.Block;
 					break;
-				case el.editor.objectVerticalWall:
-					this.objectType = 'verticalWall';
-					break;
-				case el.editor.objectDelete:
-					this.objectType = 'delete';
+
+				case el.editor.obstacleDelete:
+					this.obstacleType = null;
 					break;
 			}
 		});
 
 		//editorScreenClick
 		el.editor.screen.addEventListener('click', () => {
-			if (this.getTerrainType() != null) {
+			if (this.getTerrainType()) {
 				const blockX = Math.floor(this.getX() / this.blockSize) * this.blockSize;
 				const blockY = Math.floor(this.getY() / this.blockSize) * this.blockSize;
-				//find block on this position and delete
+				// Find block on this position and delete
 				let deletePosition = -1;
 				for (let i = 0; i < this.terrains.length; i++) {
 					const terrain = this.terrains[i];
@@ -261,132 +329,64 @@ export default class Editor {
 				if (this.getTerrainType() !== TerrainType.Grass) {
 					this.terrains.push(new Terrain(this.getTerrainType(), blockX, blockY, this.blockSize));
 				}
-			}
-
-			if (this.getObjectType() != null) {
+				// Obstacles
+			} else {
 				const randomAngle = Math.floor(Math.random() * 360);
-				switch (this.getObjectType()) {
-					case 'bush':
-						this.bushes.push(
-							new Bush(0, this.x - this.bush.size / 2, this.y - this.bush.size / 2, randomAngle)
-						);
+				let x = this.getX();
+				let y = this.getY();
+
+				if (this.minShiftX > 1) {
+					x = Math.floor(x / this.minShiftX) * this.minShiftX;
+				}
+				if (this.minShiftY > 1) {
+					y = Math.floor(y / this.minShiftY) * this.minShiftY;
+				}
+				switch (this.obstacleType) {
+					case ObstacleType.Bush:
+						this.roundObstacles.push(new Bush(0, x - this.bush.size / 2, y - this.bush.size / 2, this.bush.size, randomAngle));
 						break;
-					case 'rock':
-						this.rocks.push(new Rock(0, this.x - this.rock.size / 2, this.y - this.rock.size / 2));
+					case ObstacleType.Rock:
+						this.roundObstacles.push(new Rock(0, x - this.rock.size / 2, y - this.rock.size / 2, this.rock.size));
 						break;
-					case 'tree':
-						this.trees.push(
-							new Tree(0, this.x - this.tree.size / 2, this.y - this.tree.size / 2, randomAngle)
-						);
+					case ObstacleType.Tree:
+						this.roundObstacles.push(new Tree(0, x - this.tree.size / 2, y - this.tree.size / 2, this.tree.size, randomAngle));
 						break;
-					case 'rect':
-						this.walls.push(
-							new Wall(0, this.x - this.bush.size / 2, this.y - this.bush.size / 2, 100, 100)
-						);
+					case ObstacleType.Box:
+						this.rectangleObstacles.push(new Box(0, x - this.box.width / 2, y - this.box.height / 2, this.box.width, this.box.height));
 						break;
-					case 'horizontalWall':
-						this.walls.push(
-							new Wall(
-								0,
-								this.x - this.horizontalWall.width / 2,
-								this.y - this.horizontalWall.height / 2,
-								this.horizontalWall.width,
-								this.horizontalWall.height
-							)
-						);
+					case ObstacleType.Block:
+						this.rectangleObstacles.push(new Block(0, x - this.block.width / 2, y - this.block.height / 2, this.block.width, this.block.height));
 						break;
-					case 'verticalWall':
-						this.walls.push(
-							new Wall(
-								0,
-								this.x - this.verticalWall.width / 2,
-								this.y - this.verticalWall.height / 2,
-								this.verticalWall.width,
-								this.verticalWall.height
-							)
-						);
-						break;
-					case 'delete':
-						//find delete object
-						let deleteObject;
+
+					default:
+						// Delete obstacle
+
 						const editor = this;
-						for (const rock of editor.rocks) {
-							const object = rock;
+
+						for (let i = 0; i < editor.rectangleObstacles.length; i++) {
+							const obstacle = editor.rectangleObstacles[i];
 							if (
-								object.x <= editor.getX() &&
-								object.x + object.size >= editor.getX() &&
-								object.y <= editor.getY() &&
-								object.y + object.size >= editor.getY()
+								obstacle.x <= editor.getX() &&
+								obstacle.x + obstacle.width >= editor.getX() &&
+								obstacle.y <= editor.getY() &&
+								obstacle.y + obstacle.height >= editor.getY()
 							) {
-								deleteObject = object;
-							}
-						}
-						for (const wall of editor.walls) {
-							const object = wall;
-							if (
-								object.x <= editor.getX() &&
-								object.x + object.width >= editor.getX() &&
-								object.y <= editor.getY() &&
-								object.y + object.height >= editor.getY()
-							) {
-								deleteObject = object;
-							}
-						}
-						for (const bush of editor.bushes) {
-							const object = bush;
-							if (
-								object.x <= editor.getX() &&
-								object.x + object.size >= editor.getX() &&
-								object.y <= editor.getY() &&
-								object.y + object.size >= editor.getY()
-							) {
-								deleteObject = object;
-							}
-						}
-						for (const tree of editor.trees) {
-							const object = tree;
-							if (
-								object.x <= editor.getX() &&
-								object.x + object.size >= editor.getX() &&
-								object.y <= editor.getY() &&
-								object.y + object.size >= editor.getY()
-							) {
-								deleteObject = object;
+								this.rectangleObstacles.splice(i, 1);
+								return;
 							}
 						}
 
-						//delete
-						let deleteIndex = -1;
-						for (let i = 0; i < this.rocks.length; i++) {
-							if (deleteObject == this.rocks[i]) deleteIndex = i;
-						}
-						if (deleteIndex !== -1) {
-							this.rocks.splice(deleteIndex, 1);
-							deleteIndex = -1;
-						}
-
-						for (let i = 0; i < this.bushes.length; i++) {
-							if (deleteObject == this.bushes[i]) deleteIndex = i;
-						}
-						if (deleteIndex !== -1) {
-							this.bushes.splice(deleteIndex, 1);
-							deleteIndex = -1;
-						}
-
-						for (let i = 0; i < this.trees.length; i++) {
-							if (deleteObject == this.trees[i]) deleteIndex = i;
-						}
-						if (deleteIndex !== -1) {
-							this.trees.splice(deleteIndex, 1);
-							deleteIndex = -1;
-						}
-
-						for (let i = 0; i < this.walls.length; i++) {
-							if (deleteObject == this.walls[i]) deleteIndex = i;
-						}
-						if (deleteIndex !== -1) {
-							this.walls.splice(deleteIndex, 1);
-							deleteIndex = -1;
+						for (let i = 0; i < editor.roundObstacles.length; i++) {
+							const obstacle = editor.roundObstacles[i];
+							if (
+								obstacle.x <= editor.getX() &&
+								obstacle.x + obstacle.size >= editor.getX() &&
+								obstacle.y <= editor.getY() &&
+								obstacle.y + obstacle.size >= editor.getY()
+							) {
+								this.roundObstacles.splice(i, 1);
+								return;
+							}
 						}
 						break;
 				}

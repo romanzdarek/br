@@ -10,6 +10,7 @@ import CollisionPoints from './CollisionPoints';
 import SnapshotManager from './SnapshotManager';
 import SurroundSound from './SurroundSound';
 import PlayerStats from './PlayerStats';
+import { SoundType } from './Sound';
 
 export default class Model {
 	spectate: boolean = false;
@@ -177,6 +178,10 @@ export default class Model {
 		for (const sound of this.snapshotManager.soundsToPlay) {
 			const myPlayer = this.snapshotManager.getMyPlayer(this.playerId);
 			this.surroundSound.play(myPlayer.getCenterX(), myPlayer.getCenterY(), sound);
+			if (sound.soundType === SoundType.Hit && sound.playerId === this.playerId) {
+				console.log('vibrate');
+				window.navigator?.vibrate?.(100);
+			}
 		}
 		this.snapshotManager.soundsToPlay.splice(0, this.snapshotManager.soundsToPlay.length);
 	}

@@ -3,12 +3,13 @@ import Point from './Point';
 import { Player } from './Player';
 import Gun from './Gun';
 import Granade from './Granade';
-import Bush from './Bush';
+import Bush from './obstacle/Bush';
 import { Weapon } from './Weapon';
 import Pistol from './Pistol';
 import Rifle from './Rifle';
 import Shotgun from './Shotgun';
 import Machinegun from './Machinegun';
+import { ObstacleType } from './obstacle/ObstacleType';
 
 export default class Bullet {
 	readonly id: number;
@@ -171,45 +172,41 @@ export default class Bullet {
 
 	private collisions(): boolean {
 		const bulletPoint = new Point(this.getCenterX(), this.getCenterY());
-		//rounds
-		if (this.active) {
-			for (const obstacle of this.map.impassableRoundObstacles) {
-				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
-					obstacle.acceptHit(this.power);
+		if (!this.active) return false;
+
+		// Rounds
+		for (const obstacle of this.map.roundObstacles) {
+			if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
+				obstacle.acceptHit(this.power);
+				if (obstacle.type === ObstacleType.Rock || obstacle.type === ObstacleType.Tree) {
 					this.active = false;
 					return true;
+				} else if (obstacle.type === ObstacleType.Bush) {
+					this.hitBushes.push(<Bush>obstacle);
 				}
 			}
 		}
-		//bushes
-		if (this.active) {
-			for (const obstacle of this.map.bushes) {
-				if (!this.hitBushes.includes(obstacle) && obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
-					obstacle.acceptHit(this.power);
-					this.hitBushes.push(obstacle);
-				}
+
+		// Rects
+
+		for (const obstacle of this.map.rectangleObstacles) {
+			if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
+				obstacle.acceptHit(this.power);
+				this.active = false;
+				return true;
 			}
 		}
-		//rects
-		if (this.active) {
-			for (const obstacle of this.map.rectangleObstacles) {
-				if (obstacle.isActive() && obstacle.isPointIn(bulletPoint)) {
-					obstacle.acceptHit(this.power);
-					this.active = false;
-					return true;
-				}
-			}
-		}
+
 		//players
-		if (this.active) {
-			for (const player of this.players) {
-				if (player.isActive() && player.isPointIn(bulletPoint)) {
-					player.acceptHit(this.power, this.player, this.weapon);
-					this.active = false;
-					return true;
-				}
+
+		for (const player of this.players) {
+			if (player.isPointIn(bulletPoint)) {
+				player.acceptHit(this.power, this.player, this.weapon);
+				this.active = false;
+				return true;
 			}
 		}
+
 		return false;
 	}
 

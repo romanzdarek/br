@@ -133,11 +133,11 @@ export class Controller {
 
 	private colorController(controllerElement: HTMLElement, active: boolean) {
 		let color = 'black';
-		let opacity = '0.05';
+		let opacity = '0.15';
 
 		if (active) {
 			color = 'red';
-			opacity = '0.2';
+			opacity = '0.5';
 		}
 
 		//controllerElement.style.background = color;
@@ -309,12 +309,47 @@ export class Controller {
 			this.socket.emit('c', this.model.getGameId(), 'e');
 		});
 
+		const throwItemMinTouchDelay = 500;
+		let item1TouchStartTime = 0;
+		let throwItem1 = false;
+
+		let item2TouchStartTime = 0;
+		let throwItem2 = false;
+
+		const throwItem = (itemNumber: number) => {
+			if (itemNumber === 1 && !throwItem1) return;
+			if (itemNumber === 2 && !throwItem2) return;
+			this.socket.emit('throwItem', this.model.getGameId(), itemNumber);
+		};
+
+		el.items.item1.addEventListener('touchstart', (event: Event) => {
+			item1TouchStartTime = Date.now();
+			throwItem1 = true;
+			setTimeout(() => {
+				throwItem(1);
+			}, throwItemMinTouchDelay);
+		});
+
 		el.items.item1.addEventListener('touchend', (event: Event) => {
-			this.socket.emit('i', this.model.getGameId(), 1, true);
+			if (Date.now() < item1TouchStartTime + throwItemMinTouchDelay) {
+				this.socket.emit('i', this.model.getGameId(), 1, true);
+				throwItem1 = false;
+			}
+		});
+
+		el.items.item2.addEventListener('touchstart', (event: Event) => {
+			item2TouchStartTime = Date.now();
+			throwItem2 = true;
+			setTimeout(() => {
+				throwItem(2);
+			}, throwItemMinTouchDelay);
 		});
 
 		el.items.item2.addEventListener('touchend', (event: Event) => {
-			this.socket.emit('i', this.model.getGameId(), 2, true);
+			if (Date.now() < item2TouchStartTime + throwItemMinTouchDelay) {
+				this.socket.emit('i', this.model.getGameId(), 2, true);
+				throwItem2 = false;
+			}
 		});
 
 		el.items.item3.addEventListener('touchend', (event: Event) => {
@@ -509,7 +544,7 @@ export class Controller {
 			touchMoveShift.x = event.touches[fingerNumber].clientX - touchMoveStart.x;
 			touchMoveShift.y = event.touches[fingerNumber].clientY - touchMoveStart.y;
 
-			const maxControllerShift = 15;
+			const maxControllerShift = 20;
 			/*
 			let controllerShiftX = touchMoveShift.x;
 			let controllerShiftY = touchMoveShift.y;
@@ -543,7 +578,7 @@ export class Controller {
 				this.colorController(mobileMoveController, false);
 				this.socket.emit('moveAngle', this.model.getGameId(), false);
 			}
-			const minDelayFromAim = 500;
+			const minDelayFromAim = 600;
 			if (Date.now() - this.touch.aimController.lastTime > minDelayFromAim) {
 				this.socket.emit('a', this.model.getGameId(), angle);
 			}
@@ -581,13 +616,23 @@ export class Controller {
 		};
 
 		let touchstartTime = Date.now();
-		let triggerReady = false;
+		let touchEndtriggerReady = false;
+		let touchMovetriggerReady = false;
+
+		const fireOrPunch = (ready?: boolean) => {
+			if (touchMovetriggerReady || ready) {
+				this.socket.emit('m', this.model.getGameId(), 'l', new Point(0, 0));
+				setTimeout(() => {
+					fireOrPunch();
+				}, 200);
+			}
+		};
 		mobileAimController.addEventListener('touchstart', (event: TouchEvent) => {
 			event.preventDefault();
 
-			triggerReady = true;
+			touchEndtriggerReady = false;
+			touchMovetriggerReady = false;
 
-			//event.preventDefault();
 			touchstartTime = Date.now();
 
 			let fingerNumber = 0;
@@ -624,7 +669,7 @@ export class Controller {
 				this.socket.emit('a', this.model.getGameId(), this.playerAngle);
 			}
 
-			const maxControllerShift = 15;
+			const maxControllerShift = 20;
 
 			const touchShiftZ = Math.sqrt(touchShift.x * touchShift.x + touchShift.y * touchShift.y);
 			let controllerShiftZ = touchShiftZ;
@@ -639,8 +684,7 @@ export class Controller {
 			const shiftDistance = Math.sqrt(touchShift.x * touchShift.x + touchShift.y * touchShift.y);
 			if (shiftDistance > maxControllerShift) {
 				if (!this.model.gameActive()) return;
-				triggerReady = true;
-
+				touchEndtriggerReady = true;
 				this.colorController(mobileAimController, true);
 
 				const now = Date.now();
@@ -660,15 +704,12 @@ export class Controller {
 					lastCombatTime = now;
 				} else return;
 
-				if (!el.items.item4.classList.contains('active')) {
-					//this.mouse.left = true;
-					const clickPoint = new Point(0, 0);
-					const serverPosition = this.model.view.calculateServerPosition(clickPoint);
-					this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
-				}
+				if (!touchMovetriggerReady) fireOrPunch(true);
+				touchMovetriggerReady = true;
 			} else {
 				if (!this.model.gameActive()) return;
-				triggerReady = false;
+				touchEndtriggerReady = false;
+				touchMovetriggerReady = false;
 				this.colorController(mobileAimController, false);
 				//this.mouse.left = true;
 				this.socket.emit('m', this.model.getGameId(), '-l');
@@ -676,7 +717,8 @@ export class Controller {
 		});
 
 		mobileAimController.addEventListener('touchend', (event) => {
-			//console.log('touchend', event);
+			touchMovetriggerReady = false;
+
 			touchShift.x = 0;
 			touchShift.y = 0;
 			mobileAimController.style.left = '0';
@@ -688,7 +730,7 @@ export class Controller {
 			const myPlayer = this.model.snapshotManager.getMyPlayer(this.model.playerId);
 			if (
 				myPlayer &&
-				triggerReady &&
+				touchEndtriggerReady &&
 				(myPlayer.getWeapon() === Weapon.Rifle ||
 					myPlayer.getWeapon() === Weapon.Shotgun ||
 					myPlayer.getWeapon() === Weapon.Granade ||
@@ -696,7 +738,6 @@ export class Controller {
 			) {
 				if (el.items.item4.classList.contains('active')) {
 					const touchendDelay = Date.now() - touchstartTime;
-					console.log('touchendDelay', touchendDelay);
 					this.socket.emit('m', this.model.getGameId(), 'l', { x: 0, y: 0 }, touchendDelay);
 				} else {
 					this.socket.emit('m', this.model.getGameId(), 'l');
@@ -742,28 +783,38 @@ export class Controller {
 			}
 		});
 
+		let mouseDownTime = 0;
 		this.myHtmlElements.transparentLayer.addEventListener('mousedown', (e: MouseEvent) => {
 			if (!this.model.gameActive()) return;
+			const myPlayer = this.model.snapshotManager.getMyPlayer(this.model.playerId);
 			this.mouse.left = true;
-			const clickPoint = new Point(e.clientX, e.clientY);
-			const serverPosition = this.model.view.calculateServerPosition(clickPoint);
-			this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
-		});
 
-		/*
-		this.myHtmlElements.transparentLayer.addEventListener('touchstart', (e: MouseEvent) => {
-			if (!this.model.gameActive()) return;
-			this.mouse.left = true;
-			const clickPoint = new Point(e.clientX, e.clientY);
-			const serverPosition = this.model.view.calculateServerPosition(clickPoint);
-			this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
+			if (myPlayer.getWeapon() !== Weapon.Granade && myPlayer.getWeapon() !== Weapon.Smoke) {
+				const clickPoint = new Point(e.clientX, e.clientY);
+				const serverPosition = this.model.view.calculateServerPosition(clickPoint);
+				this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
+			} else {
+				mouseDownTime = Date.now();
+			}
 		});
-		*/
 
 		this.myHtmlElements.transparentLayer.addEventListener('mouseup', (e: MouseEvent) => {
 			if (!this.model.gameActive()) return;
+			const myPlayer = this.model.snapshotManager.getMyPlayer(this.model.playerId);
+			if (myPlayer.getWeapon() !== Weapon.Granade && myPlayer.getWeapon() !== Weapon.Smoke) {
+				this.socket.emit('m', this.model.getGameId(), '-l');
+			} else {
+				const delayFromMouseDown = Date.now() - mouseDownTime;
+				// throw
+				this.socket.emit('m', this.model.getGameId(), 'l', { x: 0, y: 0 }, delayFromMouseDown);
+
+				setTimeout(() => {
+					this.socket.emit('m', this.model.getGameId(), '-l');
+				}, 16);
+				return;
+			}
+
 			this.mouse.left = false;
-			this.socket.emit('m', this.model.getGameId(), '-l');
 		});
 
 		this.myHtmlElements.transparentLayer.addEventListener('touchend', (e: MouseEvent) => {
@@ -1100,7 +1151,7 @@ export class Controller {
 				<tr><th>Lose:</th><td>${stats.lost}</td></tr>
 				<tr><th>Kill:</th><td>${stats.kill}</td></tr>
 				<tr><th>Die:</th><td>${stats.die}</td></tr>
-				<tr><th>Avg survive:</th><td>${Math.round((stats.survive / stats.numberOfGames) * 100) / 100}s</td></tr>
+				<tr><th>Avg survived:</th><td>${Math.round((stats.survive / stats.numberOfGames) * 100) / 100}s</td></tr>
 				<tr><th>Avg damage dealt:</th><td>${Math.round(stats.damageDealt / stats.numberOfGames)}</td></tr>
 				<tr><th>Avg damage taken:</th><td>${Math.round(stats.damageTaken / stats.numberOfGames)}</td></tr>
 				</table>

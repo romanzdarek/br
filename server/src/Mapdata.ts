@@ -1,15 +1,13 @@
 import { Terrain } from './Terrain';
-import RectangleObstacle from './RectangleObstacle';
-import Bush from './Bush';
-import Rock from './Rock';
-import Tree from './Tree';
+import RectangleObstacle from './obstacle/RectangleObstacle';
+import RoundObstacle from './obstacle/RoundObstacle';
 
-export default interface MapData {
-	size: number;
-	blockSize: number;
-	terrains: Terrain[];
-	rects: RectangleObstacle[];
-	bushes: Bush[];
-	rocks: Rock[];
-	trees: Tree[];
-};
+export default class MapData {
+	constructor(
+		public size: number,
+		public blockSize: number,
+		public terrains: Terrain[],
+		public roundObstacles: RoundObstacle[],
+		public rectangleObstacles: RectangleObstacle[]
+	) {}
+}

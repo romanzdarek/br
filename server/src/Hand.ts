@@ -250,10 +250,11 @@ export default class Hand {
 	}
 
 	private collisions(): void {
-		//hit?
-		//hit players
+		// Hit?
+
+		// Hit player
 		for (const player of this.players) {
-			if (!this.hitObjects.includes(player) && player.isActive() && player != this.player) {
+			if (!this.hitObjects.includes(player) && player != this.player) {
 				const playerAndHandRadius = Player.radius + Hand.radius;
 				const x = this.getCenterX() - player.getCenterX();
 				const y = this.getCenterY() - player.getCenterY();
@@ -265,8 +266,9 @@ export default class Hand {
 			}
 		}
 
-		for (let i = 0; i < this.map.bushes.length; i++) {
-			const obstacle = this.map.bushes[i];
+		// Hit round
+		for (let i = 0; i < this.map.roundObstacles.length; i++) {
+			const obstacle = this.map.roundObstacles[i];
 			if (!this.hitObjects.includes(obstacle) && obstacle.isActive()) {
 				const obstacleAndHandRadius = obstacle.radius + Hand.radius;
 				const x = this.getCenterX() - obstacle.getCenterX();
@@ -279,35 +281,7 @@ export default class Hand {
 			}
 		}
 
-		for (let i = 0; i < this.map.rocks.length; i++) {
-			const obstacle = this.map.rocks[i];
-			if (!this.hitObjects.includes(obstacle) && obstacle.isActive()) {
-				const obstacleAndHandRadius = obstacle.radius + Hand.radius;
-				const x = this.getCenterX() - obstacle.getCenterX();
-				const y = this.getCenterY() - obstacle.getCenterY();
-				const distance = Math.sqrt(x * x + y * y);
-				if (distance < obstacleAndHandRadius) {
-					obstacle.acceptHit(this.power);
-					this.hitObjects.push(obstacle);
-				}
-			}
-		}
-
-		for (let i = 0; i < this.map.trees.length; i++) {
-			const obstacle = this.map.trees[i];
-			if (!this.hitObjects.includes(obstacle) && obstacle.isActive()) {
-				const obstacleAndHandRadius = obstacle.treeTrankRadius + Hand.radius;
-				const x = this.getCenterX() - obstacle.getCenterX();
-				const y = this.getCenterY() - obstacle.getCenterY();
-				const distance = Math.sqrt(x * x + y * y);
-				if (distance < obstacleAndHandRadius) {
-					obstacle.acceptHit(this.power);
-					this.hitObjects.push(obstacle);
-				}
-			}
-		}
-
-		//walls
+		// Hit rect
 		for (let i = 0; i < this.map.rectangleObstacles.length; i++) {
 			const obstacle = this.map.rectangleObstacles[i];
 			if (!this.hitObjects.includes(obstacle) && obstacle.isActive()) {

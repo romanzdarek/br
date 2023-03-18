@@ -65,14 +65,26 @@ export default class MyHtmlElements {
 		terrainWaterTriangle2: document.getElementById('terrainWaterTriangle2'),
 		terrainWaterTriangle3: document.getElementById('terrainWaterTriangle3'),
 		terrainWaterTriangle4: document.getElementById('terrainWaterTriangle4'),
-		objectImgs: document.getElementById('editorObjectImgs'),
-		objectBush: document.getElementById('editorObjectBush'),
-		objectRock: document.getElementById('editorObjectRock'),
-		objectTree: document.getElementById('editorObjectTree'),
-		objectRect: document.getElementById('editorObjectRect'),
-		objectHorizontalWall: document.getElementById('editorObjectHorizontalWall'),
-		objectVerticalWall: document.getElementById('editorObjectVerticalWall'),
-		objectDelete: document.getElementById('editorObjectDelete'),
+
+		obstacleImgs: document.getElementById('editorObstacleImgs'),
+		obstacleBush: document.getElementById('editorObstacleBush'),
+		obstacleRock: document.getElementById('editorObstacleRock'),
+		obstacleTree: document.getElementById('editorObstacleTree'),
+
+		obstacleTreeSize: document.getElementById('editorObstacleTreeSize'),
+		obstacleBushSize: document.getElementById('editorObstacleBushSize'),
+		obstacleRockSize: document.getElementById('editorObstacleRockSize'),
+
+		obstacleBoxSize: document.getElementById('editorObstacleBoxSize'),
+		obstacleBlockSize: document.getElementById('editorObstacleBlockSize'),
+
+		obstacleMinShiftX: document.getElementById('editorObstacleMinShiftX'),
+		obstacleMinShiftY: document.getElementById('editorObstacleMinShiftY'),
+
+		obstacleBlock: document.getElementById('editorObstacleBlock'),
+		obstacleBox: document.getElementById('editorObstacleBox'),
+
+		obstacleDelete: document.getElementById('editorObstacleDelete'),
 		openMenu: document.getElementById('editorOpenMenu'),
 	};
 
