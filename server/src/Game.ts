@@ -1,28 +1,28 @@
-import Map from './Map';
-import Zone from './Zone';
-import Granade from './Granade';
-import Smoke from './Smoke';
-import SmokeCloud from './SmokeCloud';
-import Bullet from './Bullet';
-import { Player } from './Player';
-import { Weapon } from './Weapon';
-import PlayerSnapshot from './PlayerSnapshot';
-import BulletSnapshot from './BulletSnapshot';
-import WaterTerrainData from './WaterTerrainData';
+import Map from './map/Map';
+import Zone from './zone/Zone';
+import Grenade from './weapon/Grenade';
+import Smoke from './weapon/Smoke';
+import SmokeCloud from './weapon/SmokeCloud';
+import Bullet from './weapon/Bullet';
+import { Player } from './player/Player';
+import { Weapon } from './weapon/Weapon';
+import PlayerSnapshot from './player/PlayerSnapshot';
+import BulletSnapshot from './weapon/BulletSnapshot';
+import WaterTerrainData from './map/WaterTerrainData';
 import CollisionPoints from './CollisionPoints';
-import ThrowingObjectSnapshot from './ThrowingObjectSnapshot';
+import ThrowingObjectSnapshot from './weapon/ThrowingObjectSnapshot';
 import * as SocketIO from 'socket.io';
-import SmokeCloudSnapshot from './SmokeCloudSnapshot';
-import ThrowingObject from './ThrowingObject';
-import ZoneSnapshot from './ZoneSnapshot';
-import MapData from './MapData';
-import LootSnapshot from './LootSnapshot';
+import SmokeCloudSnapshot from './weapon/SmokeCloudSnapshot';
+import ThrowingObject from './weapon/ThrowingObject';
+import ZoneSnapshot from './zone/ZoneSnapshot';
+import MapData from './map/MapData';
+import LootSnapshot from './loot/LootSnapshot';
 import Snapshot from './Snapshot';
-import Loot from './Loot';
-import MyPlayerSnapshot from './MyPlayerSnapshot';
-import PlayerFactory from './PlayerFactory';
-import BulletFactory from './BulletFactory';
-import ObstacleSnapshot from './ObstacleSnapshot';
+import Loot from './loot/Loot';
+import MyPlayerSnapshot from './player/MyPlayerSnapshot';
+import PlayerFactory from './player/PlayerFactory';
+import BulletFactory from './weapon/BulletFactory';
+import ObstacleSnapshot from './obstacle/ObstacleSnapshot';
 import WaterCircleSnapshot from './WaterCircleSnapshot';
 import Sound, { SoundType } from './Sound';
 import { ObstacleType } from './obstacle/ObstacleType';
@@ -38,7 +38,7 @@ export default class Game {
 	private sounds: Sound[] = [];
 	private loot: Loot;
 	private smokeClouds: SmokeCloud[] = [];
-	private granades: ThrowingObject[] = [];
+	private grenades: ThrowingObject[] = [];
 	private collisionPoints: CollisionPoints;
 	private active: boolean = false;
 	private endingTimer: number = -1;
@@ -178,7 +178,7 @@ export default class Game {
 			this.collisionPoints,
 			this.players,
 			this.bullets,
-			this.granades,
+			this.grenades,
 			this.loot,
 			this.bulletFactory,
 			this.killMessages,
@@ -214,38 +214,38 @@ export default class Game {
 			loot.move(this.loot.lootItems, this.map);
 		}
 
-		//move granades
-		for (let i = this.granades.length - 1; i >= 0; i--) {
-			const granade = this.granades[i];
-			if (!granade.explode()) {
-				granade.move();
-				granade.moveFromObstacle(this.map);
-				granade.tick();
+		//move Grenades
+		for (let i = this.grenades.length - 1; i >= 0; i--) {
+			const grenade = this.grenades[i];
+			if (!grenade.explode()) {
+				grenade.move();
+				grenade.moveFromObstacle(this.map);
+				grenade.tick();
 			} else {
 				//explode
 				//create fragments
-				if (granade instanceof Granade) {
-					const shiftAngle = 360 / granade.fragmentCount;
+				if (grenade instanceof Grenade) {
+					const shiftAngle = 360 / grenade.fragmentCount;
 					const fragments = [];
-					for (let i = 0; i < granade.fragmentCount; i++) {
+					for (let i = 0; i < grenade.fragmentCount; i++) {
 						const angle = i * shiftAngle;
-						fragments.push(this.bulletFactory.createFragment(granade, this.map, this.players, angle));
+						fragments.push(this.bulletFactory.createFragment(grenade, this.map, this.players, angle));
 					}
 					this.bullets.push(...this.shuffleFragments(fragments));
 
 					//
-					granade.createExplodeSound();
+					grenade.createExplodeSound();
 				}
 				//create smoke clouds
-				if (granade instanceof Smoke) {
-					const shiftAngle = 360 / granade.cloudCount;
-					for (let i = 0; i < granade.cloudCount; i++) {
+				if (grenade instanceof Smoke) {
+					const shiftAngle = 360 / grenade.cloudCount;
+					for (let i = 0; i < grenade.cloudCount; i++) {
 						const randomAngle = Math.floor(Math.random() * 360);
 						const angle = i * shiftAngle;
-						this.smokeClouds.push(new SmokeCloud(granade, randomAngle));
+						this.smokeClouds.push(new SmokeCloud(grenade, randomAngle));
 					}
 				}
-				this.granades.splice(i, 1);
+				this.grenades.splice(i, 1);
 			}
 		}
 
@@ -308,10 +308,10 @@ export default class Game {
 			lootSnapshotsOptimalization.push(new LootSnapshot(loot));
 		}
 
-		//granades & smokes
-		const granadeSnapshots: ThrowingObjectSnapshot[] = [];
-		for (const granade of this.granades) {
-			granadeSnapshots.push(new ThrowingObjectSnapshot(granade));
+		//Grenades & smokes
+		const grenadeSnapshots: ThrowingObjectSnapshot[] = [];
+		for (const grenade of this.grenades) {
+			grenadeSnapshots.push(new ThrowingObjectSnapshot(grenade));
 		}
 
 		//bullets
@@ -354,10 +354,10 @@ export default class Game {
 					if (playerNow.i === playerBefore.i) {
 						//for deny create beetween snapshot for hands
 						if (
-							(playerNow.w === Weapon.Hand || playerNow.w === Weapon.Smoke || playerNow.w === Weapon.Granade || playerNow.w === Weapon.Medkit) &&
+							(playerNow.w === Weapon.Hand || playerNow.w === Weapon.Smoke || playerNow.w === Weapon.Grenade || playerNow.w === Weapon.Medkit) &&
 							playerBefore.w !== Weapon.Hand &&
 							playerBefore.w !== Weapon.Smoke &&
-							playerBefore.w !== Weapon.Granade &&
+							playerBefore.w !== Weapon.Grenade &&
 							playerBefore.w !== Weapon.Medkit
 						) {
 							playerNow.h = 1;
@@ -480,7 +480,7 @@ export default class Game {
 			dateNow,
 			playerSnapshots,
 			bulletSnapshots,
-			granadeSnapshots,
+			grenadeSnapshots,
 			smokeCloudSnapshots,
 			zoneSnapshot,
 			lootSnapshots,
@@ -548,7 +548,7 @@ export default class Game {
 				dateNow,
 				playerSnapshotsOptimalization,
 				bulletSnapshots,
-				granadeSnapshots,
+				grenadeSnapshots,
 				smokeCloudSnapshots,
 				zoneSnapshotOptimalization,
 				lootSnapshotsOptimalization,

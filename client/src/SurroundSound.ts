@@ -7,13 +7,14 @@ export default class SurroundSound {
 	private shotgunShout: Howl;
 	private rifleShout: Howl;
 	private machinegunShout: Howl;
-	private granadeShout: Howl;
+	private grenadeShout: Howl;
 	private punch: Howl;
 	private water: Howl;
 	private hit: Howl;
 	private footstep: Howl;
-	private hammer: Howl;
+	private handWeapon: Howl;
 	private throw: Howl;
+	private swordBlock: Howl;
 
 	constructor() {
 		this.pistolShout = new Howl({
@@ -36,8 +37,8 @@ export default class SurroundSound {
 			volume: 0,
 		});
 
-		this.granadeShout = new Howl({
-			src: ['../sound/granade.wav'],
+		this.grenadeShout = new Howl({
+			src: ['../sound/grenade.wav'],
 			volume: 0,
 		});
 
@@ -61,13 +62,17 @@ export default class SurroundSound {
 			volume: 0,
 		});
 
-		this.hammer = new Howl({
-			src: ['../sound/hammer.flac'],
+		this.handWeapon = new Howl({
+			src: ['../sound/handWeapon.flac'],
 			volume: 0,
 		});
 
 		this.throw = new Howl({
 			src: ['../sound/throw.flac'],
+			volume: 0,
+		});
+		this.swordBlock = new Howl({
+			src: ['../sound/sword-block.wav'],
 			volume: 0,
 		});
 	}
@@ -89,8 +94,8 @@ export default class SurroundSound {
 				volumeBySoundType = 1.2;
 				sound = this.machinegunShout;
 				break;
-			case SoundType.Granade:
-				sound = this.granadeShout;
+			case SoundType.Grenade:
+				sound = this.grenadeShout;
 				break;
 			case SoundType.Punch:
 				volumeBySoundType = 0.9;
@@ -107,12 +112,16 @@ export default class SurroundSound {
 				volumeBySoundType = 1.5;
 				sound = this.footstep;
 				break;
-			case SoundType.Hammer:
-				sound = this.hammer;
+			case SoundType.HandWeapon:
+				sound = this.handWeapon;
 				break;
 			case SoundType.Throw:
 				volumeBySoundType = 0.8;
 				sound = this.throw;
+				break;
+			case SoundType.SwordBlock:
+				volumeBySoundType = 1.5;
+				sound = this.swordBlock;
 				break;
 		}
 

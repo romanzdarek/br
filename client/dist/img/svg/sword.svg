@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<svg width="500" height="500" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
+ <g class="layer">
+  <title>Layer 1</title>
+  <polygon fill="#93C2DE" id="svg_1" points="302,201 447.38153076171875,191 483,216 302,216 " stroke="#000000"/>
+  <polygon fill="#B7D7F2" id="svg_3" points="301.5,229.80001831054688 446.8814697265625,239 482.5,216 301.5,216 " stroke="#000000" transform="matrix(1 0 0 1 0 0)"/>
+  <rect fill="#652a1f" height="17" id="svg_2" rx="1" ry="1" stroke="#000000" stroke-linecap="round" stroke-width="3" width="86" x="210" y="207"/>
+  <path fill="none" id="svg_5" stroke="#191919"/>
+  <rect fill="#f0cd50" height="47" id="svg_6" rx="5" ry="5" stroke="#191919" stroke-linecap="round" stroke-width="3" width="15" x="286" y="192.5"/>
+  <polygon cx="86.5" cy="296" edge="16.51" fill="#f0cd50" id="svg_7" orient="x" points="213.8672332763672,215 203.7772674560547,229.3616485595703 187.45132446289062,223.87600708007812 187.45132446289062,206.12399291992188 203.7772674560547,200.6383514404297 213.8672332763672,215 " shape="regularPoly" sides="5" stroke="#000000" stroke-width="3" transform="rotate(180 200.659 215)"/>
+ </g>
+</svg>

@@ -1,9 +1,9 @@
 import PlayerSnapshot from './PlayerSnapshot';
 import BulletSnapshot from './BulletSnapshot';
-import GranadeSnapshot from './GranadeSnapshot';
+import GrenadeSnapshot from './GrenadeSnapshot';
 import SmokeCloudSnapshot from './SmokeCloudSnapshot';
 import ZoneSnapshot from './ZoneSnapshot';
-import LootSnapshot from './LootSnapshot';
+import LootSnapshot from './loot/LootSnapshot';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import ObstacleSnapshot from './ObstacleSnapshot';
 import WaterCircleSnapshot from './WaterCircleSnapshot';
@@ -14,7 +14,7 @@ export type Snapshot = {
 	i: MyPlayerSnapshot;
 	p: PlayerSnapshot[];
 	b: BulletSnapshot[];
-	g: GranadeSnapshot[];
+	g: GrenadeSnapshot[];
 	s: SmokeCloudSnapshot[];
 	z: ZoneSnapshot;
 	l: LootSnapshot[];

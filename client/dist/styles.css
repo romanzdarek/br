@@ -68,7 +68,7 @@ canvas#gameScreen{
     width: 190px;
     height: 190px;
     z-index: 5;
-    background: rgba(0, 0, 0, 0.2);;
+    background: rgba(0, 0, 0, 0.2);
 }
 #zoneTimer{
     z-index: 8;
@@ -109,10 +109,19 @@ canvas#helperScreen{
     top:0;
     left:0;
 }
+
+
+#backToMainMenu{
+    display: none;
+    position: absolute;
+    left: -1000px;
+    top:-1000px;
+
+}
 .menu{
     border-radius: 5px;
     border: 3px solid #6B6B6B;
-    background: silver;
+    background: rgba(209, 209, 209, 0.8);
     width: 300px;
     height: 320px;
     position: absolute;
@@ -124,7 +133,7 @@ canvas#helperScreen{
     display: none;
     z-index: 20;
 }
-.menu input, button, select{
+.menu input, .menu  button, .menu  select{
     display: block;
     width: 100%;
     margin-bottom:10px;
@@ -196,24 +205,10 @@ canvas#helperScreen{
     display: block;
 }
 
-
-
-#mainMenuControls{
-    width:49%;
-    float:left;
-}
-
-#mainMenuStats{
-    width:49%;
-    float:right;
-}
-
 #statsMenu table{
     font-size:85%;
     margin-bottom:10px;
 }
-
-
 
 
 #alertMenu{
@@ -734,11 +729,31 @@ div.spectateLabel{
     }
 
     #zoneTimer{
-        top: 110px;
+        font-size: 90%;
+        line-height: 120%;
+        top: 115px;
     }
 
     #alive{
         left: 130px;
+    }
+
+    #backToMainMenu{
+        top: 60px;
+        left: 50%;
+        margin-left: -50px;
+
+        padding: 7px;
+        width:100px;
+        text-align: center;
+        z-index:20;
+        
+        background: rgba(0, 0, 0, 0.2);
+        color: white;
+        font-size:80%;
+        font-weight: bold;
+        border: none;
+        border-radius: 5px;
     }
 
     #spectate{

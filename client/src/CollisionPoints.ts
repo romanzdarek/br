@@ -3,17 +3,21 @@ import Point from './Point';
 export default class CollisionPoints {
 	body: Point[] = [];
 	hand: Point[] = [];
-	hammer: Point[][] = [];
+	mace: Point[][] = [];
+	sword: Point[][] = [];
+	halberd: Point[][] = [];
 	ready: boolean = false;
 
-	setData(body: Point[], hand: Point[], hammer: Point[][]) {
+	setData(body: Point[], hand: Point[], mace: Point[][], sword: Point[][], halberd: Point[][]) {
 		this.body = body;
 		this.hand = hand;
-        this.hammer = hammer;
-        this.ready = true;
-    }
-    
-    isReady(): boolean{
-        return this.ready;
-    }
+		this.mace = mace;
+		this.sword = sword;
+		this.halberd = halberd;
+		this.ready = true;
+	}
+
+	isReady(): boolean {
+		return this.ready;
+	}
 }

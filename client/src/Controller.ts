@@ -170,6 +170,7 @@ export class Controller {
 
 		this.socket.on('stopSpectate', (stats: PlayerStats, winnerName) => {
 			this.model.view.gameOver(stats, true, winnerName);
+			el.close(this.myHtmlElements.backToMainMenu);
 		});
 
 		//startGame
@@ -249,8 +250,8 @@ export class Controller {
 			}
 		});
 
-		this.socket.on('collisionPoints', (body: Point[], hand: Point[], hammer: Point[][]) => {
-			this.model.collisionPoints.setData(body, hand, hammer);
+		this.socket.on('collisionPoints', (body: Point[], hand: Point[], mace: Point[][], sword: Point[][], halberd: Point[][]) => {
+			this.model.collisionPoints.setData(body, hand, mace, sword, halberd);
 		});
 
 		//map
@@ -311,21 +312,27 @@ export class Controller {
 
 		const throwItemMinTouchDelay = 500;
 		let item1TouchStartTime = 0;
-		let throwItem1 = false;
+		let throw1TimeoutId: any;
 
 		let item2TouchStartTime = 0;
-		let throwItem2 = false;
+		let throw2TimeoutId: any;
+
+		let item3TouchStartTime = 0;
+		let throw3TimeoutId: any;
+
+		let item4TouchStartTime = 0;
+		let throw4TimeoutId: any;
+
+		let item5TouchStartTime = 0;
+		let throw5TimeoutId: any;
 
 		const throwItem = (itemNumber: number) => {
-			if (itemNumber === 1 && !throwItem1) return;
-			if (itemNumber === 2 && !throwItem2) return;
 			this.socket.emit('throwItem', this.model.getGameId(), itemNumber);
 		};
 
 		el.items.item1.addEventListener('touchstart', (event: Event) => {
 			item1TouchStartTime = Date.now();
-			throwItem1 = true;
-			setTimeout(() => {
+			throw1TimeoutId = setTimeout(() => {
 				throwItem(1);
 			}, throwItemMinTouchDelay);
 		});
@@ -333,14 +340,13 @@ export class Controller {
 		el.items.item1.addEventListener('touchend', (event: Event) => {
 			if (Date.now() < item1TouchStartTime + throwItemMinTouchDelay) {
 				this.socket.emit('i', this.model.getGameId(), 1, true);
-				throwItem1 = false;
+				clearTimeout(throw1TimeoutId);
 			}
 		});
 
 		el.items.item2.addEventListener('touchstart', (event: Event) => {
 			item2TouchStartTime = Date.now();
-			throwItem2 = true;
-			setTimeout(() => {
+			throw2TimeoutId = setTimeout(() => {
 				throwItem(2);
 			}, throwItemMinTouchDelay);
 		});
@@ -348,21 +354,50 @@ export class Controller {
 		el.items.item2.addEventListener('touchend', (event: Event) => {
 			if (Date.now() < item2TouchStartTime + throwItemMinTouchDelay) {
 				this.socket.emit('i', this.model.getGameId(), 2, true);
-				throwItem2 = false;
+				clearTimeout(throw2TimeoutId);
 			}
 		});
 
+		el.items.item3.addEventListener('touchstart', (event: Event) => {
+			item3TouchStartTime = Date.now();
+			throw3TimeoutId = setTimeout(() => {
+				throwItem(3);
+			}, throwItemMinTouchDelay);
+		});
+
 		el.items.item3.addEventListener('touchend', (event: Event) => {
-			this.socket.emit('i', this.model.getGameId(), 3);
+			if (Date.now() < item3TouchStartTime + throwItemMinTouchDelay) {
+				this.socket.emit('i', this.model.getGameId(), 3);
+				clearTimeout(throw3TimeoutId);
+			}
+		});
+
+		el.items.item4.addEventListener('touchstart', (event: Event) => {
+			item4TouchStartTime = Date.now();
+			throw4TimeoutId = setTimeout(() => {
+				throwItem(4);
+			}, throwItemMinTouchDelay);
 		});
 
 		el.items.item4.addEventListener('touchend', (event: Event) => {
-			this.socket.emit('i', this.model.getGameId(), 4);
+			if (Date.now() < item4TouchStartTime + throwItemMinTouchDelay) {
+				this.socket.emit('i', this.model.getGameId(), 4);
+				clearTimeout(throw4TimeoutId);
+			}
+		});
+
+		el.items.item5.addEventListener('touchstart', (event: Event) => {
+			item5TouchStartTime = Date.now();
+			throw5TimeoutId = setTimeout(() => {
+				throwItem(5);
+			}, throwItemMinTouchDelay);
 		});
 
 		el.items.item5.addEventListener('touchend', (event: Event) => {
-			event.preventDefault();
-			this.socket.emit('i', this.model.getGameId(), 5);
+			if (Date.now() < item5TouchStartTime + throwItemMinTouchDelay) {
+				this.socket.emit('i', this.model.getGameId(), 5);
+				clearTimeout(throw5TimeoutId);
+			}
 		});
 	}
 
@@ -694,8 +729,9 @@ export class Controller {
 					myPlayer &&
 					(myPlayer.getWeapon() === Weapon.Rifle ||
 						myPlayer.getWeapon() === Weapon.Shotgun ||
-						myPlayer.getWeapon() === Weapon.Granade ||
-						myPlayer.getWeapon() === Weapon.Smoke)
+						myPlayer.getWeapon() === Weapon.Grenade ||
+						myPlayer.getWeapon() === Weapon.Smoke ||
+						this.myHtmlElements.items.item4.classList.contains('active'))
 				) {
 					return;
 				}
@@ -733,7 +769,7 @@ export class Controller {
 				touchEndtriggerReady &&
 				(myPlayer.getWeapon() === Weapon.Rifle ||
 					myPlayer.getWeapon() === Weapon.Shotgun ||
-					myPlayer.getWeapon() === Weapon.Granade ||
+					myPlayer.getWeapon() === Weapon.Grenade ||
 					myPlayer.getWeapon() === Weapon.Smoke)
 			) {
 				if (el.items.item4.classList.contains('active')) {
@@ -785,11 +821,17 @@ export class Controller {
 
 		let mouseDownTime = 0;
 		this.myHtmlElements.transparentLayer.addEventListener('mousedown', (e: MouseEvent) => {
+			console.log('down');
 			if (!this.model.gameActive()) return;
 			const myPlayer = this.model.snapshotManager.getMyPlayer(this.model.playerId);
 			this.mouse.left = true;
 
-			if (myPlayer.getWeapon() !== Weapon.Granade && myPlayer.getWeapon() !== Weapon.Smoke) {
+			if (
+				myPlayer.getWeapon() !== Weapon.Grenade &&
+				myPlayer.getWeapon() !== Weapon.Smoke &&
+				!this.myHtmlElements.items.item4.classList.contains('active')
+			) {
+				console.log('no this');
 				const clickPoint = new Point(e.clientX, e.clientY);
 				const serverPosition = this.model.view.calculateServerPosition(clickPoint);
 				this.socket.emit('m', this.model.getGameId(), 'l', serverPosition);
@@ -799,13 +841,15 @@ export class Controller {
 		});
 
 		this.myHtmlElements.transparentLayer.addEventListener('mouseup', (e: MouseEvent) => {
+			console.log('up');
 			if (!this.model.gameActive()) return;
 			const myPlayer = this.model.snapshotManager.getMyPlayer(this.model.playerId);
-			if (myPlayer.getWeapon() !== Weapon.Granade && myPlayer.getWeapon() !== Weapon.Smoke) {
+			if (myPlayer.getWeapon() !== Weapon.Grenade && myPlayer.getWeapon() !== Weapon.Smoke) {
 				this.socket.emit('m', this.model.getGameId(), '-l');
 			} else {
 				const delayFromMouseDown = Date.now() - mouseDownTime;
 				// throw
+				console.log('delayFromMouseDown', delayFromMouseDown);
 				this.socket.emit('m', this.model.getGameId(), 'l', { x: 0, y: 0 }, delayFromMouseDown);
 
 				setTimeout(() => {
@@ -832,6 +876,10 @@ export class Controller {
 	}
 
 	private rotatePlayer(mouseX: number, mouseY: number): void {
+		const devicePixelRatio = window.devicePixelRatio || 1;
+		mouseX *= devicePixelRatio;
+		mouseY *= devicePixelRatio;
+
 		//triangular sides
 		const centerX = this.canvas.width / 2;
 		const centerY = this.canvas.height / 2;
@@ -1028,6 +1076,13 @@ export class Controller {
 			this.model.reset();
 		});
 
+		// backToMainMenu from spectacting on mobile
+		el.backToMainMenu.addEventListener('click', () => {
+			el.close(el.backToMainMenu);
+			this.socket.emit('leaveGame', this.model.getGameId());
+			this.model.reset();
+		});
+
 		//+++++++++++++ GAME OVER MENU
 		el.gameOverMenu.back.addEventListener('click', () => {
 			this.socket.emit('leaveGame', this.model.getGameId());
@@ -1037,6 +1092,8 @@ export class Controller {
 		el.gameOverMenu.spectate.addEventListener('click', () => {
 			this.socket.emit('spectate', this.model.getGameId());
 			el.close(el.gameOverMenu.main);
+			el.open(el.backToMainMenu);
+			el.backToMainMenu;
 			this.model.startSpectate();
 		});
 

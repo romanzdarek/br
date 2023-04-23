@@ -1,11 +1,11 @@
-import PlayerSnapshot from './PlayerSnapshot';
-import BulletSnapshot from './BulletSnapshot';
-import SmokeCloudSnapshot from './SmokeCloudSnapshot';
-import ZoneSnapshot from './ZoneSnapshot';
-import LootSnapshot from './LootSnapshot';
-import ThrowingObjectSnapshot from './ThrowingObjectSnapshot';
-import MyPlayerSnapshot from './MyPlayerSnapshot';
-import ObstacleSnapshot from './ObstacleSnapshot';
+import PlayerSnapshot from './player/PlayerSnapshot';
+import BulletSnapshot from './weapon/BulletSnapshot';
+import SmokeCloudSnapshot from './weapon/SmokeCloudSnapshot';
+import ZoneSnapshot from './zone/ZoneSnapshot';
+import LootSnapshot from './loot/LootSnapshot';
+import ThrowingObjectSnapshot from './weapon/ThrowingObjectSnapshot';
+import MyPlayerSnapshot from './player/MyPlayerSnapshot';
+import ObstacleSnapshot from './obstacle/ObstacleSnapshot';
 import WaterCircleSnapshot from './WaterCircleSnapshot';
 import Sound from './Sound';
 
@@ -27,7 +27,7 @@ export default class Snapshot {
 		time: number,
 		players: PlayerSnapshot[],
 		bullets: BulletSnapshot[],
-		granades: ThrowingObjectSnapshot[],
+		grenades: ThrowingObjectSnapshot[],
 		smokes: SmokeCloudSnapshot[],
 		zone: ZoneSnapshot,
 		loots: LootSnapshot[],
@@ -40,7 +40,7 @@ export default class Snapshot {
 		this.t = time;
 		this.p = players;
 		this.b = bullets;
-		this.g = granades;
+		this.g = grenades;
 		this.s = smokes;
 		this.z = zone;
 		this.l = loots;

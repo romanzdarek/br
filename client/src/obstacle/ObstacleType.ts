@@ -4,4 +4,5 @@ export enum ObstacleType {
 	Rock = 'Rock',
 	Block = 'Block',
 	Box = 'Box',
+	Camo = 'Camo',
 }

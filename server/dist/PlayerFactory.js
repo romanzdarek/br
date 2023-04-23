@@ -5,8 +5,8 @@ class PlayerFactory {
     constructor() {
         this.playerId = 0;
     }
-    create(name, socket, map, collisionPoints, players, bullets, granades, loot, bulletFacory, killmessages, sounds) {
-        return new Player_1.Player(this.playerId++, name, socket, map, collisionPoints, players, bullets, granades, loot, bulletFacory, killmessages, sounds);
+    create(name, socket, map, collisionPoints, players, bullets, grenades, loot, bulletFacory, killmessages, sounds) {
+        return new Player_1.Player(this.playerId++, name, socket, map, collisionPoints, players, bullets, grenades, loot, bulletFacory, killmessages, sounds);
     }
 }
 exports.default = PlayerFactory;

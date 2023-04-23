@@ -1,4 +1,4 @@
-import MapData from './MapData';
+import MapData from './map/MapData';
 //node modules
 import * as fs from 'fs';
 import { config } from './config';

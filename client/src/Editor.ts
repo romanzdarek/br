@@ -11,6 +11,7 @@ import Box from './obstacle/Box';
 import RoundObstacle from './obstacle/RoundObstacle';
 import RectangleObstacle from './obstacle/RectangleObstacle';
 import { ObstacleType } from './obstacle/ObstacleType';
+import Camo from './obstacle/Camo';
 
 export default class Editor {
 	private terrainType: TerrainType | null;
@@ -21,6 +22,7 @@ export default class Editor {
 	tree: Tree;
 	block: Block;
 	box: Box;
+	camo: Camo;
 
 	minShiftX: number = 1;
 	minShiftY: number = 1;
@@ -47,6 +49,7 @@ export default class Editor {
 		this.tree = new Tree(0, 0, 0, 500, 0);
 		this.block = new Block(0, 0, 0, 100, 100);
 		this.box = new Box(0, 0, 0, 50, 50);
+		this.camo = new Camo(0, 0, 0, 600, 600);
 		this.controller();
 	}
 
@@ -168,6 +171,10 @@ export default class Editor {
 				case ObstacleType.Block:
 					newObstacle = new Block(id++, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
 					break;
+
+				case ObstacleType.Camo:
+					newObstacle = new Camo(id++, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+					break;
 			}
 			this.rectangleObstacles.push(newObstacle);
 		}
@@ -198,6 +205,7 @@ export default class Editor {
 		(<HTMLInputElement>el.editor.obstacleRockSize).value = this.rock.size.toString();
 		(<HTMLInputElement>el.editor.obstacleBoxSize).value = this.box.width.toString();
 		(<HTMLInputElement>el.editor.obstacleBlockSize).value = this.block.width.toString();
+		(<HTMLInputElement>el.editor.obstacleCamoSize).value = this.camo.width.toString();
 
 		el.editor.obstacleTreeSize.addEventListener('change', (event: InputEvent) => {
 			const size = parseInt((<HTMLInputElement>el.editor.obstacleTreeSize).value);
@@ -227,6 +235,12 @@ export default class Editor {
 			const size = parseInt((<HTMLInputElement>el.editor.obstacleBlockSize).value);
 			if (!size) return;
 			this.block = new Block(0, 0, 0, size, size);
+		});
+
+		el.editor.obstacleCamoSize.addEventListener('change', (event: InputEvent) => {
+			const size = parseInt((<HTMLInputElement>el.editor.obstacleCamoSize).value);
+			if (!size) return;
+			this.camo = new Camo(0, 0, 0, size, size);
 		});
 
 		// editorScreen mouse move
@@ -303,6 +317,10 @@ export default class Editor {
 					this.obstacleType = ObstacleType.Block;
 					break;
 
+				case el.editor.obstacleCamo:
+					this.obstacleType = ObstacleType.Camo;
+					break;
+
 				case el.editor.obstacleDelete:
 					this.obstacleType = null;
 					break;
@@ -356,6 +374,10 @@ export default class Editor {
 						break;
 					case ObstacleType.Block:
 						this.rectangleObstacles.push(new Block(0, x - this.block.width / 2, y - this.block.height / 2, this.block.width, this.block.height));
+						break;
+
+					case ObstacleType.Camo:
+						this.rectangleObstacles.push(new Camo(0, x - this.camo.width / 2, y - this.camo.height / 2, this.camo.width, this.camo.height));
 						break;
 
 					default:

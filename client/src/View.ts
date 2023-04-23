@@ -9,7 +9,6 @@ import RectangleObstacle from './obstacle/RectangleObstacle';
 import Tree from './obstacle/Tree';
 import Rock from './obstacle/Rock';
 import Bush from './obstacle/Bush';
-import ServerClientSync from './ServerClientSync';
 import MyHtmlElements from './MyHtmlElements';
 import Editor from './Editor';
 import Colors from './Colors';
@@ -17,10 +16,11 @@ import BulletLine from './BulletLine';
 import CollisionPoints from './CollisionPoints';
 import Point from './Point';
 import SnapshotManager from './SnapshotManager';
-import { LootType } from './LootType';
+import { LootType } from './loot/LootType';
 import Scope from './Scope';
 import PlayerStats from './PlayerStats';
 import { ObstacleType } from './obstacle/ObstacleType';
+import Camo from './obstacle/Camo';
 
 type DrawData = {
 	x: number;
@@ -56,6 +56,7 @@ export default class View {
 	private ctxMap: CanvasRenderingContext2D;
 	private ctxEditor: CanvasRenderingContext2D;
 	private bushPNG: HTMLImageElement;
+	private camoPNG: HTMLImageElement;
 	private rockPNG: HTMLImageElement;
 
 	private blockPNG: HTMLImageElement;
@@ -69,9 +70,12 @@ export default class View {
 	private riflePNG: HTMLImageElement;
 	private hammerPNG: HTMLImageElement;
 	private clubPNG: HTMLImageElement;
+	private swordPNG: HTMLImageElement;
+	private macePNG: HTMLImageElement;
+	private halberdPNG: HTMLImageElement;
 
 	private cursorSVG: HTMLImageElement;
-	private granadePNG: HTMLImageElement;
+	private grenadePNG: HTMLImageElement;
 	private smokePNG: HTMLImageElement;
 	private medkitPNG: HTMLImageElement;
 	private smokeCloudPNG: HTMLImageElement;
@@ -84,8 +88,7 @@ export default class View {
 	private shotgunLootPNG: HTMLImageElement;
 	private machinegunLootPNG: HTMLImageElement;
 	private rifleLootPNG: HTMLImageElement;
-	private hammerLootPNG: HTMLImageElement;
-	private granadeLootPNG: HTMLImageElement;
+	private grenadeLootPNG: HTMLImageElement;
 	private smokeLootPNG: HTMLImageElement;
 	private redAmmoLootPNG: HTMLImageElement;
 	private greenAmmoLootPNG: HTMLImageElement;
@@ -96,6 +99,13 @@ export default class View {
 	private scope2LootPNG: HTMLImageElement;
 	private scope4LootPNG: HTMLImageElement;
 	private scope6LootPNG: HTMLImageElement;
+
+	private hammerLootPNG: HTMLImageElement;
+	private swordLootPNG: HTMLImageElement;
+	private maceLootPNG: HTMLImageElement;
+
+	private halberdLootPNG: HTMLImageElement;
+
 	private deadPlayerPNG: HTMLImageElement;
 	private waterTerrainData: WaterTerrainData;
 	private resolutionAdjustment: number = 1;
@@ -138,14 +148,14 @@ export default class View {
 		this.bushPNG = new Image();
 		this.bushPNG.src = 'img/png/bush.png';
 
+		this.camoPNG = new Image();
+		this.camoPNG.src = 'img/png/camo.png';
+
 		this.rockPNG = new Image();
 		this.rockPNG.src = 'img/png/rock.png';
 
 		this.blockPNG = new Image();
 		this.blockPNG.src = 'img/png/block.png';
-
-		this.boxPNG = new Image();
-		this.boxPNG.src = 'img/svg/box.png';
 
 		this.boxPNG = new Image();
 		this.boxPNG.src = 'img/png/box.png';
@@ -175,13 +185,22 @@ export default class View {
 		this.shotgunPNG.src = 'img/png/shotgun.png';
 
 		this.hammerPNG = new Image();
-		this.hammerPNG.src = 'img/png/hammer.png';
+		this.hammerPNG.src = 'img/svg/halberd.svg';
 
 		this.clubPNG = new Image();
 		this.clubPNG.src = 'img/png/club.png';
 
-		this.granadePNG = new Image();
-		this.granadePNG.src = 'img/png/grenade.png';
+		this.swordPNG = new Image();
+		this.swordPNG.src = 'img/png/sword.png';
+
+		this.macePNG = new Image();
+		this.macePNG.src = 'img/png/mace.png';
+
+		this.halberdPNG = new Image();
+		this.halberdPNG.src = 'img/png/halberd.png';
+
+		this.grenadePNG = new Image();
+		this.grenadePNG.src = 'img/png/grenade.png';
 
 		this.smokePNG = new Image();
 		this.smokePNG.src = 'img/png/smoke.png';
@@ -207,8 +226,17 @@ export default class View {
 		this.hammerLootPNG = new Image();
 		this.hammerLootPNG.src = 'img/png/hammerLoot.png';
 
-		this.granadeLootPNG = new Image();
-		this.granadeLootPNG.src = 'img/png/grenadeLoot.png';
+		this.halberdLootPNG = new Image();
+		this.halberdLootPNG.src = 'img/png/halberdLoot.png';
+
+		this.swordLootPNG = new Image();
+		this.swordLootPNG.src = 'img/png/swordLoot.png';
+
+		this.maceLootPNG = new Image();
+		this.maceLootPNG.src = 'img/png/maceLoot.png';
+
+		this.grenadeLootPNG = new Image();
+		this.grenadeLootPNG.src = 'img/png/grenadeLoot.png';
 
 		this.smokeLootPNG = new Image();
 		this.smokeLootPNG.src = 'img/png/smokeLoot.png';
@@ -549,6 +577,9 @@ export default class View {
 				case ObstacleType.Box:
 					ctx.drawImage(this.boxPNG, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
 					break;
+				case ObstacleType.Camo:
+					ctx.drawImage(this.camoPNG, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+					break;
 			}
 		}
 
@@ -648,6 +679,15 @@ export default class View {
 							(<RectangleObstacle>deleteObstacle).height
 						);
 						break;
+					case ObstacleType.Camo:
+						ctx.drawImage(
+							this.camoPNG,
+							deleteObstacle.x,
+							deleteObstacle.y,
+							(<RectangleObstacle>deleteObstacle).width,
+							(<RectangleObstacle>deleteObstacle).height
+						);
+						break;
 				}
 			}
 		}
@@ -684,6 +724,9 @@ export default class View {
 				case ObstacleType.Block:
 					ctx.drawImage(this.blockPNG, x - editor.block.width / 2, y - editor.block.height / 2, editor.block.width, editor.block.height);
 					break;
+				case ObstacleType.Camo:
+					ctx.drawImage(this.camoPNG, x - editor.camo.width / 2, y - editor.camo.height / 2, editor.camo.width, editor.camo.height);
+					break;
 			}
 		}
 	}
@@ -703,6 +746,15 @@ export default class View {
 		const y = player.getCenterY() - roudObject.getCenterY();
 		const radius = Math.sqrt(x * x + y * y);
 		return radius < player.radius + roudObject.radius;
+	}
+
+	private isPlayerUnderRectangleObject(player: Player, rectangleObject: Camo): boolean {
+		return (
+			player.getCenterX() + player.radius >= rectangleObject.x &&
+			player.getCenterX() - player.radius <= rectangleObject.x + rectangleObject.width &&
+			player.getCenterY() + player.radius >= rectangleObject.y &&
+			player.getCenterY() - player.radius <= rectangleObject.y + rectangleObject.height
+		);
 	}
 
 	drawGame(myPlayerId: number): void {
@@ -867,6 +919,7 @@ export default class View {
 
 		// rectangleObstacles
 		for (const rectangleObstacle of this.map.rectangleObstacles) {
+			if (rectangleObstacle.type === ObstacleType.Camo) continue;
 			if (rectangleObstacle.isActive()) {
 				const { x, y, width, height, isOnScreen } = this.howToDraw({
 					x: rectangleObstacle.x,
@@ -931,12 +984,20 @@ export default class View {
 					lootPNG = this.smokeLootPNG;
 					break;
 
-				case LootType.Granade:
-					lootPNG = this.granadeLootPNG;
+				case LootType.Grenade:
+					lootPNG = this.grenadeLootPNG;
 					break;
 
-				case LootType.Hammer:
-					lootPNG = this.hammerLootPNG;
+				case LootType.Sword:
+					lootPNG = this.swordLootPNG;
+					break;
+
+				case LootType.Mace:
+					lootPNG = this.maceLootPNG;
+					break;
+
+				case LootType.Halberd:
+					lootPNG = this.halberdLootPNG;
 					break;
 
 				case LootType.RedAmmo:
@@ -1093,33 +1154,59 @@ export default class View {
 					ctx.restore();
 				}
 			}
-			//hammer
-			if (player.getWeapon() === Weapon.Hammer) {
-				const gunX = player.getCenterX() - gunSize / 2;
-				const gunY = player.getCenterY() - gunSize / 2;
+
+			// hand weapon
+			let weaponSize = 500;
+			if (player.getWeapon() === Weapon.Halberd) weaponSize = 700;
+			if ([Weapon.Halberd, Weapon.Sword, Weapon.Mace].includes(player.getWeapon())) {
+				const gunX = player.getCenterX() - weaponSize / 2;
+				const gunY = player.getCenterY() - weaponSize / 2;
 				const { x, y, size, isOnScreen } = this.howToDraw({
 					x: gunX,
 					y: gunY,
-					size: gunSize,
+					size: weaponSize,
 				});
 				if (isOnScreen) {
+					let weaponPNG;
+					switch (player.getWeapon()) {
+						case Weapon.Halberd:
+							weaponPNG = this.halberdPNG;
+							break;
+						case Weapon.Sword:
+							weaponPNG = this.swordPNG;
+							break;
+						case Weapon.Mace:
+							weaponPNG = this.macePNG;
+							break;
+					}
+
 					let middleImage = size / 2;
 					ctx.save();
 					ctx.translate(x + middleImage, y + middleImage);
-					ctx.rotate((player.getHammerAngle() * Math.PI) / 180);
-					//ctx.drawImage(this.hammerPNG, -middleImage, -middleImage, size, size);
-					ctx.drawImage(this.clubPNG, -middleImage, -middleImage, size, size);
-
+					ctx.rotate((player.getWeaponAngle() * Math.PI) / 180);
+					ctx.drawImage(weaponPNG, -middleImage, -middleImage, size, size);
 					ctx.restore();
 
 					/*
 					if (this.collisionPoints.isReady()) {
-						//collisionPoints
 						ctx.fillStyle = this.colors.collisionPoint;
-						for (const point of this.collisionPoints.hammer[player.getHammerAngle()]) {
+
+						let collisionPoints;
+						switch (player.getWeapon()) {
+							case Weapon.Halberd:
+								collisionPoints = this.collisionPoints.halberd;
+								break;
+							case Weapon.Sword:
+								collisionPoints = this.collisionPoints.sword;
+								break;
+							case Weapon.Mace:
+								collisionPoints = this.collisionPoints.mace;
+								break;
+						}
+						for (const point of collisionPoints[player.getWeaponAngle()]) {
 							const { x, y, size } = this.howToDraw({
-								x: player.getCenterX() - gunSize / 2 + point.x,
-								y: player.getCenterY() - gunSize / 2 + point.y,
+								x: player.getCenterX() - weaponSize / 2 + point.x,
+								y: player.getCenterY() - weaponSize / 2 + point.y,
 								size: 1,
 							});
 							ctx.fillRect(x, y, size, size);
@@ -1132,7 +1219,7 @@ export default class View {
 			//player hands
 			if (
 				player.getWeapon() === Weapon.Hand ||
-				player.getWeapon() === Weapon.Granade ||
+				player.getWeapon() === Weapon.Grenade ||
 				player.getWeapon() === Weapon.Smoke ||
 				player.getWeapon() === Weapon.Medkit
 			) {
@@ -1170,8 +1257,8 @@ export default class View {
 						}
 						*/
 
-						//granade || smoke || medkit in hand
-						if ((player.getWeapon() === Weapon.Granade || player.getWeapon() === Weapon.Smoke || player.getWeapon() === Weapon.Medkit) && i === 1) {
+						//grenade || smoke || medkit in hand
+						if ((player.getWeapon() === Weapon.Grenade || player.getWeapon() === Weapon.Smoke || player.getWeapon() === Weapon.Medkit) && i === 1) {
 							const playerAngle = player.getAngle();
 							const percentSize = 1.2;
 							const shiftZ = player.hands[i].radius * percentSize;
@@ -1186,13 +1273,13 @@ export default class View {
 							});
 
 							if (isOnScreen) {
-								const granadeShiftAngle = 30;
+								const grenadeShiftAngle = 30;
 								let middleImage = size / 2;
 								ctx.save();
 								ctx.translate(x + middleImage, y + middleImage);
-								ctx.rotate(((playerAngle - granadeShiftAngle) * Math.PI) / 180);
+								ctx.rotate(((playerAngle - grenadeShiftAngle) * Math.PI) / 180);
 								let SVG;
-								if (player.getWeapon() === Weapon.Granade) SVG = this.granadePNG;
+								if (player.getWeapon() === Weapon.Grenade) SVG = this.grenadePNG;
 								if (player.getWeapon() === Weapon.Smoke) SVG = this.smokePNG;
 								if (player.getWeapon() === Weapon.Medkit) SVG = this.medkitPNG;
 								ctx.drawImage(SVG, -middleImage, -middleImage, size, size);
@@ -1219,7 +1306,7 @@ export default class View {
 				this.drawHandOnWeapon(player, 27, 0);
 				this.drawHandOnWeapon(player, 80, 9);
 			}
-			if (player.getWeapon() === Weapon.Hammer) {
+			if ([Weapon.Halberd, Weapon.Sword, Weapon.Mace].includes(player.getWeapon())) {
 				this.drawHandOnWeapon(player, 40, 30);
 				this.drawHandOnWeapon(player, 40, -30);
 			}
@@ -1252,23 +1339,23 @@ export default class View {
 			}
 		}
 
-		//granades
-		for (const granade of betweenSnapshot.g) {
-			const granadeSize = 40 * granade.b;
+		//grenades
+		for (const grenade of betweenSnapshot.g) {
+			const grenadeSize = 40 * grenade.b;
 			const { x, y, size, isOnScreen } = this.howToDraw({
-				x: granade.x - granadeSize / 2,
-				y: granade.y - granadeSize / 2,
-				size: granadeSize,
+				x: grenade.x - grenadeSize / 2,
+				y: grenade.y - grenadeSize / 2,
+				size: grenadeSize,
 			});
 			if (isOnScreen) {
 				let middleImage = size / 2;
 				ctx.save();
 				ctx.translate(x + middleImage, y + middleImage);
-				ctx.rotate((granade.a * Math.PI) / 180);
-				if (granade.t === 'g') {
-					ctx.drawImage(this.granadePNG, -middleImage, -middleImage, size, size);
+				ctx.rotate((grenade.a * Math.PI) / 180);
+				if (grenade.t === 'g') {
+					ctx.drawImage(this.grenadePNG, -middleImage, -middleImage, size, size);
 				}
-				if (granade.t === 's') {
+				if (grenade.t === 's') {
 					ctx.drawImage(this.smokePNG, -middleImage, -middleImage, size, size);
 				}
 				ctx.restore();
@@ -1326,6 +1413,37 @@ export default class View {
 					ctx.stroke();
 					ctx.restore();
 					partLine.increaseAge();
+				}
+			}
+		}
+
+		// Camo
+		for (const rectangleObstacle of this.map.rectangleObstacles) {
+			if (rectangleObstacle.type !== ObstacleType.Camo) continue;
+			if (rectangleObstacle.isActive()) {
+				const { x, y, width, height, isOnScreen } = this.howToDraw({
+					x: rectangleObstacle.x,
+					y: rectangleObstacle.y,
+					width: rectangleObstacle.width,
+					height: rectangleObstacle.height,
+				});
+				if (isOnScreen) {
+					// am i under the camo?
+					if (this.isPlayerUnderRectangleObject(this.myPlayer, <Camo>rectangleObstacle)) {
+						rectangleObstacle.decreaseOpacity(adjustFrameRate);
+					} else {
+						rectangleObstacle.increaseOpacity(adjustFrameRate);
+					}
+
+					let middleWidthImage = width / 2;
+					let middleHeightImage = height / 2;
+
+					ctx.save();
+					ctx.translate(x + middleWidthImage, y + middleHeightImage);
+					ctx.rotate(((<Camo>rectangleObstacle).angle * Math.PI) / 180);
+					ctx.globalAlpha = rectangleObstacle.getOpacity();
+					ctx.drawImage(this.camoPNG, -middleWidthImage, -middleHeightImage, width, height);
+					ctx.restore();
 				}
 			}
 		}
@@ -1526,9 +1644,9 @@ export default class View {
 			}
 
 			ammo = betweenSnapshot.i.a.toString() + ' / ' + extraAmmoForActiveGun;
-		} else if (this.myPlayer.getWeapon() === Weapon.Hand || this.myPlayer.getWeapon() === Weapon.Hammer) {
+		} else if ([Weapon.Hand, Weapon.Halberd, Weapon.Sword, Weapon.Mace].includes(this.myPlayer.getWeapon())) {
 			ammo = '∞';
-		} else if (this.myPlayer.getWeapon() === Weapon.Granade || this.myPlayer.getWeapon() === Weapon.Smoke) {
+		} else if (this.myPlayer.getWeapon() === Weapon.Grenade || this.myPlayer.getWeapon() === Weapon.Smoke) {
 			ammo = item4Count.toString();
 		} else if (this.myPlayer.getWeapon() === Weapon.Medkit) {
 			ammo = item5Count.toString();
@@ -1601,7 +1719,7 @@ export default class View {
 	private drawHandOnWeapon(player: Player, shiftHandZ: number, shiftHandAngle: number): void {
 		const ctx = this.ctxGame;
 		let finalAngle = shiftHandAngle + player.getAngle();
-		if (player.getWeapon() === Weapon.Hammer) finalAngle = shiftHandAngle + player.getHammerAngle();
+		if ([Weapon.Halberd, Weapon.Sword, Weapon.Mace].includes(player.getWeapon())) finalAngle = shiftHandAngle + player.getWeaponAngle();
 		if (finalAngle >= 360) finalAngle -= 360;
 		const shiftHandX = Math.sin((finalAngle * Math.PI) / 180) * shiftHandZ;
 		const shiftHandY = Math.cos((finalAngle * Math.PI) / 180) * shiftHandZ;
@@ -1738,10 +1856,12 @@ export default class View {
 		if (item === Weapon.Rifle) weaponName = 'Rifle';
 		if (item === Weapon.Machinegun) weaponName = 'Machinegun';
 		if (item === Weapon.Shotgun) weaponName = 'Shotgun';
-		if (item === Weapon.Granade) weaponName = 'Grenade';
+		if (item === Weapon.Grenade) weaponName = 'Grenade';
 		if (item === Weapon.Smoke) weaponName = 'Smoke';
 		if (item === Weapon.Hand) weaponName = 'Hands';
-		if (item === Weapon.Hammer) weaponName = 'Hammer';
+		if (item === Weapon.Halberd) weaponName = 'Halberd';
+		if (item === Weapon.Sword) weaponName = 'Sword';
+		if (item === Weapon.Mace) weaponName = 'Mace';
 		if (item === Weapon.Medkit) weaponName = 'Medkit';
 		return weaponName;
 	}
@@ -1789,7 +1909,7 @@ export default class View {
 					case LootType.Scope6:
 						lootName = '6X scope';
 						break;
-					case LootType.Granade:
+					case LootType.Grenade:
 						lootName = 'Grenade';
 						break;
 					case LootType.Smoke:
@@ -1801,8 +1921,14 @@ export default class View {
 					case LootType.Vest:
 						lootName = 'Vest';
 						break;
-					case LootType.Hammer:
-						lootName = 'Hammer';
+					case LootType.Sword:
+						lootName = 'Sword';
+						break;
+					case LootType.Mace:
+						lootName = 'Mace';
+						break;
+					case LootType.Halberd:
+						lootName = 'Halberd';
 						break;
 				}
 
@@ -1860,7 +1986,10 @@ export default class View {
 				if (winnerName) el.gameOverMenu.h1.textContent = winnerName + ' win';
 				el.gameOverMenu.spectate.style.display = 'none';
 			} else {
-				el.gameOverMenu.h1.textContent = "You cried :'(";
+				let looseMessage = "You cried :'(";
+				if (!stats.damageDealt) looseMessage = 'Humiliated';
+
+				el.gameOverMenu.h1.textContent = looseMessage;
 				el.gameOverMenu.spectate.style.display = 'block';
 			}
 			el.open(el.gameOverMenu.main);

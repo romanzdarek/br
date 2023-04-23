@@ -8,12 +8,16 @@ export default class Tree extends RoundObstacle {
 
 	constructor(id: number, x: number, y: number, size: number, angle: number) {
 		super(id, x, y, size);
-		this.treeTrankRadius = 38.5;
+		const defaultSize = 500;
+		const changeSizeRatio = size / defaultSize;
+
+		this.treeTrankRadius = 38 * changeSizeRatio;
 		this.opacity = 1;
 		this.healthMax = 200;
 		this.health = this.healthMax * this.opacity;
 		this.angle = angle;
 		this.type = ObstacleType.Tree;
+		this.calcColisionPoints(this.treeTrankRadius);
 	}
 
 	isPointIn(point: Point): boolean {

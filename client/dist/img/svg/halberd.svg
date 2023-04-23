@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<svg width="700" height="700" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
+ <g class="layer">
+  <title>Layer 1</title>
+  <rect fill="#652a1f" height="17" id="svg_2" rx="3" ry="3" stroke="#000000" stroke-linecap="round" stroke-width="3" width="271.8" x="297.2" y="307"/>
+  <path fill="none" id="svg_5" stroke="#191919"/>
+  <rect fill="#652a1f" height="0" id="svg_1" stroke="#000000" stroke-linecap="round" transform="matrix(1 0 0 1 0 0)" width="0" x="442.5" y="319"/>
+  <polygon fill="#93c2de" id="svg_4" points="531,305.1000061035156 648.26904296875,297.5 677,316.5 531,316.5 " stroke="#000000" transform="matrix(1 0 0 1 0 0)"/>
+  <polygon fill="#b7d7f2" id="svg_6" points="531.5,326.6999816894531 648.76904296875,333.5 677.5,316.5 531.5,316.5 " stroke="#000000"/>
+  <rect fill="#f0cd50" height="34" id="svg_8" rx="5" ry="5" stroke="#000000" stroke-linecap="round" stroke-width="3" width="17.8" x="512.6" y="298.5"/>
+ </g>
+</svg>

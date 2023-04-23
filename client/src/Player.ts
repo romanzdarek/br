@@ -11,7 +11,7 @@ export default class Player {
 	private x: number;
 	private y: number;
 	private angle: number;
-	private hammerAngle: number;
+	private weaponAngle: number;
 	readonly hands: Hand[] = [];
 	private weapon: Weapon;
 	readonly bloods: Blood[] = [];
@@ -22,7 +22,7 @@ export default class Player {
 		this.x = playerSnapshot.x;
 		this.y = playerSnapshot.y;
 		this.angle = playerSnapshot.a;
-		this.hammerAngle = playerSnapshot.m;
+		this.weaponAngle = playerSnapshot.m;
 		this.weapon = playerSnapshot.w;
 		this.size = playerSnapshot.size;
 		this.radius = this.size / 2;
@@ -40,7 +40,7 @@ export default class Player {
 	getVest(): boolean {
 		return this.vest;
 	}
-	
+
 	setVest(vest: boolean): void {
 		this.vest = vest;
 	}
@@ -65,8 +65,8 @@ export default class Player {
 		this.angle = angle;
 	}
 
-	setHammerAngle(hammerAngle: number): void {
-		this.hammerAngle = hammerAngle;
+	setWeaponAngle(weaponAngle: number): void {
+		this.weaponAngle = weaponAngle;
 	}
 
 	setWeapon(weapon: Weapon): void {
@@ -85,8 +85,8 @@ export default class Player {
 		return this.angle;
 	}
 
-	getHammerAngle(): number {
-		return this.hammerAngle;
+	getWeaponAngle(): number {
+		return this.weaponAngle;
 	}
 
 	getWeapon(): Weapon {

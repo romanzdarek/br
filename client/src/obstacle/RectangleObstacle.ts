@@ -37,4 +37,14 @@ export default abstract class RectangleObstacle {
 	isActive(): boolean {
 		return this.active;
 	}
+
+	increaseOpacity(adjustFrameRate: number) {
+		this.opacity += 0.01 * adjustFrameRate;
+		if (this.opacity > 1) this.opacity = 1;
+	}
+
+	decreaseOpacity(adjustFrameRate: number) {
+		this.opacity -= 0.02 * adjustFrameRate;
+		if (this.opacity < 0.7) this.opacity = 0.7;
+	}
 }

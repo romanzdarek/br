@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Granade_1 = require("./Granade");
+const Grenade_1 = require("./Grenade");
 const Smoke_1 = require("./Smoke");
 class ThrowingObjectSnapshot {
     constructor(throwingObject) {
@@ -14,7 +14,7 @@ class ThrowingObjectSnapshot {
         this.y = Math.round(throwingObject.getY() * afterComma) / afterComma;
         this.a = throwingObject.getAngle();
         this.b = throwingObject.getAboveGround();
-        if (throwingObject instanceof Granade_1.default) {
+        if (throwingObject instanceof Grenade_1.default) {
             this.t = 'g';
         }
         if (throwingObject instanceof Smoke_1.default) {

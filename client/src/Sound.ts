@@ -3,13 +3,14 @@ export enum SoundType {
 	Shotgun,
 	Rifle,
 	Machinegun,
-	Granade,
+	Grenade,
 	Punch,
 	Water,
 	Hit,
 	Footstep,
-	Hammer,
+	HandWeapon,
 	Throw,
+	SwordBlock,
 }
 
 export default interface Sound {

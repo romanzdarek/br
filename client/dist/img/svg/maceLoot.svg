@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<svg width="300" height="300" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
+ <g class="layer">
+  <title>Layer 1</title>
+  <ellipse cx="150" cy="150" fill="#000000" fill-opacity="0.2" id="circle" rx="145" ry="145" stroke="#000000" stroke-linecap="round" stroke-width="7"/>
+  <rect fill="#652a1f" height="17" id="svg_2" rx="1" ry="1" stroke="#000000" stroke-linecap="round" stroke-width="3" transform="rotate(-45 190 104.455)" width="163.8" x="21.2" y="96"/>
+  <path fill="none" id="svg_5" stroke="#191919"/>
+  <polygon cx="86.5" cy="296" edge="16.51" fill="#3e5163" id="svg_7" orient="x" points="1.451568603515625,104.55464172363281 11.484115600585938,90.6513671875 27.831817626953125,95.87843322753906 27.902694702148438,113.01228332519531 11.598800659179688,118.37442016601562 1.451568603515625,104.55464172363281 " shape="regularPoly" sides="5" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)"/>
+  <polygon cx="156.5" cy="44" edge="19.7" fill="#3e5163" id="svg_3" orient="x" points="134.63778686523438,83.16627502441406 143.48666381835938,96.22499084472656 125.7889404296875,96.22499084472656 134.63778686523438,83.16627502441406 " shape="regularPoly" sides="3" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)"/>
+  <polygon cx="156.5" cy="44" edge="19.7" fill="#3e5163" id="svg_12" orient="x" points="172.66592407226562,82.90541076660156 181.51480102539062,95.96412658691406 163.81704711914062,95.96412658691406 172.66592407226562,82.90541076660156 " shape="regularPoly" sides="3" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)"/>
+  <polygon cx="156.5" cy="44" edge="19.7" fill="#3e5163" id="svg_13" orient="x" points="209.89480590820312,82.77497863769531 218.74368286132812,95.83369445800781 201.04592895507812,95.83369445800781 209.89480590820312,82.77497863769531 " shape="regularPoly" sides="3" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)"/>
+  <polygon cx="156.5" cy="44" edge="19.7" fill="#3e5163" id="svg_14" orient="x" points="247.11907958984375,83.03584289550781 255.96795654296875,96.09455871582031 238.27020263671875,96.09455871582031 247.11907958984375,83.03584289550781 " shape="regularPoly" sides="3" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)"/>
+  <polygon cx="156.5" cy="44" edge="19.7" fill="#3e5163" id="svg_16" orient="x" points="134.59030151367188,126.00367736816406 125.74142456054688,112.94496154785156 143.43917846679688,112.94496154785156 134.59030151367188,126.00367736816406 " shape="regularPoly" sides="3" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)"/>
+  <polygon cx="156.5" cy="44" edge="19.7" fill="#3e5163" id="svg_17" orient="x" points="172.8963623046875,126.00367736816406 164.0474853515625,112.94496154785156 181.7452392578125,112.94496154785156 172.8963623046875,126.00367736816406 " shape="regularPoly" sides="3" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)"/>
+  <polygon cx="156.5" cy="44" edge="19.7" fill="#3e5163" id="svg_18" orient="x" points="209.80548095703125,126.00367736816406 200.95660400390625,112.94496154785156 218.65435791015625,112.94496154785156 209.80548095703125,126.00367736816406 " shape="regularPoly" sides="3" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)"/>
+  <polygon cx="156.5" cy="44" edge="19.7" fill="#3e5163" id="svg_19" orient="x" points="247.03997802734375,125.89300537109375 238.19110107421875,112.83428955078125 255.88885498046875,112.83428955078125 247.03997802734375,125.89300537109375 " shape="regularPoly" sides="3" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)"/>
+  <rect fill="#3e5163" height="16.91" id="svg_1" rx="2" ry="2" stroke="#000000" stroke-width="3" transform="rotate(-45 190 104.455)" width="135" x="122.3" y="96"/>
+ </g>
+</svg>

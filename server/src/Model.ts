@@ -1,8 +1,8 @@
 import * as SocketIO from 'socket.io';
 import Game from './Game';
-import WaterTerrainData from './WaterTerrainData';
+import WaterTerrainData from './map/WaterTerrainData';
 import CollisionPoints from './CollisionPoints';
-import MapData from './MapData';
+import MapData from './map/MapData';
 //node modules
 import * as fs from 'fs';
 import * as path from 'path';

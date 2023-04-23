@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<svg width="340" height="340" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - https://github.com/SVG-Edit/svgedit-->
+ <g class="layer">
+  <title>Layer 1</title>
+  <ellipse cx="170" cy="170" fill="#000000" fill-opacity="0.2" id="circle" rx="165" ry="165" stroke="#000000" stroke-linecap="round" stroke-width="7"/>
+  <polygon fill="#93C2DE" id="svg_1" points="133.51828002929688,176.68272399902344 229.2474822998047,66.81138610839844 272.1112060546875,59.30299377441406 144.12489318847656,187.28932189941406 " stroke="#000000"/>
+  <polygon fill="#B7D7F2" id="svg_3" points="153.5294189453125,197.4009552001953 262.83502197265625,101.10610961914062 271.7576599121094,59.65654754638672 143.77133178710938,187.6428680419922 " stroke="#000000"/>
+  <rect fill="#652a1f" height="17" id="svg_2" rx="1" ry="1" stroke="#000000" stroke-linecap="round" stroke-width="3" transform="matrix(0.707107 -0.707107 0.707107 0.707107 -156.789 115.478)" width="86" x="70" y="254.56"/>
+  <path fill="none" id="svg_5" stroke="#191919"/>
+  <rect fill="#f0cd50" height="47" id="svg_6" rx="5" ry="5" stroke="#191919" stroke-linecap="round" stroke-width="3" transform="matrix(0.707107 -0.707107 0.707107 0.707107 -156.789 115.478)" width="15" x="146" y="240.06"/>
+  <polygon cx="86.5" cy="296" edge="16.51" fill="#f0cd50" id="svg_7" orient="x" points="81.0985107421875,248.9014892578125 84.11903381347656,266.19140625 68.6959228515625,273.8566589355469 56.14335632324219,261.3040771484375 63.80860900878906,245.88095092773438 81.0985107421875,248.9014892578125 " shape="regularPoly" sides="5" stroke="#000000" stroke-width="3" transform="rotate(36.509 70.1312 259.869)"/>
+ </g>
+</svg>

@@ -4,7 +4,7 @@ import Player from './Player';
 import PlayerSnapshot from './PlayerSnapshot';
 import Zone from './Zone';
 import ZoneSnapshot from './ZoneSnapshot';
-import LootSnapshot from './LootSnapshot';
+import LootSnapshot from './loot/LootSnapshot';
 import Map from './Map';
 import MyPlayerSnapshot from './MyPlayerSnapshot';
 import Message from './Message';
@@ -410,8 +410,8 @@ export default class SnapshotManager {
 				for (const bullet of copyFrom.b) {
 					this.betweenSnapshot.b.push({ ...bullet });
 				}
-				for (const granade of copyFrom.g) {
-					this.betweenSnapshot.g.push({ ...granade });
+				for (const grenade of copyFrom.g) {
+					this.betweenSnapshot.g.push({ ...grenade });
 				}
 				for (const smoke of copyFrom.s) {
 					this.betweenSnapshot.s.push({ ...smoke });
@@ -498,7 +498,7 @@ export default class SnapshotManager {
 					playerInstance.setY(playerSnapshot.y);
 					playerInstance.setAngle(playerSnapshot.a);
 					playerInstance.setWeapon(playerSnapshot.w);
-					playerInstance.setHammerAngle(playerSnapshot.m);
+					playerInstance.setWeaponAngle(playerSnapshot.m);
 					if (playerSnapshot.l === 0) playerInstance.die();
 					//hands
 					playerInstance.hands[0].setX(playerSnapshot.lX);

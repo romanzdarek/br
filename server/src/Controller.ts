@@ -2,7 +2,7 @@ import * as SocketIO from 'socket.io';
 import Model from './Model';
 import Point from './Point';
 import Editor from './Editor';
-import MapData from './MapData';
+import MapData from './map/MapData';
 import { appVariant } from './app';
 
 export default class Controller {
@@ -23,7 +23,21 @@ export default class Controller {
 			socket.emit('debug', `Server (${appVariant} variant) connected.`);
 			this.model.updateListOpenGames();
 			socket.emit('listOfMaps', this.model.getMapNames());
-			socket.emit('collisionPoints', this.model.collisionPoints.body, this.model.collisionPoints.hand, this.model.collisionPoints.hammer.getAllPoints());
+			socket.emit(
+				'collisionPoints',
+				this.model.collisionPoints.body,
+				this.model.collisionPoints.hand,
+
+				/*
+				this.model.collisionPoints.maceBlock.getAllPoints(),
+				this.model.collisionPoints.swordBlock.getAllPoints(),
+				this.model.collisionPoints.halberdBlock.getAllPoints()
+				*/
+
+				this.model.collisionPoints.mace.getAllPoints(),
+				this.model.collisionPoints.sword.getAllPoints(),
+				this.model.collisionPoints.halberd.getAllPoints()
+			);
 
 			//leave game
 			socket.on('leaveGame', (gameId: number) => {

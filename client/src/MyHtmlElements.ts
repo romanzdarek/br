@@ -29,6 +29,8 @@ export default class MyHtmlElements {
 		in: document.getElementById('healthBarIn'),
 	};
 
+	readonly backToMainMenu = document.getElementById('backToMainMenu');
+
 	readonly items = {
 		redAmmo: document.getElementById('redAmmo'),
 		greenAmmo: document.getElementById('greenAmmo'),
@@ -70,6 +72,7 @@ export default class MyHtmlElements {
 		obstacleBush: document.getElementById('editorObstacleBush'),
 		obstacleRock: document.getElementById('editorObstacleRock'),
 		obstacleTree: document.getElementById('editorObstacleTree'),
+		obstacleCamo: document.getElementById('editorObstacleCamo'),
 
 		obstacleTreeSize: document.getElementById('editorObstacleTreeSize'),
 		obstacleBushSize: document.getElementById('editorObstacleBushSize'),
@@ -77,6 +80,7 @@ export default class MyHtmlElements {
 
 		obstacleBoxSize: document.getElementById('editorObstacleBoxSize'),
 		obstacleBlockSize: document.getElementById('editorObstacleBlockSize'),
+		obstacleCamoSize: document.getElementById('editorObstacleCamoSize'),
 
 		obstacleMinShiftX: document.getElementById('editorObstacleMinShiftX'),
 		obstacleMinShiftY: document.getElementById('editorObstacleMinShiftY'),

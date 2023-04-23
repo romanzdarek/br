@@ -9,6 +9,7 @@ import MapData from './MapData';
 import { ObstacleType } from './obstacle/ObstacleType';
 import Box from './obstacle/Box';
 import Block from './obstacle/Block';
+import Camo from './obstacle/Camo';
 
 type MapBlock = {
 	x: number;
@@ -91,6 +92,10 @@ export default class Map {
 
 				case ObstacleType.Block:
 					newObstacle = new Block(id++, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+					break;
+
+				case ObstacleType.Camo:
+					newObstacle = new Camo(id++, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
 					break;
 			}
 

@@ -5,8 +5,8 @@ class BulletFactory {
     createBullet(player, gun, map, players, shiftAngle = 0) {
         return Bullet_1.default.createBullet(BulletFactory.bulletId++, player, gun, map, players, shiftAngle);
     }
-    createFragment(granade, map, players, shiftAngle) {
-        return Bullet_1.default.createFragment(BulletFactory.bulletId++, granade.player, granade, map, players, shiftAngle);
+    createFragment(Grenade, map, players, shiftAngle) {
+        return Bullet_1.default.createFragment(BulletFactory.bulletId++, Grenade.player, Grenade, map, players, shiftAngle);
     }
 }
 exports.default = BulletFactory;

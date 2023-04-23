@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Snapshot {
-    constructor(time, players, bullets, granades, smokes, zone, loots, obstacles, messages, waterCircleSnapshots, sounds, myPlayerSnapshot) {
+    constructor(time, players, bullets, grenades, smokes, zone, loots, obstacles, messages, waterCircleSnapshots, sounds, myPlayerSnapshot) {
         this.t = time;
         this.p = players;
         this.b = bullets;
-        this.g = granades;
+        this.g = grenades;
         this.s = smokes;
         this.z = zone;
         this.l = loots;
