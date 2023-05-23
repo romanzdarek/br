@@ -2,7 +2,7 @@
 
     const time = new Date();
 
-    if(time.getHours() === 2 || (time.getHours() === 3 && time.getMinutes < 15 )){
+    if(time.getHours() >= 2 && time.getHours() <= 4){
         setImmediate(() => {
             loop();
         });
